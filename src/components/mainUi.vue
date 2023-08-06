@@ -74,6 +74,7 @@
         border-radius: 4px;
         cursor: pointer;
         font-family: Source Han Sans CN;
+        user-select: none;
         span {
             font-size: 18px;
             color: #FFFFFF;
@@ -92,9 +93,11 @@
     padding: 19px;
     box-shadow: 0px 3px 6px 0px rgba(221,223,230,0.31);
     font-family: Source Han Sans CN;
+    user-select: none;
     img {
         width: 22px;
         height: 22px;
+        -webkit-user-drag: none;
     }
     .avatar {
         flex: 1;
@@ -103,11 +106,13 @@
         img {
             width: 54px;
             height: 54px;
+            -webkit-user-drag: none;
         }
         span {
             margin-left: 19px;
             font-size: 30px;
             color: #333333;
+            user-select: text;
         }
     }
 }
