@@ -13,6 +13,7 @@
                 <input type="text">
                 <button>
                     <span>发送</span>
+                    <img src="../assets/send.png" alt="send">
                 </button>
             </section>
         </section>
@@ -43,8 +44,28 @@
 .text-send {
     height: 7vh;
     display: flex;
+    box-sizing: border-box;
+    padding: 8px;
     input {
         flex: 1;
+    }
+    button {
+        width: 140px;
+        background: #2F88FF;
+        outline: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: none;
+        span {
+            font-size: 18px;
+            color: #FFFFFF;
+        }
+        img {
+            width: 18px;
+            height: 18px;
+            margin-left: 12px;
+        }
     }
 }
 </style>
