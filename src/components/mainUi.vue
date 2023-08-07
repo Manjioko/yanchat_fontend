@@ -183,7 +183,7 @@ const textList = ref([
         font-size: 18px;
         background: #EBF3FE;
         // opacity: 0.5;
-        border-radius: 10px 10px 10px 0px;
+        border-radius: 10px 10px 0px 10px;
     }
 }
 </style>
