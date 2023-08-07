@@ -1,6 +1,13 @@
 <script setup>
 
 import { ref } from 'vue'
+// import PerfectScrollbar from 'perfect-scrollbar'
+
+// new PerfectScrollbar('#container',{
+//     wheelSpeed: 2,
+//     wheelPropagation: true,
+//     minScrollbarLength: 20
+// })
 
 const textList = ref([
     {
@@ -36,7 +43,7 @@ const textList = ref([
                 </div>
                 <img src="../assets/setting.png" alt="setting">
             </section>
-            <section class="text-show">
+            <section class="text-show" id="container">
                 <div v-for="(textObject, idx) in textList" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
                     <div class="chat-box-remote" v-if="!textObject.user">
