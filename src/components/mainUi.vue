@@ -1,8 +1,21 @@
 <script setup>
 
-// import { ref } from 'vue'
+import { ref } from 'vue'
 
-// const count = ref(0)
+const textList = ref([
+    {
+        user: 0,
+        text: '我们今天中午去吃火锅吧?🤣🤣🤣',
+    },
+    {
+        user: 1,
+        text: '好啊好啊你请客?',
+    },
+    {
+        user: 1,
+        text: '🉑🉑❤️',
+    }
+])
 
 </script>
 <template>
@@ -15,7 +28,24 @@
                 </div>
                 <img src="../assets/setting.png" alt="setting">
             </section>
-            <section class="text-show"></section>
+            <section class="text-show">
+                <div v-for="(textObject, idx) in textList" :key="idx">
+                    <div class="chat-box-remote" v-if="!textObject.user">
+                        <img src="../assets/avatar1.png" alt="其他">
+                        <div class="chat-box-remote-message">
+                            <span class="chat-box-remote-message-text">
+                                {{ textObject.text }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="chat-box-local" v-else>
+                        <span class="chat-box-local-message">
+                            {{ textObject.text }}
+                        </span>
+                        <img src="../assets/avatar2.png" alt="其他">
+                    </div>
+                </div>
+            </section>
             <section class="text-send">
                 <input type="text" placeholder="在这里输入你的消息...">
                 <button>
@@ -98,6 +128,7 @@
         width: 22px;
         height: 22px;
         -webkit-user-drag: none;
+        cursor: pointer;
     }
     .avatar {
         flex: 1;
@@ -114,6 +145,45 @@
             color: #333333;
             user-select: text;
         }
+    }
+}
+.chat-box-remote {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    img {
+        width: 54px;
+        height: 54px;
+        padding: 10px 20px;
+    }
+    .chat-box-remote-message {
+        display: block;
+        box-sizing: border-box;
+        padding: 20px;
+        font-size: 18px;
+        background: #F8F8F8;
+        // opacity: 0.5;
+        border-radius: 10px 10px 10px 0px;
+    }
+}
+.chat-box-local {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 15px 0;
+    img {
+        width: 54px;
+        height: 54px;
+        padding: 10px 20px;
+    }
+    .chat-box-local-message {
+        display: block;
+        box-sizing: border-box;
+        padding: 20px;
+        font-size: 18px;
+        background: #EBF3FE;
+        // opacity: 0.5;
+        border-radius: 10px 10px 10px 0px;
     }
 }
 </style>
