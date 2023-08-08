@@ -1,12 +1,13 @@
 <template>
   <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
   <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-  <cmain />
+  <!-- <cmain /> -->
+  <router-view></router-view>
 </template>
 
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
-import cmain from './components/mainUi.vue'
+import cmain from './view/mainUi.vue'
 
 export default {
   name: 'App',

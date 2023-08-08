@@ -3,14 +3,16 @@
 import { ref, onMounted } from 'vue'
 
 const textList = ref([])
-
+let id = ''
 onMounted(() => {
-    connectWebSocket()
+    const [myId, otherId] = localStorage.getItem('id').split('//')
+    console.log('get id is : ', myId, otherId, localStorage.getItem('id').split('//'))
+    id = myId
+    connectWebSocket(myId, otherId)
 })
 
 let websocket
 const chatText = ref('')
-const id = 'client1'
 
 function appendMessage(message, type) {
     if (type === 'sent') {
@@ -39,9 +41,9 @@ function appendMessage(message, type) {
     }
 }
 
-function connectWebSocket() {
+function connectWebSocket(myId, otherId) {
     // 请将ws://your-websocket-server-address 替换为您的WebSocket服务端地址
-    websocket = new WebSocket('ws://127.0.0.1:8000/?id=client1&to=client2');
+    websocket = new WebSocket(`ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`);
 
     websocket.onopen = function () {
         appendMessage('已连接到WebSocket服务端', 'received');
