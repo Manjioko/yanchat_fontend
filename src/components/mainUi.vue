@@ -2,28 +2,7 @@
 
 import { ref, onMounted } from 'vue'
 
-const textList = ref([
-    {
-        user: 0,
-        text: '我们今天中午去吃火锅吧?🤣🤣🤣',
-    },
-    {
-        user: 0,
-        text: `易经，是阐述天地世间万象变化的古老经典。包括《连山》《归藏》《周易》三部易书，其中《连山》《归藏》已经失传，现存于世的只有《周易》。
-《易经》是中华民族智慧的结晶。 [1] 其从整体的角度去认识和把握世界，把人与自然看做是一个互相感应的有机整体，即“天人合一”。
-《易经》长期被用作“卜筮”。“卜筮”就是对未来事态的发展进行预测，而《易经》便是总结这些预测的规律理论的书。
-《易经》被誉为诸经之首。含盖万有，纲纪群伦，广大精微，包罗万象，是中华文明的源头。其内容涉及政治、经济、生活、文学、医学 [16] 、艺术、科学等诸多领域，是各家共同的经典`,
-    },
-    {
-        user: 1,
-        text: '好啊好啊你请客?',
-        time: '2023-08-06 12:30'
-    },
-    {
-        user: 1,
-        text: '🉑🉑❤️',
-    }
-])
+const textList = ref([])
 
 onMounted(() => {
     connectWebSocket()
@@ -31,16 +10,32 @@ onMounted(() => {
 
 let websocket
 const chatText = ref('')
+const id = 'client1'
 
 function appendMessage(message, type) {
-    //   const messageContainer = document.createElement('div');
-    //   messageContainer.classList.add('message-container');
     if (type === 'sent') {
-        // messageContainer.classList.add('sent-message');
         console.log('发送一些信息：', message)
+        textList.value.push({
+            text: message,
+            user: 1
+        })
     } else if (type === 'received') {
         // messageContainer.classList.add('received-message');
         console.log('收到一些信息：', message)
+        const text = message.replace(/(.+)?-(\d+)?:(.+)/, (m, v, v2, v3) => {
+            if (v === id) {
+                return JSON.stringify({text: v3, user:1})
+            } else if (v) {
+                return JSON.stringify({text: v3, user:0})
+            } else {
+                return JSON.stringify({text: m, user:0})
+            }
+        })
+        try {
+            textList.value.push(JSON.parse(text))
+        } catch {
+            textList.value.push({ text: message, user: 0 })
+        }
     }
 }
 
