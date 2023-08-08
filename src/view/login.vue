@@ -9,7 +9,7 @@ onMounted(() => {
 })
 function login () {
     if (myId.value && otherId.value) {
-        localStorage.setItem('id', `${myId.value}//${otherId.value}`)
+        sessionStorage.setItem('id', `${myId.value}//${otherId.value}`)
         router.value.push({ name: 'Chat' })
     }
 }

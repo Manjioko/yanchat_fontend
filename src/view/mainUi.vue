@@ -5,8 +5,8 @@ import { ref, onMounted } from 'vue'
 const textList = ref([])
 let id = ''
 onMounted(() => {
-    const [myId, otherId] = localStorage.getItem('id').split('//')
-    console.log('get id is : ', myId, otherId, localStorage.getItem('id').split('//'))
+    const [myId, otherId] = sessionStorage.getItem('id').split('//')
+    // console.log('get id is : ', myId, otherId, localStorage.getItem('id').split('//'))
     id = myId
     connectWebSocket(myId, otherId)
 })
