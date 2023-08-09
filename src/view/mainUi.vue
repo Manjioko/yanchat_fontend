@@ -1,9 +1,13 @@
 <script setup>
 
 import { ref, onMounted } from 'vue'
+// import reconnect from '@/utils/reconnect.js'
+// import bus from '@/utils/bus.js'
 
 const textList = ref([])
+let websocket
 let id = ''
+let isConnectedText = ref('')
 onMounted(() => {
     const [myId, otherId] = sessionStorage.getItem('id').split('//')
     // console.log('get id is : ', myId, otherId, localStorage.getItem('id').split('//'))
@@ -11,7 +15,6 @@ onMounted(() => {
     connectWebSocket(myId, otherId)
 })
 
-let websocket
 const chatText = ref('')
 
 function appendMessage(message, type) {
@@ -43,23 +46,24 @@ function appendMessage(message, type) {
 
 function connectWebSocket(myId, otherId) {
     // 请将ws://your-websocket-server-address 替换为您的WebSocket服务端地址
-    websocket = new WebSocket(`ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`);
+    websocket = new WebSocket(`ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`)
 
     websocket.onopen = function () {
-        appendMessage('已连接到WebSocket服务端', 'received');
-    };
+        appendMessage('已连接到WebSocket服务端', 'received')
+    }
 
     websocket.onmessage = function (event) {
-        appendMessage(event.data, 'received');
-    };
+        appendMessage(event.data, 'received')
+    }
 
     websocket.onclose = function () {
-        appendMessage('与WebSocket服务端的连接已关闭', 'received');
-    };
+        appendMessage('与WebSocket服务端的连接已关闭', 'received')
+        // reconnect()
+    }
 
     websocket.onerror = function () {
-        appendMessage('WebSocket错误发生', 'received');
-    };
+        appendMessage('WebSocket错误发生', 'received')
+    }
 }
 
 function sendMessage() {
@@ -80,8 +84,10 @@ function hdkeydown() {
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar">
+                    <div class="isOnlink"></div>
                     <img src="../assets/avatar1.png" alt="avatar">
                     <span>Manjioko🐶</span>
+                    <span v-if="isConnectedText">{{ isConnectedText }}</span>
                 </div>
                 <img src="../assets/setting.png" alt="setting">
             </section>
@@ -204,6 +210,7 @@ function hdkeydown() {
         flex: 1;
         display: flex;
         align-items: center;
+        position: relative;
 
         img {
             width: 54px;
@@ -274,7 +281,15 @@ function hdkeydown() {
     font-family: Source Han Sans CN;
     padding: 10px;
 }
-
+.isOnlink {
+    width: 15px;
+    height: 15px;
+    background: #00daff;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 50px;
+}
 // /* 隐藏原生滚动条 */
 // ::-webkit-scrollbar {
 //   width: 8px;

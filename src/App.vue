@@ -7,13 +7,13 @@
 
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
-import cmain from './view/mainUi.vue'
+// import cmain from './view/mainUi.vue'
 
 export default {
   name: 'App',
   components: {
     // HelloWorld
-    cmain
+    // cmain
   }
 }
 </script>
