@@ -1,18 +1,31 @@
 <script setup>
 
-import { ref, onMounted } from 'vue'
-// import reconnect from '@/utils/reconnect.js'
-// import bus from '@/utils/bus.js'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+import ws from '@/utils/ws.js'
 
-const textList = ref([])
-let websocket
+let textList = ref([])
+// websocket 客户端
+let websocket = ref({})
+// 自己 ID
 let id = ''
-let isConnectedText = ref('')
+// 连接信号
+let signal = ref(0)
+
 onMounted(() => {
     const [myId, otherId] = sessionStorage.getItem('id').split('//')
-    // console.log('get id is : ', myId, otherId, localStorage.getItem('id').split('//'))
+    // 如果获取不到 id 必须返回登录页
+    if (!myId || !otherId) {
+        useRouter().push({name: 'Login'})
+    }
     id = myId
-    connectWebSocket(myId, otherId)
+    const url = `ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`
+    ws(websocket.value, url, appendMessage, signal)
+})
+
+onBeforeUnmount(() => {
+    // 卸载 websocket
+    websocket?.value?.close()
 })
 
 const chatText = ref('')
@@ -24,7 +37,8 @@ function appendMessage(message, type) {
             text: message,
             user: 1
         })
-    } else if (type === 'received') {
+    }
+    if (type === 'received') {
         // messageContainer.classList.add('received-message');
         console.log('收到一些信息：', message)
         const text = message.replace(/(.+)?-(\d+)?:(.+)/, (m, v, v2, v3) => {
@@ -44,37 +58,17 @@ function appendMessage(message, type) {
     }
 }
 
-function connectWebSocket(myId, otherId) {
-    // 请将ws://your-websocket-server-address 替换为您的WebSocket服务端地址
-    websocket = new WebSocket(`ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`)
-
-    websocket.onopen = function () {
-        appendMessage('已连接到WebSocket服务端', 'received')
-    }
-
-    websocket.onmessage = function (event) {
-        appendMessage(event.data, 'received')
-    }
-
-    websocket.onclose = function () {
-        appendMessage('与WebSocket服务端的连接已关闭', 'received')
-        // reconnect()
-    }
-
-    websocket.onerror = function () {
-        appendMessage('WebSocket错误发生', 'received')
-    }
-}
-
 function sendMessage() {
+    if (signal.value !== 1) return
     const message = chatText.value;
     if (websocket && message) {
-        websocket.send(message);
+        websocket.value.send(message);
         appendMessage(message, 'sent');
         chatText.value = ''
     }
 }
 function hdkeydown() {
+    if (signal.value !== 1) return
     sendMessage()
 }
 
@@ -84,10 +78,11 @@ function hdkeydown() {
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar">
-                    <div class="isOnlink"></div>
+                    <div :class="{isOnlink: signal === 1, isUnlink: signal !== 1}"></div>
                     <img src="../assets/avatar1.png" alt="avatar">
                     <span>Manjioko🐶</span>
-                    <span v-if="isConnectedText">{{ isConnectedText }}</span>
+                    <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
+                    <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
                 </div>
                 <img src="../assets/setting.png" alt="setting">
             </section>
@@ -289,6 +284,25 @@ function hdkeydown() {
     position: absolute;
     top: 0;
     left: 50px;
+}
+.isUnlink {
+    width: 15px;
+    height: 15px;
+    background: red;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 50px; 
+}
+.reconnect {
+    font-size: 14px !important;
+    color: #9f9f9f !important;
+    margin-top: 12px !important;
+}
+.disconnect {
+    font-size: 14px !important;
+    color: #ff7373 !important;
+    margin-top: 12px !important;
 }
 // /* 隐藏原生滚动条 */
 // ::-webkit-scrollbar {
