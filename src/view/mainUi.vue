@@ -20,7 +20,7 @@ onMounted(() => {
     }
     id = myId
     const url = `ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`
-    ws(websocket.value, url, appendMessage, signal)
+    ws(websocket, url, appendMessage, signal)
 })
 
 onBeforeUnmount(() => {
@@ -61,7 +61,10 @@ function appendMessage(message, type) {
 function sendMessage() {
     if (signal.value !== 1) return
     const message = chatText.value;
+    // console.log('websocket ', websocket.value)
     if (websocket && message) {
+        // websocket 再客户端成功连接后,会保存一个实例
+        // 可以通过该实例收发信息
         websocket.value.send(message);
         appendMessage(message, 'sent');
         chatText.value = ''
