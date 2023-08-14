@@ -1,6 +1,6 @@
 <script setup>
 
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ws from '@/utils/ws.js'
 
@@ -75,6 +75,15 @@ function hdkeydown() {
     sendMessage()
 }
 
+// 接收到信息时信息栏滚动到底部
+const chatWindow = ref(null)
+watch(textList.value, () => {
+    if (chatWindow.value) {
+        nextTick(() => {
+            chatWindow.value.scrollTop = chatWindow.value.scrollHeight
+        })
+    }
+})
 </script>
 <template>
     <main class="main">
@@ -89,7 +98,7 @@ function hdkeydown() {
                 </div>
                 <img src="../assets/setting.png" alt="setting">
             </section>
-            <section class="text-show" id="container">
+            <section class="text-show" id="container" ref="chatWindow">
                 <div v-for="(textObject, idx) in textList" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
                     <div class="chat-box-remote" v-if="!textObject.user">
