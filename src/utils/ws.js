@@ -1,4 +1,4 @@
-const MAX_RETRIES = 10
+const MAX_RETRIES = 0
 let retryCount = 0
 
 function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconnect=0') {

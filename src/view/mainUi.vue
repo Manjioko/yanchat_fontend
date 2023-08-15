@@ -3,12 +3,15 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ws from '@/utils/ws.js'
+import sendFile from '@/components/sendFile.vue'
 
 let textList = ref([])
 // websocket 客户端
 let websocket = ref({})
 // 自己 ID
 let id = ''
+// 聊天对象的 id
+let other = ref('')
 // 连接信号
 let signal = ref(0)
 
@@ -19,6 +22,7 @@ onMounted(() => {
         useRouter().push({name: 'Login'})
     }
     id = myId
+    other.value = otherId
     const url = `${process.env.VUE_APP_WS}?id=${myId}&to=${otherId}`
     ws(websocket, url, appendMessage, signal)
 })
@@ -128,14 +132,14 @@ function uploadFile(e) {
                 <div class="avatar">
                     <div :class="{isOnlink: signal === 1, isUnlink: signal !== 1}"></div>
                     <img src="../assets/avatar1.png" alt="avatar">
-                    <span>Manjioko🐶</span>
+                    <span>{{ other }}</span>
                     <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
                     <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
                 </div>
                 <img src="../assets/setting.png" alt="setting">
             </section>
             <section class="text-show" id="container" ref="chatWindow">
-                <div v-for="(textObject, idx) in textList" :key="idx">
+                <!-- <div v-for="(textObject, idx) in textList" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
                     <div class="chat-box-remote" v-if="!textObject.user">
                         <img src="../assets/avatar1.png" alt="其他">
@@ -151,7 +155,13 @@ function uploadFile(e) {
                         </span>
                         <img src="../assets/avatar2.png" alt="其他">
                     </div>
-                </div>
+                </div> -->
+                <div class="chat-box-local">
+                        <span class="chat-box-local-message">
+                            <sendFile />
+                        </span>
+                        <img src="../assets/avatar2.png" alt="其他">
+                    </div>
             </section>
             <section class="text-send">
                 <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
