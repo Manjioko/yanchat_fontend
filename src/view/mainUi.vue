@@ -19,7 +19,7 @@ onMounted(() => {
         useRouter().push({name: 'Login'})
     }
     id = myId
-    const url = `ws://127.0.0.1:8000/?id=${myId}&to=${otherId}`
+    const url = `${process.env.VUE_APP_WS}?id=${myId}&to=${otherId}`
     ws(websocket, url, appendMessage, signal)
 })
 
@@ -84,6 +84,42 @@ watch(textList.value, () => {
         })
     }
 })
+
+// 文件上传
+function uploadFile(e) {
+    // console.log('eeee ', e.target.files[0])
+    const formData = new FormData()
+    console.log(e.target.files[0])
+    formData.append("file", e.target.files[0])
+    const xhr = new XMLHttpRequest()
+
+    // 监听上传进度事件
+    xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        console.log(`文件上传进度: ${percentComplete.toFixed(2)}%`);
+        }
+    });
+
+    // 监听上传完成事件
+    xhr.addEventListener('load', () => {
+        console.log('上传文件完成。');
+    });
+
+    // 监听上传错误事件
+    xhr.addEventListener('error', () => {
+        console.error('上传失败。');
+    });
+
+
+    xhr.open('post', process.env.VUE_APP_FILE)
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
+            console.log(xhr)
+        }
+    }
+    xhr.send(formData)
+}
 </script>
 <template>
     <main class="main">
@@ -119,7 +155,11 @@ watch(textList.value, () => {
             </section>
             <section class="text-send">
                 <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
-                <button @click="sendMessage">
+                <div class="upload">
+                    <img src="../assets/uploadIcon.png" alt="upload">
+                    <input type="file" @change="uploadFile">
+                </div>
+                <button @click="sendMessage" class="send-btn">
                     <span>发送</span>
                     <img src="../assets/send.png" alt="send">
                 </button>
@@ -162,6 +202,7 @@ watch(textList.value, () => {
     box-sizing: border-box;
     padding: 25px 20px 25px 20px;
     border-top: 2px solid #F5F6FA;
+    align-items: center;
 
     input {
         flex: 1;
@@ -316,6 +357,29 @@ watch(textList.value, () => {
     color: #ff7373 !important;
     margin-top: 12px !important;
 }
+.upload {
+    width: 27px;
+    height: 25px;
+    position: relative;
+    margin-right: 20px;
+    margin-left: 10px;
+    img {
+        width: inherit;
+        height: inherit;
+    }
+    input {
+        position: absolute;
+        width: 27px;
+        height: 25px;
+        top: 0;
+        left: 0;
+        opacity: 0;
+    }
+}
+.send-btn {
+    height: 100%;
+}
+
 // /* 隐藏原生滚动条 */
 // ::-webkit-scrollbar {
 //   width: 8px;

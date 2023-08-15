@@ -9,8 +9,11 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
+    "element-plus": "^2.3.9",
     "sass": "^1.64.2",
     "sass-loader": "^13.3.2",
+    "unplugin-auto-import": "^0.16.6",
+    "unplugin-vue-components": "^0.25.1",
     "vue": "^3.2.13",
     "vue-router": "^4.2.4"
   },
