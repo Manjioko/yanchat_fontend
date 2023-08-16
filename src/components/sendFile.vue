@@ -1,4 +1,11 @@
 <script setup>
+import { defineProps } from 'vue'
+defineProps({
+    progress: Number,
+    type: String,
+    fileName: String
+})
+
 
 </script>
 
@@ -6,15 +13,20 @@
 <template>
     <div class="pr">
         <section class="pr-word">
-            <div class="pr-message">九嘤真经.zip</div>
-            <div class="pr-tip">正在上传</div>
+            <div class="pr-message">{{ fileName }}</div>
+            <div class="pr-tip">{{ progress < 100 ? '正在上传' : '' }}</div>
         </section>
         <section class="pr-container">
-            <div>
-                <img src="../assets/uploadingZipFile.png" alt="uploadingZipFile" width="49">
+            <div v-if="type === 'zip'">
+                <img v-if="progress < 100" src="../assets/uploadingZipFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress >= 100" src="../assets/uploadedZipFile.png" alt="uploadingZipFile" width="49">
             </div>
-            <div class="progress">
-                <el-progress type="circle" :percentage="60" color="#fff" :stroke-width="2" :width="22">
+            <div v-else>
+                <img v-if="progress < 100" src="../assets/uploadingFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress >= 100" src="../assets/uploadedFile.png" alt="uploadingZipFile" width="49">
+            </div>
+            <div class="progress" v-if="progress < 100" >
+                <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="2" :width="22">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
                             <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
@@ -31,6 +43,8 @@
     .pr {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        width: 250px;
     }
     .pr-container {
         position: relative;
@@ -49,9 +63,6 @@
         //    /deep/ .el-progress__text { // 修改进度条文字提示颜色
         //        color: #00C7FD; 
         //    }
-   }
-   .pr-word {
-        margin-right: 140px;
    }
    .pr-message {
         font-size: 18px;

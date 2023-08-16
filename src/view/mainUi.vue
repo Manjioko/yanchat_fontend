@@ -89,6 +89,7 @@ watch(textList.value, () => {
     }
 })
 
+// const fileMsgs = ref([])
 // 文件上传
 function uploadFile(e) {
     // console.log('eeee ', e.target.files[0])
@@ -96,18 +97,27 @@ function uploadFile(e) {
     console.log(e.target.files[0])
     formData.append("file", e.target.files[0])
     const xhr = new XMLHttpRequest()
-
+    const index = textList.value.length
+    textList.value.push({
+        progress: 0,
+        type: 'file',
+        fileName: e.target.files[0].name,
+        size: e.target.files[0].size,
+        user: 1
+    })
     // 监听上传进度事件
     xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        console.log(`文件上传进度: ${percentComplete.toFixed(2)}%`);
+            const percentComplete = (event.loaded / event.total) * 100;
+            console.log(`文件上传进度: ${percentComplete.toFixed(2)}%`);
+            textList.value[index].progress = percentComplete
         }
     });
 
     // 监听上传完成事件
     xhr.addEventListener('load', () => {
-        console.log('上传文件完成。');
+        console.log('上传文件完成。')
+        // appendMessage(textList.value[index], 'sent')
     });
 
     // 监听上传错误事件
@@ -139,29 +149,50 @@ function uploadFile(e) {
                 <img src="../assets/setting.png" alt="setting">
             </section>
             <section class="text-show" id="container" ref="chatWindow">
-                <!-- <div v-for="(textObject, idx) in textList" :key="idx">
+                <div v-for="(textObject, idx) in textList" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
                     <div class="chat-box-remote" v-if="!textObject.user">
                         <img src="../assets/avatar1.png" alt="其他">
                         <div class="chat-box-remote-message">
                             <span class="chat-box-remote-message-text">
-                                {{ textObject.text }}
+                               <span v-if="!textObject.type"> {{ textObject.text }}</span>
+                               <sendFile
+                                    :progress="textObject.progress"
+                                    :type="textObject.type"
+                                    :fileName="textObject.fileName"
+                               />
                             </span>
                         </div>
                     </div>
                     <div class="chat-box-local" v-else>
                         <span class="chat-box-local-message">
-                            {{ textObject.text }}
+                            <span v-if="!textObject.type"> {{ textObject.text }}</span>
+                            <sendFile
+                                :progress="textObject.progress"
+                                :type="textObject.type"
+                                :fileName="textObject.fileName"
+                            />
                         </span>
                         <img src="../assets/avatar2.png" alt="其他">
                     </div>
-                </div> -->
+                </div>
+
+
+                <!-- <div class="chat-box-remote">
+                    <img src="../assets/avatar1.png" alt="其他">
+                    <div class="chat-box-remote-message">
+                        <span class="chat-box-remote-message-text">
+                            <sendFile :progress="60" type="file" />
+                        </span> 
+                    </div>
+                </div>
+
                 <div class="chat-box-local">
-                        <span class="chat-box-local-message">
-                            <sendFile />
-                        </span>
-                        <img src="../assets/avatar2.png" alt="其他">
-                    </div>
+                    <span class="chat-box-local-message">
+                        <sendFile :progress="50" type="zip" />
+                    </span>
+                    <img src="../assets/avatar2.png" alt="其他">
+                </div> -->
             </section>
             <section class="text-send">
                 <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
