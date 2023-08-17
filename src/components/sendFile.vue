@@ -3,7 +3,8 @@ import { defineProps } from 'vue'
 defineProps({
     progress: Number,
     type: String,
-    fileName: String
+    fileName: String,
+    size: String
 })
 
 
@@ -14,7 +15,7 @@ defineProps({
     <div class="pr">
         <section class="pr-word">
             <div class="pr-message">{{ fileName }}</div>
-            <div class="pr-tip">{{ progress < 100 ? '正在上传' : '' }}</div>
+            <div class="pr-tip">{{ progress < 100 ? '正在上传' : size }}</div>
         </section>
         <section class="pr-container">
             <div v-if="type === 'zip'">

@@ -43,15 +43,25 @@ function appendMessage(message, type) {
         })
     }
     if (type === 'received') {
-        // messageContainer.classList.add('received-message');
         console.log('收到一些信息：', message)
         const text = message.replace(/(.+)?-(\d+)?:(.+)/, (m, v, v2, v3) => {
+            const [t, s] = m.split('chat-file://')
+            // 文件信息
+            if (t && s) {
+                const o = JSON.parse(s)
+                if (v === id) {
+                    return JSON.stringify({ ...o, user: 1 })
+                } else if (v) {
+                    return JSON.stringify({ ...o, user: 0 })
+                }
+                return
+            }
+
+            // 正常信息
             if (v === id) {
-                return JSON.stringify({text: v3, user:1})
+                return JSON.stringify({ text: v3, user: 1 })
             } else if (v) {
-                return JSON.stringify({text: v3, user:0})
-            } else {
-                return JSON.stringify({text: m, user:0})
+                return JSON.stringify({ text: v3, user: 0 })
             }
         })
         try {
@@ -64,13 +74,21 @@ function appendMessage(message, type) {
 
 function sendMessage() {
     if (signal.value !== 1) return
-    const message = chatText.value;
+
+    // 记录文件上传记录
+    if (fileData.value) {
+        websocket.value.send(fileData.value)
+        fileData.value = ''
+        return
+    }
+
+    const message = chatText.value
     // console.log('websocket ', websocket.value)
     if (websocket && message) {
         // websocket 再客户端成功连接后,会保存一个实例
         // 可以通过该实例收发信息
-        websocket.value.send(message);
-        appendMessage(message, 'sent');
+        websocket.value.send(message)
+        appendMessage(message, 'sent')
         chatText.value = ''
     }
 }
@@ -89,7 +107,7 @@ watch(textList.value, () => {
     }
 })
 
-// const fileMsgs = ref([])
+let fileData = ref('')
 // 文件上传
 function uploadFile(e) {
     // console.log('eeee ', e.target.files[0])
@@ -97,12 +115,13 @@ function uploadFile(e) {
     console.log(e.target.files[0])
     formData.append("file", e.target.files[0])
     const xhr = new XMLHttpRequest()
+    // 文件信息所在下标
     const index = textList.value.length
     textList.value.push({
         progress: 0,
         type: 'file',
-        fileName: e.target.files[0].name,
-        size: e.target.files[0].size,
+        fileName: e.target.files[0]?.name,
+        size: byteCovert(e.target.files[0]?.size),
         user: 1
     })
     // 监听上传进度事件
@@ -117,22 +136,36 @@ function uploadFile(e) {
     // 监听上传完成事件
     xhr.addEventListener('load', () => {
         console.log('上传文件完成。')
-        // appendMessage(textList.value[index], 'sent')
-    });
+        fileData.value = 'chat-file://' + JSON.stringify(textList.value[index])
+        sendMessage()
+    })
 
     // 监听上传错误事件
     xhr.addEventListener('error', () => {
         console.error('上传失败。');
-    });
+    })
 
 
     xhr.open('post', process.env.VUE_APP_FILE)
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
-            console.log(xhr)
+            console.log('暗号正确,开始上传...')
         }
     }
     xhr.send(formData)
+}
+function byteCovert(size) {
+    const m_size = size / (1024 * 1024)
+
+    if (m_size < 1) {
+        return (m_size * 1024).toFixed(2) + ' K'
+    }
+
+    if (m_size > 1024) {
+        return (m_size / 1024).toFixed(2) + ' G'
+    }
+
+    return m_size.toFixed(2) + ' M'
 }
 </script>
 <template>
@@ -160,6 +193,7 @@ function uploadFile(e) {
                                     :progress="textObject.progress"
                                     :type="textObject.type"
                                     :fileName="textObject.fileName"
+                                    :size="textObject.size"
                                />
                             </span>
                         </div>
@@ -171,6 +205,7 @@ function uploadFile(e) {
                                 :progress="textObject.progress"
                                 :type="textObject.type"
                                 :fileName="textObject.fileName"
+                                :size="textObject.size"
                             />
                         </span>
                         <img src="../assets/avatar2.png" alt="其他">
@@ -200,7 +235,7 @@ function uploadFile(e) {
                     <img src="../assets/uploadIcon.png" alt="upload">
                     <input type="file" @change="uploadFile">
                 </div>
-                <button @click="sendMessage" class="send-btn">
+                <button @click="sendMessage($event)" class="send-btn">
                     <span>发送</span>
                     <img src="../assets/send.png" alt="send">
                 </button>
