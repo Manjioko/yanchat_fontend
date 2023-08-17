@@ -119,9 +119,10 @@ function uploadFile(e) {
     const index = textList.value.length
     textList.value.push({
         progress: 0,
-        type: 'file',
+        type: e.target.files[0]?.type,
         fileName: e.target.files[0]?.name,
         size: byteCovert(e.target.files[0]?.size),
+        response: '',
         user: 1
     })
     // 监听上传进度事件
@@ -134,8 +135,9 @@ function uploadFile(e) {
     });
 
     // 监听上传完成事件
-    xhr.addEventListener('load', () => {
-        console.log('上传文件完成。')
+    xhr.addEventListener('load', (res) => {
+        console.log('上传文件完成。', res.target.response)
+        textList.value[index].response = res.target.response
         fileData.value = 'chat-file://' + JSON.stringify(textList.value[index])
         sendMessage()
     })
@@ -190,10 +192,12 @@ function byteCovert(size) {
                             <span class="chat-box-remote-message-text">
                                <span v-if="!textObject.type"> {{ textObject.text }}</span>
                                <sendFile
+                                    v-else
                                     :progress="textObject.progress"
                                     :type="textObject.type"
                                     :fileName="textObject.fileName"
                                     :size="textObject.size"
+                                    :response="textObject.response"
                                />
                             </span>
                         </div>
@@ -202,10 +206,12 @@ function byteCovert(size) {
                         <span class="chat-box-local-message">
                             <span v-if="!textObject.type"> {{ textObject.text }}</span>
                             <sendFile
+                                v-else
                                 :progress="textObject.progress"
                                 :type="textObject.type"
                                 :fileName="textObject.fileName"
                                 :size="textObject.size"
+                                :response="textObject.response"
                             />
                         </span>
                         <img src="../assets/avatar2.png" alt="其他">
