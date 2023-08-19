@@ -103,9 +103,9 @@ const cancelEvent = () => {
 }
 
 .pr-tip {
-    font-size: 14px;
+    font-size: 12px;
     box-sizing: border-box;
-    padding-top: 12px;
+    padding-top: 7px;
     color: #999999;
 }
 

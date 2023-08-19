@@ -24,72 +24,77 @@ async function login() {
         if (status !== 200) return
 
         if (data === 'ok') {
-            // sessionStorage.setItem('id', `${phone.value}//client2`)
-            // router.value.push({ name: 'Chat' })
+            sessionStorage.setItem('id', `${phone.value}//client2`)
+            router.value.push({ name: 'Chat' })
             showloginErr.value = false
             return
         }
+        showErr.value = false
         showloginErr.value = true
     }
 }
 
-async function register() {
-   const res = await  window.$axios({
-        method: 'post',
-        url: process.env.VUE_APP_REGISTER,
-        data: {
-            phone_number: phone.value,
-            password: pw.value
-        }
-    })
-    const { status, data} = res
-    console.log(status, data)
-    if (status === 200) {
-        if (data === 'exist') {
-            showErr.value = true
-            return
-        }
-        showErr.value = false
-    } 
-}
+// async function register() {
+//    const res = await  window.$axios({
+//         method: 'post',
+//         url: process.env.VUE_APP_REGISTER,
+//         data: {
+//             phone_number: phone.value,
+//             password: pw.value
+//         }
+//     })
+//     const { status, data} = res
+//     console.log(status, data)
+//     if (status === 200) {
+//         if (data === 'exist') {
+//             showloginErr.value = false
+//             showErr.value = true
+//             return
+//         }
+//         showErr.value = false
+//     } 
+// }
 
 </script>
 <template>
     <main class="container">
-        <section>
-            <div class="err-tip" v-show="showErr">
-                已存在该账号，请直接登陆即可
+        <section class="login-box">
+            <div class="welcome">
+                欢迎登录
             </div>
-            <div class="err-tip" v-show="showloginErr">
-                账号不存在，请注册后使用
-            </div>
-        </section>
-        <section class="login">
-            <div class="login-text">
-                <span class="login-id">手机号:</span>
-                <input type="text" placeholder="请输入你的手机号"  v-model="phone" class="input" />
-            </div>
-            <div class="login-text">
-                <span class="login-id">密码:</span>
-                <input type="password" placeholder="请输入密码" v-model="pw" class="input" />
-            </div>
-        </section>
-        <section>
-            <div>
-                <button class="login-in" @click="login">登陆</button>
-                <button class="login-register" @click="register">注册</button>
-            </div>
+            <section class="login">
+                <div class="login-text">
+                    <span class="login-id">手机号:</span>
+                    <input type="text" placeholder="请输入你的手机号"  v-model="phone" class="input" />
+                </div>
+                <div class="login-text">
+                    <span class="login-id">密码:</span>
+                    <input type="password" placeholder="请输入密码" v-model="pw" class="input" />
+                </div>
+            </section>
+            <section class="forget-pw">
+                <div>忘记密码？</div>
+            </section>
+            <section>
+                <div>
+                    <button class="login-in" @click="login">登录/注册</button>
+                    <!-- <button class="login-register" @click="register">注册</button> -->
+                </div>
+            </section>
         </section>
     </main>
 </template>
 
 <style lang="scss" scoped>
 .container {
+    background-image: url('../assets/login_bg.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
     width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
 }
 
@@ -99,29 +104,31 @@ async function register() {
 }
 
 .input {
-    padding: 12px;
+    padding: 10px;
     margin: 0 10px;
-    outline: none;
-    font-size: 18px;
-    width: 257px;
+    // outline: none;
+    font-size: 13px;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    width: 19rem;
 }
 
 .login-id {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     display: block;
     margin: 10px;
+    color: #999999;
 }
 
 .login-in {
-    width: 130px;
+    width: 21rem;
     height: 45px;
     outline: none;
     border: navajowhite;
-    // box-shadow: 1px 1px 3px #ddd;
+    border-radius: 28px;
     background: #2F88FF;
     box-shadow: 0px 3px 6px 0px rgba(221, 223, 230, 0.31);
-    border-radius: 3px;
     margin: 10px;
     cursor: pointer;
     color: #fff;
@@ -147,5 +154,32 @@ async function register() {
     font-size: 12px;
     opacity: 0.6;
     font-weight: 600;
+}
+.login-box {
+    width: 25rem;
+    height: 30rem;
+    background: #FFFFFF;
+    box-shadow: 0px 14px 51px 0px rgba(103,125,100,0.33);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5rem;
+}
+.welcome {
+    font-size: 37px;
+    box-sizing: border-box;
+    color: #2F88FF;
+    padding-bottom: 2rem;
+}
+.forget-pw {
+    display: flex;
+    width: 20rem;
+    box-sizing: border-box;
+    font-size: 13px;
+    color: #2F88FF;
+    font-weight: 500;
+    padding: 20px 0;
 }
 </style>

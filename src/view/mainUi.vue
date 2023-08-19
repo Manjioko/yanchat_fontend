@@ -251,6 +251,9 @@ function byteCovert(size) {
 </template>
 <style lang="scss" scoped>
 .main {
+    background-image: url('../assets/login_bg.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
     background-color: #F5F6FA;
     width: 100vw;
     height: 100vh;
@@ -261,7 +264,7 @@ function byteCovert(size) {
 
 .chat-window {
     width: 70vw;
-    height: 85vh;
+    height: 92vh;
     min-width: 600px;
     max-width: 1000px;
     max-height: 875px;
@@ -279,23 +282,25 @@ function byteCovert(size) {
 }
 
 .text-send {
-    height: 100px;
+    height: 70px;
     display: flex;
     box-sizing: border-box;
-    padding: 25px 20px 25px 20px;
+    padding: 10px;
     border-top: 2px solid #F5F6FA;
     align-items: center;
+    justify-content: center;
 
     input {
         flex: 1;
         border: none;
         outline: none;
-        font-size: 18px;
+        font-size: 12px;
+        font-weight: 300;
         font-family: Source Han Sans CN;
     }
 
     button {
-        width: 140px;
+        width: 70px;
         background: #2F88FF;
         outline: none;
         display: flex;
@@ -305,16 +310,19 @@ function byteCovert(size) {
         border-radius: 4px;
         cursor: pointer;
         font-family: Source Han Sans CN;
+        -webkit-user-select: none;
+        -moz-user-select: none;
         user-select: none;
+        height: 65%;
 
         span {
-            font-size: 18px;
+            font-size: 12px;
             color: #FFFFFF;
         }
 
         img {
-            width: 18px;
-            height: 18px;
+            width: 10px;
+            height: 10px;
             margin-left: 12px;
         }
     }
@@ -324,14 +332,14 @@ function byteCovert(size) {
     display: flex;
     align-items: center;
     box-sizing: border-box;
-    padding: 19px;
+    padding: 12px;
     box-shadow: 0px 3px 6px 0px rgba(221, 223, 230, 0.31);
     font-family: Source Han Sans CN;
     user-select: none;
 
     img {
-        width: 22px;
-        height: 22px;
+        width: 17px;
+        height: 17px;
         -webkit-user-drag: none;
         cursor: pointer;
     }
@@ -343,14 +351,14 @@ function byteCovert(size) {
         position: relative;
 
         img {
-            width: 54px;
-            height: 54px;
+            width: 40px;
+            height: 40px;
             -webkit-user-drag: none;
         }
 
         span {
             margin-left: 19px;
-            font-size: 30px;
+            font-size: 18px;
             color: #333333;
             user-select: text;
         }
@@ -360,19 +368,19 @@ function byteCovert(size) {
 .chat-box-remote {
     display: flex;
     align-items: center;
-    margin: 15px 0;
+    margin: 8px 0;
 
     img {
-        width: 54px;
-        height: 54px;
-        padding: 10px 20px;
+        width: 40px;
+        height: 40px;
+        padding: 8px 16px;
     }
 
     .chat-box-remote-message {
         display: block;
         box-sizing: border-box;
-        padding: 20px;
-        font-size: 18px;
+        padding: 12px;
+        font-size: 14px;
         background: #F8F8F8;
         // opacity: 0.5;
         border-radius: 10px 10px 10px 0px;
@@ -384,21 +392,20 @@ function byteCovert(size) {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    margin: 15px 0;
+    margin: 8px 0;
 
     img {
-        width: 54px;
-        height: 54px;
-        padding: 10px 20px;
+        width: 40px;
+        height: 40px;
+        padding: 8px 16px;
     }
 
     .chat-box-local-message {
         display: block;
         box-sizing: border-box;
-        padding: 20px;
-        font-size: 18px;
+        padding: 12px;
+        font-size: 14px;
         background: #EBF3FE;
-        // opacity: 0.5;
         border-radius: 10px 10px 0px 10px;
     }
 }
@@ -412,13 +419,13 @@ function byteCovert(size) {
     padding: 10px;
 }
 .isOnlink {
-    width: 15px;
-    height: 15px;
+    width: 10px;
+    height: 10px;
     background: #00daff;
     border-radius: 50%;
     position: absolute;
     top: 0;
-    left: 50px;
+    left: 38px;
 }
 .isUnlink {
     width: 15px;
@@ -440,8 +447,8 @@ function byteCovert(size) {
     margin-top: 12px !important;
 }
 .upload {
-    width: 27px;
-    height: 25px;
+    width: 18px;
+    height: 15px;
     position: relative;
     margin-right: 20px;
     margin-left: 10px;
@@ -451,8 +458,8 @@ function byteCovert(size) {
     }
     input {
         position: absolute;
-        width: 27px;
-        height: 25px;
+        width: 20px;
+        height: 17px;
         top: 0;
         left: 0;
         opacity: 0;
