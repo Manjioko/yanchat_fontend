@@ -27,12 +27,13 @@
             <div class="d-text">
                 <el-input
                     placeholder="输入好友手机号码"
+                    v-model="friend_phone_number"
                 />
             </div>
             <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dShow = false">取消</el-button>
-                <el-button type="primary" @click="dShow = false">
+                <el-button type="primary" @click="addFriend">
                 确定
                 </el-button>
             </span>
@@ -73,6 +74,22 @@ function handleSelect(idx) {
 
         item.active = false
     })
+}
+let friend_phone_number = ref('')
+async function addFriend() {
+    if (!friend_phone_number.value) {
+        return
+    }
+    let phone_number = sessionStorage.getItem('id').split('//')[0]
+    const res = await  window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_ADDFRI,
+        data: {
+            phone_number: phone_number,
+            friend_phone_number: friend_phone_number.value
+        }
+    })
+    console.log('请求回来了 --- ', res)
 }
 </script>
 <style lang="scss" scoped>
