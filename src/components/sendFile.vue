@@ -87,7 +87,7 @@ const cancelEvent = () => {
     top: 12px;
     left: 12px;
 
-    ::v-deep .el-progress path:first-child {
+    :deep .el-progress path:first-child {
         // 修改进度条背景色 
         stroke: hsla(43, 28%, 65%, 1);
     }

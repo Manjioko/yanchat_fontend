@@ -11,8 +11,8 @@
             </div>
         </header>
         <main class="f-container">
-            <section class="f-friends" :class="{'i-active': i.active}" v-for="(i, idx) in firendList" :key="i.id" @click="handleSelect(idx)">
-                <img class="i-img" :src="i.avatar" alt="avatar">
+            <section class="f-friends" :class="{'i-active': i.active}" v-for="(i, idx) in friendsList" :key="i.id" @click="handleSelect(idx)">
+                <img class="i-img" :src="i.avatar_url || require('../assets/avatar1.png')" alt="avatar">
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
                     <div class="i-msg">{{ i.message }}</div>
@@ -42,31 +42,41 @@
     </div>
 </template>
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue'
-const firendList = ref([
-    {
-        name: '燕子',
-        id: '123',
-        time: '14:32',
-        message: '我在吃榴莲',
-        avatar: require('../assets/avatar1.png'),
-        active: false
-    },
-    {
-        name: '银河队长',
-        id: '13445',
-        time: '22:12',
-        message: '我已经毁灭半人马星座了，勿 call',
-        avatar: require('../assets/avatar2.png'),
-        active: false
-    },
+const props = defineProps({
+    friends: String,
+})
+const friendsList = ref([
+    // {
+    //     name: '银河队长',
+    //     id: '13445',
+    //     time: '22:12',
+    //     message: '我已经毁灭半人马星座了，勿 call',
+    //     avatar: require('../assets/avatar2.png'),
+    //     active: false
+    // },
 ])
+
+onMounted(() => {
+    const f = JSON.parse(props.friends)
+    console.log(f)
+    f?.forEach(item => {
+        friendsList.value.push({
+            name: item.user,
+            id: item.user_id,
+            time: item.created_at.slice(10, -3),
+            message: '',
+            avatar: item.avatar_url,
+            active: false
+        })
+    })
+})
 
 let dShow = ref(false)
 function handleSelect(idx) {
     // console.log(idx)
-    firendList.value.forEach((item, i) => {
+    friendsList.value.forEach((item, i) => {
         if (i === idx) {
             item.active = true
             return
@@ -90,6 +100,26 @@ async function addFriend() {
         }
     })
     console.log('请求回来了 --- ', res)
+
+    // 返回错误
+    if (!res?.data?.friends) return
+
+
+    friendsList.value.length = 0
+    res.data.friends.forEach(item => {
+        friendsList.value.push({
+            name: item.user,
+            id: item.user_id,
+            time: item.created_at.slice(10, -3),
+            message: '',
+            avatar: item.avatar_url,
+            active: false
+        })
+    })
+    const getUserInfo = JSON.parse(sessionStorage.getItem('user_info'))
+    getUserInfo.friends = JSON.stringify(res.data.friends)
+    sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
+    dShow = false
 }
 </script>
 <style lang="scss" scoped>

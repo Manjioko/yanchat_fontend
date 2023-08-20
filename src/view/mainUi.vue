@@ -1,6 +1,6 @@
 <template>
     <main class="main">
-        <friendsList />
+        <friendsList :friends="userInfo.friends" />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar">
@@ -46,23 +46,6 @@
                         <img src="../assets/avatar2.png" alt="其他">
                     </div>
                 </div>
-
-
-                <!-- <div class="chat-box-remote">
-                    <img src="../assets/avatar1.png" alt="其他">
-                    <div class="chat-box-remote-message">
-                        <span class="chat-box-remote-message-text">
-                            <sendFile :progress="60" type="file" />
-                        </span> 
-                    </div>
-                </div>
-
-                <div class="chat-box-local">
-                    <span class="chat-box-local-message">
-                        <sendFile :progress="50" type="zip" />
-                    </span>
-                    <img src="../assets/avatar2.png" alt="其他">
-                </div> -->
             </section>
             <section class="text-send">
                 <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
@@ -110,12 +93,17 @@ import friendsList from '@/components/friendsList.vue'
 let textList = ref([])
 // websocket 客户端
 let websocket = ref({})
+const userInfo = ref({
+    friends: ''
+})
 // 自己 ID
 let id = ''
 // 聊天对象的 id
 let other = ref('')
 // 连接信号
 let signal = ref(0)
+
+userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 
 onMounted(() => {
     const [myId, otherId] = sessionStorage.getItem('id').split('//')

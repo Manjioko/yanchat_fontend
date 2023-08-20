@@ -23,7 +23,8 @@ async function login() {
         console.log(status, data)
         if (status !== 200) return
 
-        if (data === 'ok') {
+        if (data !== 'err') {
+            sessionStorage.setItem('user_info', JSON.stringify(data))
             sessionStorage.setItem('id', `${phone.value}//client2`)
             router.value.push({ name: 'Chat' })
             showloginErr.value = false
