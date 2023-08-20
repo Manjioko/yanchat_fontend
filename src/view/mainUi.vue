@@ -1,9 +1,111 @@
+<template>
+    <main class="main">
+        <friendsList />
+        <section class="chat-window">
+            <section class="text-top">
+                <div class="avatar">
+                    <div :class="{isOnlink: signal === 1, isUnlink: signal !== 1}"></div>
+                    <img src="../assets/avatar1.png" alt="avatar">
+                    <span>{{ other }}</span>
+                    <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
+                    <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
+                </div>
+                <img src="../assets/setting.png" alt="setting" @click="dShow = true">
+            </section>
+            <section class="text-show" id="container" ref="chatWindow">
+                <div v-for="(textObject, idx) in textList" :key="idx">
+                    <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
+                    <div class="chat-box-remote" v-if="!textObject.user">
+                        <img src="../assets/avatar1.png" alt="其他">
+                        <div class="chat-box-remote-message">
+                            <span class="chat-box-remote-message-text">
+                               <span v-if="!textObject.type"> {{ textObject.text }}</span>
+                               <sendFile
+                                    v-else
+                                    :progress="textObject.progress"
+                                    :type="textObject.type"
+                                    :fileName="textObject.fileName"
+                                    :size="textObject.size"
+                                    :response="textObject.response"
+                               />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="chat-box-local" v-else>
+                        <span class="chat-box-local-message">
+                            <span v-if="!textObject.type"> {{ textObject.text }}</span>
+                            <sendFile
+                                v-else
+                                :progress="textObject.progress"
+                                :type="textObject.type"
+                                :fileName="textObject.fileName"
+                                :size="textObject.size"
+                                :response="textObject.response"
+                            />
+                        </span>
+                        <img src="../assets/avatar2.png" alt="其他">
+                    </div>
+                </div>
+
+
+                <!-- <div class="chat-box-remote">
+                    <img src="../assets/avatar1.png" alt="其他">
+                    <div class="chat-box-remote-message">
+                        <span class="chat-box-remote-message-text">
+                            <sendFile :progress="60" type="file" />
+                        </span> 
+                    </div>
+                </div>
+
+                <div class="chat-box-local">
+                    <span class="chat-box-local-message">
+                        <sendFile :progress="50" type="zip" />
+                    </span>
+                    <img src="../assets/avatar2.png" alt="其他">
+                </div> -->
+            </section>
+            <section class="text-send">
+                <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
+                <div class="upload">
+                    <img src="../assets/uploadIcon.png" alt="upload">
+                    <input type="file" @change="uploadFile">
+                </div>
+                <button @click="sendMessage($event)" class="send-btn">
+                    <span>发送</span>
+                    <img src="../assets/send.png" alt="send">
+                </button>
+            </section>
+        </section>
+    </main>
+    <!-- 退出弹窗 -->
+    <div>
+        <el-dialog v-model="dShow" width="30%" center>
+            <div class="d-text">
+                <div>
+                    <WarningFilled style="width: 2rem; height: 2rem; padding: 10px; color: red;"/>
+                </div>
+                <div class="d-tip">是否退出登录？</div>
+            </div>
+            <template #footer>
+            <span class="dialog-footer">
+                <el-button @click="dShow = false">取消</el-button>
+                <el-button type="primary" @click="dShow = false">
+                确定
+                </el-button>
+            </span>
+            </template>
+        </el-dialog>
+    </div>
+</template>
+
 <script setup>
 
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { WarningFilled } from  '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import ws from '@/utils/ws.js'
 import sendFile from '@/components/sendFile.vue'
+import friendsList from '@/components/friendsList.vue'
 
 let textList = ref([])
 // websocket 客户端
@@ -169,86 +271,10 @@ function byteCovert(size) {
 
     return m_size.toFixed(2) + ' M'
 }
+
+let dShow = ref(false)
 </script>
-<template>
-    <main class="main">
-        <section class="chat-window">
-            <section class="text-top">
-                <div class="avatar">
-                    <div :class="{isOnlink: signal === 1, isUnlink: signal !== 1}"></div>
-                    <img src="../assets/avatar1.png" alt="avatar">
-                    <span>{{ other }}</span>
-                    <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
-                    <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
-                </div>
-                <img src="../assets/setting.png" alt="setting">
-            </section>
-            <section class="text-show" id="container" ref="chatWindow">
-                <div v-for="(textObject, idx) in textList" :key="idx">
-                    <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
-                    <div class="chat-box-remote" v-if="!textObject.user">
-                        <img src="../assets/avatar1.png" alt="其他">
-                        <div class="chat-box-remote-message">
-                            <span class="chat-box-remote-message-text">
-                               <span v-if="!textObject.type"> {{ textObject.text }}</span>
-                               <sendFile
-                                    v-else
-                                    :progress="textObject.progress"
-                                    :type="textObject.type"
-                                    :fileName="textObject.fileName"
-                                    :size="textObject.size"
-                                    :response="textObject.response"
-                               />
-                            </span>
-                        </div>
-                    </div>
-                    <div class="chat-box-local" v-else>
-                        <span class="chat-box-local-message">
-                            <span v-if="!textObject.type"> {{ textObject.text }}</span>
-                            <sendFile
-                                v-else
-                                :progress="textObject.progress"
-                                :type="textObject.type"
-                                :fileName="textObject.fileName"
-                                :size="textObject.size"
-                                :response="textObject.response"
-                            />
-                        </span>
-                        <img src="../assets/avatar2.png" alt="其他">
-                    </div>
-                </div>
 
-
-                <!-- <div class="chat-box-remote">
-                    <img src="../assets/avatar1.png" alt="其他">
-                    <div class="chat-box-remote-message">
-                        <span class="chat-box-remote-message-text">
-                            <sendFile :progress="60" type="file" />
-                        </span> 
-                    </div>
-                </div>
-
-                <div class="chat-box-local">
-                    <span class="chat-box-local-message">
-                        <sendFile :progress="50" type="zip" />
-                    </span>
-                    <img src="../assets/avatar2.png" alt="其他">
-                </div> -->
-            </section>
-            <section class="text-send">
-                <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
-                <div class="upload">
-                    <img src="../assets/uploadIcon.png" alt="upload">
-                    <input type="file" @change="uploadFile">
-                </div>
-                <button @click="sendMessage($event)" class="send-btn">
-                    <span>发送</span>
-                    <img src="../assets/send.png" alt="send">
-                </button>
-            </section>
-        </section>
-    </main>
-</template>
 <style lang="scss" scoped>
 .main {
     background-image: url('../assets/login_bg.png');
@@ -263,7 +289,7 @@ function byteCovert(size) {
 }
 
 .chat-window {
-    width: 70vw;
+    width: 50vw;
     height: 92vh;
     min-width: 600px;
     max-width: 1000px;
@@ -271,8 +297,9 @@ function byteCovert(size) {
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    border-radius: 5px;
-    box-shadow: 0px 1px 6px 6px rgba(221, 223, 230, 0.31);
+    border-radius: 0 5px 5px 0;
+    // border-radius: 5px;
+    // box-shadow: 0px 1px 6px 6px rgba(221, 223, 230, 0.31);
 }
 
 .text-show {
@@ -467,6 +494,19 @@ function byteCovert(size) {
 }
 .send-btn {
     height: 100%;
+}
+
+.d-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.d-tip {
+    font-size: 16px;
+    font-weight: 500;
+}
+:deep .el-dialog__footer {
+    text-align: end;
 }
 
 // /* 隐藏原生滚动条 */

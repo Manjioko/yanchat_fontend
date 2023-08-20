@@ -132,8 +132,8 @@ async function login() {
     margin: 10px;
     cursor: pointer;
     color: #fff;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 400;
 }
 .login-register {
     width: 130px;
@@ -165,7 +165,7 @@ async function login() {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-right: 5rem;
+    margin-right: 11rem;
 }
 .welcome {
     font-size: 37px;
