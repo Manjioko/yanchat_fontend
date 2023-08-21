@@ -12,7 +12,7 @@
         </header>
         <main class="f-container">
             <section class="f-friends" :class="{'i-active': i.active}" v-for="(i, idx) in friendsList" :key="i.id" @click="handleSelect(idx)">
-                <img class="i-img" :src="i.avatar_url || require('../assets/avatar1.png')" alt="avatar">
+                <img class="i-img" :src="i.avatar_url || require('../assets/default_avatar.png')" alt="avatar">
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
                     <div class="i-msg">{{ i.message }}</div>
@@ -42,11 +42,13 @@
     </div>
 </template>
 <script setup>
-import { ref, defineProps, onMounted } from 'vue';
+import { ref, defineProps, onMounted, defineEmits } from 'vue';
 import { Search } from '@element-plus/icons-vue'
 const props = defineProps({
     friends: String,
 })
+const emit = defineEmits(['handleActiveFriend'])
+
 const friendsList = ref([
     // {
     //     name: '银河队长',
@@ -79,6 +81,7 @@ function handleSelect(idx) {
     friendsList.value.forEach((item, i) => {
         if (i === idx) {
             item.active = true
+            emit('handleActiveFriend', item)
             return
         }
 

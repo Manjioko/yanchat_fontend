@@ -1,18 +1,21 @@
 <template>
     <main class="main">
-        <friendsList :friends="userInfo.friends" />
+        <friendsList :friends="userInfo.friends" @handleActiveFriend="handleActiveFriend" />
         <section class="chat-window">
             <section class="text-top">
-                <div class="avatar">
+                <div class="avatar" v-if="activeFriend">
                     <div :class="{isOnlink: signal === 1, isUnlink: signal !== 1}"></div>
-                    <img src="../assets/avatar1.png" alt="avatar">
-                    <span>{{ other }}</span>
+                    <img :src="activeFriend.avatar || require('../assets/default_avatar.png')" alt="avatar">
+                    <span>{{ activeFriend.name }}</span>
                     <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
                     <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
                 </div>
+                <div class="default-avatar" v-else>
+                    <div style="width: 40px; height: 40px;"></div>
+                </div>
                 <img src="../assets/setting.png" alt="setting" @click="dShow = true">
             </section>
-            <section class="text-show" id="container" ref="chatWindow">
+            <section class="text-show" id="container" ref="chatWindow" v-if="activeFriend">
                 <div v-for="(textObject, idx) in textList" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
                     <div class="chat-box-remote" v-if="!textObject.user">
@@ -46,6 +49,9 @@
                         <img src="../assets/avatar2.png" alt="其他">
                     </div>
                 </div>
+            </section>
+            <section class="zero-friend" v-else>
+                还未选择聊天好友
             </section>
             <section class="text-send">
                 <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
@@ -85,8 +91,8 @@
 
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { WarningFilled } from  '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
-import ws from '@/utils/ws.js'
+// import { useRouter } from 'vue-router'
+// import ws from '@/utils/ws.js'
 import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
 
@@ -99,22 +105,22 @@ const userInfo = ref({
 // 自己 ID
 let id = ''
 // 聊天对象的 id
-let other = ref('')
+// let other = ref('')
 // 连接信号
 let signal = ref(0)
 
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 
 onMounted(() => {
-    const [myId, otherId] = sessionStorage.getItem('id').split('//')
-    // 如果获取不到 id 必须返回登录页
-    if (!myId || !otherId) {
-        useRouter().push({name: 'Login'})
-    }
-    id = myId
-    other.value = otherId
-    const url = `${process.env.VUE_APP_WS}?id=${myId}&to=${otherId}`
-    ws(websocket, url, appendMessage, signal)
+    // const [myId, otherId] = sessionStorage.getItem('id').split('//')
+    // // 如果获取不到 id 必须返回登录页
+    // if (!myId || !otherId) {
+    //     useRouter().push({name: 'Login'})
+    // }
+    // id = myId
+    // other.value = otherId
+    // const url = `${process.env.VUE_APP_WS}?id=${myId}&to=${otherId}`
+    // ws(websocket, url, appendMessage, signal)
 })
 
 onBeforeUnmount(() => {
@@ -261,6 +267,12 @@ function byteCovert(size) {
 }
 
 let dShow = ref(false)
+
+// 选择好友
+let activeFriend = ref('')
+function handleActiveFriend(f) {
+    activeFriend.value = f
+} 
 </script>
 
 <style lang="scss" scoped>
@@ -443,13 +455,13 @@ let dShow = ref(false)
     left: 38px;
 }
 .isUnlink {
-    width: 15px;
-    height: 15px;
+    width: 10px;
+    height: 10px;
     background: red;
     border-radius: 50%;
     position: absolute;
     top: 0;
-    left: 50px; 
+    left: 38px; 
 }
 .reconnect {
     font-size: 14px !important;
@@ -496,25 +508,17 @@ let dShow = ref(false)
 :deep .el-dialog__footer {
     text-align: end;
 }
+.default-avatar {
+    flex: 1;
+}
 
-// /* 隐藏原生滚动条 */
-// ::-webkit-scrollbar {
-//   width: 8px;
-//   height: 8px;
-// }
-
-// /* 滚动条轨道 */
-// ::-webkit-scrollbar-track {
-//   background: #f1f1f1;
-// }
-
-// /* 滚动条滑块 */
-// ::-webkit-scrollbar-thumb {
-//   background: #888;
-// }
-
-// /* 滚动条滑块悬停样式 */
-// ::-webkit-scrollbar-thumb:hover {
-//   background: #555;
-// }
+.zero-friend {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #999999;
+    background-color: #f8f8f86e;
+}
 </style>
