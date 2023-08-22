@@ -26,7 +26,7 @@ async function login() {
         if (data !== 'err') {
             sessionStorage.setItem('user_info', JSON.stringify(data))
             sessionStorage.setItem('id', `${phone.value}//client2`)
-            router.value.push({ name: 'Chat' })
+            router.value.push({ name: 'Chat', query: { user_id: data.user_id } })
             showloginErr.value = false
             return
         }

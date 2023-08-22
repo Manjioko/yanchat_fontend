@@ -90,9 +90,10 @@
 <script setup>
 
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { WarningFilled } from  '@element-plus/icons-vue'
 // import { useRouter } from 'vue-router'
-// import ws from '@/utils/ws.js'
+import ws from '@/utils/ws.js'
 import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
 
@@ -111,7 +112,11 @@ let signal = ref(0)
 
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 
+const route = useRoute()
 onMounted(() => {
+    console.log('route -> ', route.query)
+    const url = `${process.env.VUE_APP_WS}?user_id=${route.query.user_id}`
+    ws(websocket, url, appendMessage, signal)
     // const [myId, otherId] = sessionStorage.getItem('id').split('//')
     // // 如果获取不到 id 必须返回登录页
     // if (!myId || !otherId) {
