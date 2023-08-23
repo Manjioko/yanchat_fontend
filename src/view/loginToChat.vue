@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 let router = ref('')
 let phone = ref('')
 let pw = ref('')
-let showErr = ref(false)
-let showloginErr = ref(false)
+// let showErr = ref(false)
+// let showloginErr = ref(false)
 onMounted(() => {
     router.value = useRouter()
 })
@@ -27,34 +28,48 @@ async function login() {
             sessionStorage.setItem('user_info', JSON.stringify(data))
             sessionStorage.setItem('id', `${phone.value}//client2`)
             router.value.push({ name: 'Chat', query: { user_id: data.user_id } })
-            showloginErr.value = false
+            // showloginErr.value = false
             return
         }
-        showErr.value = false
-        showloginErr.value = true
+        ElMessageBox.confirm(
+            '当前用户尚未注册，是否自动注册并登录？',
+            'Warning',
+            {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+            center: true,
+            }
+        ).then(() => {
+            register(data)
+        }).catch(err => {
+            console.log(err)
+        })
     }
 }
 
-// async function register() {
-//    const res = await  window.$axios({
-//         method: 'post',
-//         url: process.env.VUE_APP_REGISTER,
-//         data: {
-//             phone_number: phone.value,
-//             password: pw.value
-//         }
-//     })
-//     const { status, data} = res
-//     console.log(status, data)
-//     if (status === 200) {
-//         if (data === 'exist') {
-//             showloginErr.value = false
-//             showErr.value = true
-//             return
-//         }
-//         showErr.value = false
-//     } 
-// }
+async function register(userData) {
+   const res = await  window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_REGISTER,
+        data: {
+            phone_number: phone.value,
+            password: pw.value
+        }
+    })
+    const { status, data} = res
+    console.log(status, data)
+    if (status === 200) {
+        if (data === 'exist') {
+            return
+        }
+        ElMessage({
+            message: `${phone.value} 已经成功注册！`,
+            type: 'success',
+        })
+        router.value.push({ name: 'Chat', query: { user_id: userData.user_id } })
+    } 
+}
 
 </script>
 <template>
