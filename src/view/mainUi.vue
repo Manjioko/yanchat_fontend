@@ -1,6 +1,6 @@
 <template>
     <main class="main">
-        <friendsList :friends="userInfo.friends" @handleActiveFriend="handleActiveFriend" />
+        <friendsList :friends="userInfo?.friends ?? '[]'" @handleActiveFriend="handleActiveFriend" />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
@@ -18,11 +18,11 @@
             <section class="text-show" id="container" ref="chatWindow" v-if="activeFriend">
                 <div v-for="(textObject, idx) in textList" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
-                    <div class="chat-box-remote" v-if="!textObject.user">
+                    <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img src="../assets/avatar1.png" alt="其他">
                         <div class="chat-box-remote-message">
                             <span class="chat-box-remote-message-text">
-                               <span v-if="!textObject.type"> {{ textObject.text }}</span>
+                               <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
                                <sendFile
                                     v-else
                                     :progress="textObject.progress"
@@ -36,7 +36,7 @@
                     </div>
                     <div class="chat-box-local" v-else>
                         <span class="chat-box-local-message">
-                            <span v-if="!textObject.type"> {{ textObject.text }}</span>
+                            <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
                             <sendFile
                                 v-else
                                 :progress="textObject.progress"
@@ -59,7 +59,7 @@
                     <img src="../assets/uploadIcon.png" alt="upload">
                     <input type="file" @change="uploadFile">
                 </div>
-                <button @click="sendMessage($event)" class="send-btn">
+                <button @click="sendMessage" class="send-btn">
                     <span>发送</span>
                     <img src="../assets/send.png" alt="send">
                 </button>
@@ -116,7 +116,7 @@ const route = useRoute()
 onMounted(() => {
     console.log('route -> ', route.query)
     const url = `${process.env.VUE_APP_WS}?user_id=${route.query.user_id}`
-    ws(websocket, url, appendMessage, signal)
+    ws(websocket, url, Center, signal)
     // const [myId, otherId] = sessionStorage.getItem('id').split('//')
     // // 如果获取不到 id 必须返回登录页
     // if (!myId || !otherId) {
@@ -125,7 +125,7 @@ onMounted(() => {
     // id = myId
     // other.value = otherId
     // const url = `${process.env.VUE_APP_WS}?id=${myId}&to=${otherId}`
-    // ws(websocket, url, appendMessage, signal)
+    // ws(websocket, url, Center, signal)
 })
 
 onBeforeUnmount(() => {
@@ -135,66 +135,43 @@ onBeforeUnmount(() => {
 
 const chatText = ref('')
 
-function appendMessage(message, type) {
+function Center(chatData, type) {
     if (type === 'sent') {
-        console.log('发送一些信息：', message)
-        textList.value.push({
-            text: message,
-            user: 1
-        })
+        console.log('发送一些信息：', chatData)
+        textList.value.push(chatData)
     }
     if (type === 'received') {
-        console.log('收到一些信息：', message)
-        const text = message.replace(/(.+)?-(\d+)?:(.+)/, (m, v, v2, v3) => {
-            const [t, s] = m.split('chat-file://')
-            // 文件信息
-            if (t && s) {
-                const o = JSON.parse(s)
-                if (v === id) {
-                    return JSON.stringify({ ...o, user: 1 })
-                } else if (v) {
-                    return JSON.stringify({ ...o, user: 0 })
-                }
-                return
-            }
-
-            // 正常信息
-            if (v === id) {
-                return JSON.stringify({ text: v3, user: 1 })
-            } else if (v) {
-                return JSON.stringify({ text: v3, user: 0 })
-            }
-        })
-        try {
-            textList.value.push(JSON.parse(text))
-        } catch {
-            textList.value.push({ text: message, user: 0 })
-        }
+        console.log('收到一些信息：', chatData)
     }
 }
 
 function sendMessage() {
     if (signal.value !== 1) return
 
-    // 记录文件上传记录
-    if (fileData.value) {
-        websocket.value.send(fileData.value)
-        fileData.value = ''
-        return
-    }
-
-    const message = chatText.value
     // console.log('websocket ', websocket.value)
-    if (websocket && message) {
-        // websocket 再客户端成功连接后,会保存一个实例
+    if (websocket && activeFriend.value) {
         // 可以通过该实例收发信息
-        websocket.value.send(message)
-        appendMessage(message, 'sent')
+        if (fileData.value) {
+            websocket.value?.send(JSON.stringify(fileData.value))
+            fileData.value = null
+            return
+        }
+        const message = chatText.value
+        console.log(activeFriend.value)
+        const sendData = {
+            type: 'text',
+            text: message,
+            user: 1,
+            to_table: activeFriend.value.to_table,
+            to_id: activeFriend.value.id
+        }
+        websocket.value?.send(JSON.stringify(sendData))
+        Center(sendData, 'sent')
         chatText.value = ''
     }
 }
 function hdkeydown() {
-    if (signal.value !== 1) return
+    if (signal.value !== 1 || !activeFriend.value) return
     sendMessage()
 }
 
@@ -239,7 +216,8 @@ function uploadFile(e) {
     xhr.addEventListener('load', (res) => {
         console.log('上传文件完成。', res.target.response)
         textList.value[index].response = res.target.response
-        fileData.value = 'chat-file://' + JSON.stringify(textList.value[index])
+        // fileData.value = 'chat-file://' + JSON.stringify(textList.value[index])
+        fileData.value = textList.value[index]
         sendMessage()
     })
 

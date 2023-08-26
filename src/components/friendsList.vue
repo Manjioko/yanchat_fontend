@@ -60,9 +60,13 @@ const friendsList = ref([
     // },
 ])
 
+// 用户信息
+const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+
 onMounted(() => {
+    if (!props.friends) return
     const f = JSON.parse(props.friends)
-    console.log(f)
+    // console.log(f)
     f?.forEach(item => {
         friendsList.value.push({
             name: item.user,
@@ -70,7 +74,8 @@ onMounted(() => {
             time: item.created_at.slice(10, -3),
             message: '',
             avatar: item.avatar_url,
-            active: false
+            active: false,
+            to_table: item.chat_table
         })
     })
 })
@@ -93,7 +98,7 @@ async function addFriend() {
     if (!friend_phone_number.value) {
         return
     }
-    let phone_number = sessionStorage.getItem('id').split('//')[0]
+    let phone_number = user_info.phone_number
     const res = await  window.$axios({
         method: 'post',
         url: process.env.VUE_APP_ADDFRI,
@@ -122,7 +127,7 @@ async function addFriend() {
     const getUserInfo = JSON.parse(sessionStorage.getItem('user_info'))
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
-    dShow = false
+    dShow.value = false
 }
 </script>
 <style lang="scss" scoped>

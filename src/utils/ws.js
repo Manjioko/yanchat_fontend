@@ -2,7 +2,7 @@ const MAX_RETRIES = 2
 let retryCount = 0
 
 function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconnect=0') {
-    console.log('正在连接到服务器中...')
+    console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
         console.log('Max retry attempts reached. Disconnecting...')
         ws.value = {}
@@ -21,9 +21,14 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
         appendMessage(event.data, 'received')
     }
 
-    ws.value.onclose = function () {
+    ws.value.onclose = function (res) {
         // appendMessage('与WebSocket服务端的连接已关闭', 'received')
         signal.value = 0
+        if (res.code && res.code == 4001) {
+            console.log('服务端主动断开连接 -> ', res.reason)
+            return
+        }
+        // console.log('code -> ', res)
         // reconnect()
         setTimeout(() => {
             console.log('Reconnecting to WebSocket...')

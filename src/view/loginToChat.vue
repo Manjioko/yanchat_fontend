@@ -12,7 +12,7 @@ onMounted(() => {
 })
 async function login() {
     if (phone.value && pw.value) {
-        const res = await  window.$axios({
+        const res = await window.$axios({
             method: 'post',
             url: process.env.VUE_APP_LOGIN,
             data: {
@@ -20,13 +20,13 @@ async function login() {
                 password: pw.value
             }
         })
-        const { status, data} = res
+        const { status, data } = res
         console.log(status, data)
         if (status !== 200) return
 
         if (data !== 'err') {
             sessionStorage.setItem('user_info', JSON.stringify(data))
-            sessionStorage.setItem('id', `${phone.value}//client2`)
+            // sessionStorage.setItem('id', `${phone.value}//client2`)
             router.value.push({ name: 'Chat', query: { user_id: data.user_id } })
             // showloginErr.value = false
             return
@@ -35,10 +35,10 @@ async function login() {
             '当前用户尚未注册，是否自动注册并登录？',
             'Warning',
             {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning',
-            center: true,
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+                center: true,
             }
         ).then(() => {
             register(data)
@@ -48,8 +48,8 @@ async function login() {
     }
 }
 
-async function register(userData) {
-   const res = await  window.$axios({
+async function register() {
+    const res = await window.$axios({
         method: 'post',
         url: process.env.VUE_APP_REGISTER,
         data: {
@@ -57,18 +57,19 @@ async function register(userData) {
             password: pw.value
         }
     })
-    const { status, data} = res
+    const { status, data } = res
     console.log(status, data)
     if (status === 200) {
         if (data === 'exist') {
             return
         }
+        sessionStorage.setItem('user_info', JSON.stringify(data))
         ElMessage({
             message: `${phone.value} 已经成功注册！`,
             type: 'success',
         })
-        router.value.push({ name: 'Chat', query: { user_id: userData.user_id } })
-    } 
+        router.value.push({ name: 'Chat', query: { user_id: data.user_id } })
+    }
 }
 
 </script>
@@ -81,7 +82,7 @@ async function register(userData) {
             <section class="login">
                 <div class="login-text">
                     <span class="login-id">手机号:</span>
-                    <input type="text" placeholder="请输入你的手机号"  v-model="phone" class="input" />
+                    <input type="text" placeholder="请输入你的手机号" v-model="phone" class="input" />
                 </div>
                 <div class="login-text">
                     <span class="login-id">密码:</span>
@@ -151,6 +152,7 @@ async function register(userData) {
     font-size: 14px;
     font-weight: 400;
 }
+
 .login-register {
     width: 130px;
     height: 45px;
@@ -165,17 +167,19 @@ async function register(userData) {
     font-size: 18px;
     font-weight: 600;
 }
+
 .err-tip {
     color: red;
     font-size: 12px;
     opacity: 0.6;
     font-weight: 600;
 }
+
 .login-box {
     width: 25rem;
     height: 30rem;
     background: #FFFFFF;
-    box-shadow: 0px 14px 51px 0px rgba(103,125,100,0.33);
+    box-shadow: 0px 14px 51px 0px rgba(103, 125, 100, 0.33);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
@@ -183,12 +187,14 @@ async function register(userData) {
     justify-content: center;
     margin-right: 11rem;
 }
+
 .welcome {
     font-size: 37px;
     box-sizing: border-box;
     color: #2F88FF;
     padding-bottom: 2rem;
 }
+
 .forget-pw {
     display: flex;
     width: 20rem;
@@ -197,5 +203,4 @@ async function register(userData) {
     color: #2F88FF;
     font-weight: 500;
     padding: 20px 0;
-}
-</style>
+}</style>
