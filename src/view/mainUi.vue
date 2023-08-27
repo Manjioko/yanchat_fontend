@@ -16,7 +16,7 @@
                 <img src="../assets/setting.png" alt="setting" @click="dShow = true">
             </section>
             <section class="text-show" id="container" ref="chatWindow" v-if="activeFriend">
-                <div v-for="(textObject, idx) in textList" :key="idx">
+                <div v-for="(textObject, idx) in chatBox" :key="idx">
                     <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img src="../assets/avatar1.png" alt="其他">
@@ -98,7 +98,8 @@ import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
 import router from '@/router/router'
 
-let textList = ref([])
+let chatBox = ref([])
+// let ChatData = ref({}) 
 // websocket 客户端
 let websocket = ref({})
 const userInfo = ref({
@@ -115,19 +116,9 @@ userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 
 const route = useRoute()
 onMounted(async () => {
-    console.log('route -> ', userInfo.value.chat_table)
+    // console.log('route -> ', userInfo.value.chat_table)
     const url = `${process.env.VUE_APP_WS}?user_id=${route.query.user_id}`
     ws(websocket, url, Center, signal)
-
-    // const [myId, otherId] = sessionStorage.getItem('id').split('//')
-    // // 如果获取不到 id 必须返回登录页
-    // if (!myId || !otherId) {
-    //     useRouter().push({name: 'Login'})
-    // }
-    // id = myId
-    // other.value = otherId
-    // const url = `${process.env.VUE_APP_WS}?id=${myId}&to=${otherId}`
-    // ws(websocket, url, Center, signal)
 })
 
 onBeforeUnmount(() => {
@@ -140,10 +131,21 @@ const chatText = ref('')
 function Center(chatData, type) {
     if (type === 'sent') {
         console.log('发送一些信息：', chatData)
-        textList.value.push(chatData)
+        chatBox.value.push(chatData)
     }
     if (type === 'received') {
         console.log('收到一些信息：', chatData)
+        try {
+            const chat = JSON.parse(chatData)
+            console.log('id -> ', chat.to_id, activeFriend.value.id)
+            if (chat.to_id === userInfo.value.user_id) {
+                chatBox.value.push(chat)   
+            } else {
+                console.log('发送到别处的 -> ', chat)
+            }
+        } catch (err) {
+            console.log('接收错误 -> ', err)
+        }
     }
 }
 
@@ -164,6 +166,10 @@ function sendMessage() {
             type: 'text',
             text: message,
             user: 1,
+            // 以下的三个参数必传
+            // 第一个 to_table 代表 聊天记录数据库名称
+            // 第二个 to_id 代表 聊天对象的 id
+            // 第三个 user_id 代表 自己的 id
             to_table: activeFriend.value.to_table,
             to_id: activeFriend.value.id,
             user_id: userInfo.value.user_id
@@ -180,8 +186,7 @@ function hdkeydown() {
 
 // 接收到信息时信息栏滚动到底部
 const chatWindow = ref(null)
-watch(() => textList.value, () => {
-    // console.log('xxxxxx -> ', chatWindow)
+watch(() => chatBox.value, () => {
     if (chatWindow.value) {
         nextTick(() => {
             chatWindow.value.scrollTop = chatWindow.value.scrollHeight
@@ -198,30 +203,37 @@ function uploadFile(e) {
     formData.append("file", e.target.files[0])
     const xhr = new XMLHttpRequest()
     // 文件信息所在下标
-    const index = textList.value.length
-    textList.value.push({
+    const index = chatBox.value.length
+    chatBox.value.push({
         progress: 0,
         type: e.target.files[0]?.type,
         fileName: e.target.files[0]?.name,
         size: byteCovert(e.target.files[0]?.size),
         response: '',
-        user: 1
+        user: 1,
+        // 以下的三个参数必传
+        // 第一个 to_table 代表 聊天记录数据库名称
+        // 第二个 to_id 代表 聊天对象的 id
+        // 第三个 user_id 代表 自己的 id
+        to_table: activeFriend.value.to_table,
+        to_id: activeFriend.value.id,
+        user_id: userInfo.value.user_id
     })
     // 监听上传进度事件
     xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             console.log(`文件上传进度: ${percentComplete.toFixed(2)}%`);
-            textList.value[index].progress = percentComplete
+            chatBox.value[index].progress = percentComplete
         }
     });
 
     // 监听上传完成事件
     xhr.addEventListener('load', (res) => {
         console.log('上传文件完成。', res.target.response)
-        textList.value[index].response = res.target.response
-        // fileData.value = 'chat-file://' + JSON.stringify(textList.value[index])
-        fileData.value = textList.value[index]
+        chatBox.value[index].response = res.target.response
+        // fileData.value = 'chat-file://' + JSON.stringify(chatBox.value[index])
+        fileData.value = chatBox.value[index]
         sendMessage()
     })
 
@@ -259,7 +271,6 @@ let dShow = ref(false)
 let activeFriend = ref('')
 async function handleActiveFriend(f) {
     activeFriend.value = f
-    // console.log('f -> ', f.to_table, process.env.VUE_APP_CHATDATA)
     // 从服务器拉取聊天记录
     const res = await window.$axios({
         method: 'post',
@@ -268,7 +279,7 @@ async function handleActiveFriend(f) {
             chat_table: f.to_table
         }
     })
-
+    if (res.status !== 200) return
     const chatData = res?.data.filter(i => !i.chat.type).map(i => {
         const chatOb = JSON.parse(i.chat)
         // console.log(' -> ', userInfo.value.user_id, i.user_id)
@@ -283,11 +294,7 @@ async function handleActiveFriend(f) {
             ...chatOb
         }
     })
-    // console.log('sss -> ', chatData)
-
-    textList.value = chatData
-    
-    // console.log('聊天记录回来了 -> ', res.data)
+    chatBox.value = chatData
 }
 
 // 处理退出登录
