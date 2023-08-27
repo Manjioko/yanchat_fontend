@@ -78,7 +78,7 @@
             <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dShow = false">取消</el-button>
-                <el-button type="primary" @click="dShow = false">
+                <el-button type="primary" @click="handleExit">
                 确定
                 </el-button>
             </span>
@@ -96,6 +96,7 @@ import { WarningFilled } from  '@element-plus/icons-vue'
 import ws from '@/utils/ws.js'
 import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
+import router from '@/router/router'
 
 let textList = ref([])
 // websocket 客户端
@@ -104,7 +105,7 @@ const userInfo = ref({
     friends: ''
 })
 // 自己 ID
-let id = ''
+// let id = ''
 // 聊天对象的 id
 // let other = ref('')
 // 连接信号
@@ -113,10 +114,11 @@ let signal = ref(0)
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 
 const route = useRoute()
-onMounted(() => {
-    console.log('route -> ', route.query)
+onMounted(async () => {
+    console.log('route -> ', userInfo.value.chat_table)
     const url = `${process.env.VUE_APP_WS}?user_id=${route.query.user_id}`
     ws(websocket, url, Center, signal)
+
     // const [myId, otherId] = sessionStorage.getItem('id').split('//')
     // // 如果获取不到 id 必须返回登录页
     // if (!myId || !otherId) {
@@ -157,13 +159,14 @@ function sendMessage() {
             return
         }
         const message = chatText.value
-        console.log(activeFriend.value)
+        // console.log(activeFriend.value)
         const sendData = {
             type: 'text',
             text: message,
             user: 1,
             to_table: activeFriend.value.to_table,
-            to_id: activeFriend.value.id
+            to_id: activeFriend.value.id,
+            user_id: userInfo.value.user_id
         }
         websocket.value?.send(JSON.stringify(sendData))
         Center(sendData, 'sent')
@@ -177,7 +180,8 @@ function hdkeydown() {
 
 // 接收到信息时信息栏滚动到底部
 const chatWindow = ref(null)
-watch(textList.value, () => {
+watch(() => textList.value, () => {
+    // console.log('xxxxxx -> ', chatWindow)
     if (chatWindow.value) {
         nextTick(() => {
             chatWindow.value.scrollTop = chatWindow.value.scrollHeight
@@ -253,9 +257,44 @@ let dShow = ref(false)
 
 // 选择好友
 let activeFriend = ref('')
-function handleActiveFriend(f) {
+async function handleActiveFriend(f) {
     activeFriend.value = f
-} 
+    // console.log('f -> ', f.to_table, process.env.VUE_APP_CHATDATA)
+    // 从服务器拉取聊天记录
+    const res = await window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_CHATDATA,
+        data: {
+            chat_table: f.to_table
+        }
+    })
+
+    const chatData = res?.data.filter(i => !i.chat.type).map(i => {
+        const chatOb = JSON.parse(i.chat)
+        // console.log(' -> ', userInfo.value.user_id, i.user_id)
+        if (userInfo.value.user_id === chatOb.user_id) {
+            chatOb.user = 1
+        } else {
+            chatOb.user = 0
+        }
+
+        return {
+            ...i,
+            ...chatOb
+        }
+    })
+    // console.log('sss -> ', chatData)
+
+    textList.value = chatData
+    
+    // console.log('聊天记录回来了 -> ', res.data)
+}
+
+// 处理退出登录
+function handleExit() {
+    websocket?.value?.close(4001, '退出登录')
+    router.go(-1)
+}
 </script>
 
 <style lang="scss" scoped>
