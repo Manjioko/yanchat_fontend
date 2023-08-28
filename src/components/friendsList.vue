@@ -42,10 +42,11 @@
     </div>
 </template>
 <script setup>
-import { ref, defineProps, onMounted, defineEmits } from 'vue';
+import { ref, defineProps, onMounted, defineEmits, watch } from 'vue';
 import { Search } from '@element-plus/icons-vue'
 const props = defineProps({
     friends: String,
+    unReadChat: Object,
 })
 const emit = defineEmits(['handleActiveFriend'])
 
@@ -77,6 +78,13 @@ onMounted(() => {
             active: false,
             to_table: item.chat_table
         })
+    })
+})
+
+watch(props.unReadChat, (n) => {
+    Object.keys(n).forEach(fid => {
+        const friOb = friendsList.value.find(item => item.id === fid)
+        friOb.message = n[fid].text
     })
 })
 

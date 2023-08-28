@@ -1,6 +1,10 @@
 <template>
     <main class="main">
-        <friendsList :friends="userInfo?.friends ?? '[]'" @handleActiveFriend="handleActiveFriend" />
+        <friendsList
+            :friends="userInfo?.friends ?? '[]'"
+            :unReadChat="unReadChat"
+            @handleActiveFriend="handleActiveFriend"
+        />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
@@ -105,6 +109,7 @@ let websocket = ref({})
 const userInfo = ref({
     friends: ''
 })
+const unReadChat = ref({})
 // 自己 ID
 // let id = ''
 // 聊天对象的 id
@@ -130,18 +135,19 @@ const chatText = ref('')
 
 function Center(chatData, type) {
     if (type === 'sent') {
-        console.log('发送一些信息：', chatData)
+        console.log('发送信息 -> ', chatData)
         chatBox.value.push(chatData)
     }
     if (type === 'received') {
-        console.log('收到一些信息：', chatData)
+        console.log('收到信息 -> ', chatData)
         try {
             const chat = JSON.parse(chatData)
-            console.log('id -> ', chat.to_id, activeFriend.value.id)
-            if (chat.to_id === userInfo.value.user_id) {
-                chatBox.value.push(chat)   
+            console.log('id 比较 -> ', chat.user_id, activeFriend.value.id)
+            if (chat.user_id === activeFriend.value.id) {
+                chatBox.value.push(chat) 
             } else {
-                console.log('发送到别处的 -> ', chat)
+                console.log('发到别处的信息 -> ', chat)
+                unReadChat.value[chat.user_id] = chat
             }
         } catch (err) {
             console.log('接收错误 -> ', err)
@@ -197,7 +203,6 @@ watch(() => chatBox.value, () => {
 let fileData = ref('')
 // 文件上传
 function uploadFile(e) {
-    // console.log('eeee ', e.target.files[0])
     const formData = new FormData()
     console.log(e.target.files[0])
     formData.append("file", e.target.files[0])
