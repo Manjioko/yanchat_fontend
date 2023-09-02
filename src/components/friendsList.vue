@@ -11,11 +11,16 @@
             </div>
         </header>
         <main class="f-container">
-            <section class="f-friends" :class="{'i-active': i.active}" v-for="(i, idx) in friendsList" :key="i.id" @click="handleSelect(idx)">
+            <section class="f-friends" :class="{'i-active': i.active}" v-for="(i, idx) in friendsList" :key="i.id" @click="handleSelect(idx, i)">
+                <!-- {{ unReadOb[i.to_table]}} -->
+                <div class="unread-dot" v-if="showUnread(unReadOb[i.to_table])">
+                    {{ handleUnreadDotNum(unReadOb[i.to_table]) }}
+                    <!-- {{ unReadOb[i.to_table].value?.fliter(i => i.unread)?.length }} -->
+                </div>
                 <img class="i-img" :src="i.avatar_url || require('../assets/default_avatar.png')" alt="avatar">
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
-                    <div class="i-msg">{{ i.message }}</div>
+                    <div class="i-msg">{{ i.message || handleUnreadMsg(unReadOb[i.to_table]) }}</div>
                 </div>
                 <div class="i-time">{{ i.time }}</div>
             </section>
@@ -47,6 +52,7 @@ import { Search } from '@element-plus/icons-vue'
 const props = defineProps({
     friends: String,
     unReadChat: Object,
+    newChatData: Object
 })
 const emit = defineEmits(['handleActiveFriend'])
 
@@ -84,22 +90,27 @@ onMounted(() => {
 watch(props.unReadChat, (n) => {
     Object.keys(n).forEach(fid => {
         const friOb = friendsList.value.find(item => item.id === fid)
+        console.log('friOb -> ',friOb)
         friOb.message = n[fid].text
     })
 })
 
 let dShow = ref(false)
-function handleSelect(idx) {
-    // console.log(idx)
+function handleSelect(idx, row) {
+    console.log(idx, row.to_table)
     friendsList.value.forEach((item, i) => {
         if (i === idx) {
             item.active = true
             emit('handleActiveFriend', item)
+            // return
             return
         }
 
         item.active = false
     })
+    if (!row.to_table) return
+    row.message = handleUnreadMsg(unReadOb.value[row.to_table])
+    unReadOb.value[row.to_table] = []
 }
 let friend_phone_number = ref('')
 async function addFriend() {
@@ -115,7 +126,7 @@ async function addFriend() {
             friend_phone_number: friend_phone_number.value
         }
     })
-    console.log('请求回来了 --- ', res)
+    console.log('请求回来了 -> ', res)
 
     // 返回错误
     if (!res?.data?.friends) return
@@ -129,13 +140,81 @@ async function addFriend() {
             time: item.created_at.slice(10, -3),
             message: '',
             avatar: item.avatar_url,
-            active: false
+            active: false,
+            to_table: item.chat_table
         })
     })
     const getUserInfo = JSON.parse(sessionStorage.getItem('user_info'))
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
     dShow.value = false
+}
+
+// 从服务器拉取未读信息
+// console.log(' f -> ', userInfo)
+const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info')))
+let unReadOb = ref({})
+onMounted(() => {
+    handleUnread()
+})
+watch(() => props.newChatData, (n) => {
+    console.log('newChatData -> ', n.value, n.to_table)
+    if (!Array.isArray(unReadOb.value[n.to_table])) {
+        unReadOb.value[n.to_table] = []
+        unReadOb.value[n.to_table].push({
+            unread: 1,
+            chat: JSON.stringify(n)
+        })
+        console.log('-> ', unReadOb.value)
+        return
+    }
+    unReadOb.value[n.to_table].push({
+        unread: 1,
+        chat: JSON.stringify(n)
+    })
+    console.log('-> ', unReadOb.value)
+})
+async function handleUnread() {
+    const flist = JSON.parse(userInfo.value.friends)
+    const unRead = await window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_UNREAD,
+        data: {
+            friends: flist?.map(i => i.chat_table),
+            user_id: userInfo.value.user_id
+        }
+    })
+    // console.log('unread -> ', unRead)
+    if (unRead.status !== 200) return
+    if (unRead.data === 'err') return
+    unReadOb.value = unRead.data
+}
+
+// 处理未读信息
+function handleUnreadMsg(unreadAry) {
+    if (!Array.isArray(unreadAry)) return
+    
+    const len = unreadAry?.length
+    if (!len || len <= 0) return
+    // console.log('-> ', unreadAry)
+    return JSON.parse(unreadAry[len - 1]?.chat ?? '{}').text
+}
+
+// 处理是否显示未读信息
+function showUnread(ary) {
+    if (!Array.isArray(ary)) return
+    const len = ary.length
+    if (!len) return
+    const last = ary[ary.length - 1]
+    
+    return last?.unread ??  0
+}
+
+// 处理未读数目
+function handleUnreadDotNum(ary) {
+    if (!Array.isArray(ary)) return
+    const fdata = ary?.filter(i => i?.unread)
+    return fdata.length
 }
 </script>
 <style lang="scss" scoped>
@@ -187,6 +266,7 @@ async function addFriend() {
         box-sizing: border-box;
         padding: 10px 20px;
         border-bottom: 1px solid #F5F6FA;
+        position: relative;
     }
     .i-img {
         width: 35px;
@@ -211,6 +291,7 @@ async function addFriend() {
         text-overflow: ellipsis;
         white-space: nowrap;
         width: 140px;
+        min-height: 16px;
         margin-top: 8px;
     }
     .i-time {
@@ -219,5 +300,18 @@ async function addFriend() {
     }
     .i-active {
         background-color: #E8F2FF;;
+    }
+    .unread-dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: red;
+        position: absolute;
+        color: #fff;
+        font-size: 12px;
+        text-align: center;
+        line-height: 15px;
+        top: 13px;
+        left: 45px;
     }
 </style>

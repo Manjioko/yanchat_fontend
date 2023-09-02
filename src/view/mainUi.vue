@@ -3,6 +3,7 @@
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
             :unReadChat="unReadChat"
+            :newChatData="newChatData"
             @handleActiveFriend="handleActiveFriend"
         />
         <section class="chat-window">
@@ -132,22 +133,30 @@ onBeforeUnmount(() => {
 })
 
 const chatText = ref('')
-
+let newChatData = ref({})
 function Center(chatData, type) {
     if (type === 'sent') {
         console.log('发送信息 -> ', chatData)
         chatBox.value.push(chatData)
+        unReadChat.value[chatData.to_id] = chatData
     }
     if (type === 'received') {
         console.log('收到信息 -> ', chatData)
         try {
             const chat = JSON.parse(chatData)
-            console.log('id 比较 -> ', chat.user_id, activeFriend.value.id)
+            console.log('id 比较 -> ', chat.user_id, userInfo.value.user_id)
+            if (chat.user_id === userInfo.value.user_id) {
+                chat.user = 1 
+            } else {
+                chat.user = 0
+            }
             if (chat.user_id === activeFriend.value.id) {
                 chatBox.value.push(chat) 
+                unReadChat.value[chat.user_id] = chat
             } else {
                 console.log('发到别处的信息 -> ', chat)
-                unReadChat.value[chat.user_id] = chat
+                // unReadChat.value[chat.user_id] = chat
+                newChatData.value = chat
             }
         } catch (err) {
             console.log('接收错误 -> ', err)
@@ -271,7 +280,6 @@ function byteCovert(size) {
 }
 
 let dShow = ref(false)
-
 // 选择好友
 let activeFriend = ref('')
 async function handleActiveFriend(f) {
@@ -284,8 +292,10 @@ async function handleActiveFriend(f) {
             chat_table: f.to_table
         }
     })
+
     if (res.status !== 200) return
-    const chatData = res?.data.filter(i => !i.chat.type).map(i => {
+
+    const chatData = res?.data.filter(i => !i.chat.type)?.map(i => {
         const chatOb = JSON.parse(i.chat)
         // console.log(' -> ', userInfo.value.user_id, i.user_id)
         if (userInfo.value.user_id === chatOb.user_id) {
