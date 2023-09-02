@@ -11,16 +11,24 @@
             </div>
         </header>
         <main class="f-container">
-            <section class="f-friends" :class="{'i-active': i.active}" v-for="(i, idx) in friendsList" :key="i.id" @click="handleSelect(idx, i)">
-                <!-- {{ unReadOb[i.to_table]}} -->
-                <div class="unread-dot" v-if="showUnread(unReadOb[i.to_table])">
-                    {{ handleUnreadDotNum(unReadOb[i.to_table]) }}
-                    <!-- {{ unReadOb[i.to_table].value?.fliter(i => i.unread)?.length }} -->
+            <section
+                v-for="(i, idx) in friendsList"
+                class="f-friends"
+                :key="i.id"
+                :class="{'i-active': i.active}"
+                @click="handleSelect(idx, i)"
+            >
+                <div class="unread-dot" v-if="showUnread(chatDataOb[i.to_table])">
+                    {{ handleUnreadDotNum(chatDataOb[i.to_table]) }}
                 </div>
-                <img class="i-img" :src="i.avatar_url || require('../assets/default_avatar.png')" alt="avatar">
+                <img
+                    class="i-img"
+                    :src="i.avatar_url || require('../assets/default_avatar.png')"
+                    alt="avatar"
+                >
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
-                    <div class="i-msg">{{ i.message || handleUnreadMsg(unReadOb[i.to_table]) }}</div>
+                    <div class="i-msg">{{ handleUnreadMsg(chatDataOb[i.to_table]) || i.message }}</div>
                 </div>
                 <div class="i-time">{{ i.time }}</div>
             </section>
@@ -51,7 +59,6 @@ import { ref, defineProps, onMounted, defineEmits, watch } from 'vue';
 import { Search } from '@element-plus/icons-vue'
 const props = defineProps({
     friends: String,
-    unReadChat: Object,
     newChatData: Object
 })
 const emit = defineEmits(['handleActiveFriend'])
@@ -73,7 +80,6 @@ const user_info = JSON.parse(sessionStorage.getItem('user_info'))
 onMounted(() => {
     if (!props.friends) return
     const f = JSON.parse(props.friends)
-    // console.log(f)
     f?.forEach(item => {
         friendsList.value.push({
             name: item.user,
@@ -87,31 +93,24 @@ onMounted(() => {
     })
 })
 
-watch(props.unReadChat, (n) => {
-    Object.keys(n).forEach(fid => {
-        const friOb = friendsList.value.find(item => item.id === fid)
-        console.log('friOb -> ',friOb)
-        friOb.message = n[fid].text
-    })
-})
-
 let dShow = ref(false)
 function handleSelect(idx, row) {
-    console.log(idx, row.to_table)
+    // console.log(idx, row.to_table)
     friendsList.value.forEach((item, i) => {
         if (i === idx) {
             item.active = true
             emit('handleActiveFriend', item)
-            // return
             return
         }
 
         item.active = false
     })
     if (!row.to_table) return
-    row.message = handleUnreadMsg(unReadOb.value[row.to_table])
-    unReadOb.value[row.to_table] = []
+    row.message = handleUnreadMsg(chatDataOb.value[row.to_table]) ?? row.message
+    chatDataOb.value[row.to_table] = []
 }
+
+// 添加好友功能
 let friend_phone_number = ref('')
 async function addFriend() {
     if (!friend_phone_number.value) {
@@ -130,7 +129,6 @@ async function addFriend() {
 
     // 返回错误
     if (!res?.data?.friends) return
-
 
     friendsList.value.length = 0
     res.data.friends.forEach(item => {
@@ -151,29 +149,29 @@ async function addFriend() {
 }
 
 // 从服务器拉取未读信息
-// console.log(' f -> ', userInfo)
 const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info')))
-let unReadOb = ref({})
+let chatDataOb = ref({})
 onMounted(() => {
     handleUnread()
 })
-watch(() => props.newChatData, (n) => {
-    console.log('newChatData -> ', n.value, n.to_table)
-    if (!Array.isArray(unReadOb.value[n.to_table])) {
-        unReadOb.value[n.to_table] = []
-        unReadOb.value[n.to_table].push({
-            unread: 1,
-            chat: JSON.stringify(n)
+watch(() => props.newChatData, (ob) => {
+    const { unread, chat } = ob
+    if (!chat) return
+    if (!Array.isArray(chatDataOb.value[chat.to_table])) {
+        chatDataOb.value[chat.to_table] = []
+        chatDataOb.value[chat.to_table].push({
+            unread,
+            chat: JSON.stringify(chat)
         })
-        console.log('-> ', unReadOb.value)
         return
     }
-    unReadOb.value[n.to_table].push({
-        unread: 1,
-        chat: JSON.stringify(n)
+    chatDataOb.value[chat.to_table].push({
+        unread,
+        chat: JSON.stringify(chat)
     })
-    console.log('-> ', unReadOb.value)
 })
+
+// 处理未读信息
 async function handleUnread() {
     const flist = JSON.parse(userInfo.value.friends)
     const unRead = await window.$axios({
@@ -187,7 +185,7 @@ async function handleUnread() {
     // console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
-    unReadOb.value = unRead.data
+    chatDataOb.value = unRead.data
 }
 
 // 处理未读信息

@@ -2,8 +2,7 @@
     <main class="main">
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
-            :unReadChat="unReadChat"
-            :newChatData="newChatData"
+            :newChatData="newChatData || {}"
             @handleActiveFriend="handleActiveFriend"
         />
         <section class="chat-window">
@@ -110,7 +109,6 @@ let websocket = ref({})
 const userInfo = ref({
     friends: ''
 })
-const unReadChat = ref({})
 // 自己 ID
 // let id = ''
 // 聊天对象的 id
@@ -138,7 +136,12 @@ function Center(chatData, type) {
     if (type === 'sent') {
         console.log('发送信息 -> ', chatData)
         chatBox.value.push(chatData)
-        unReadChat.value[chatData.to_id] = chatData
+        // 产生新的数据时需要更新数据到朋友列表
+        newChatData.value = {
+            // unread 为 1时标记为未读，0 时标记为已读需要展示
+            unread: 0,
+            chat: chatData
+        }
     }
     if (type === 'received') {
         console.log('收到信息 -> ', chatData)
@@ -152,11 +155,16 @@ function Center(chatData, type) {
             }
             if (chat.user_id === activeFriend.value.id) {
                 chatBox.value.push(chat) 
-                unReadChat.value[chat.user_id] = chat
+                newChatData.value = {
+                    unread: 0,
+                    chat,
+                }
             } else {
                 console.log('发到别处的信息 -> ', chat)
-                // unReadChat.value[chat.user_id] = chat
-                newChatData.value = chat
+                newChatData.value = {
+                    unread: 1,
+                    chat,
+                }
             }
         } catch (err) {
             console.log('接收错误 -> ', err)
