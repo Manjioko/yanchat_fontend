@@ -105,6 +105,7 @@ import ws from '@/utils/ws.js'
 import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
 import router from '@/router/router'
+import antiShake from '@/utils/antiShake.js'
 
 let chatBox = ref([])
 // let ChatData = ref({}) 
@@ -293,6 +294,9 @@ let dShow = ref(false)
 const activeFriend = ref(null)
 function handleActiveFriend(f) {
     activeFriend.value = f
+    console.log('切换 -》 ')
+    isGetChatHistory = true
+    getChatFromServer(true)
 }
 
 function handleChatData(data) {
@@ -325,40 +329,26 @@ const chatWindow = ref()
 // 查询锁
 let isGetChatHistory = true
 
-// 切换好友列表后，需要更新 isGetChatHistory 锁
-watch(() => activeFriend.value, () => {
-    console.log('切换 -》 ')
-    isGetChatHistory = true
-    getChatFromServer(true)
-})
-
-// 防抖
-let antiTime = null
-function antiShake(fn) {
-
-    const settimeout = () => {
-        antiTime = setTimeout(() => fn(), 500)
-    }
-    if (!antiTime) return  settimeout()
-
-    clearTimeout(antiTime)
-    settimeout()
-}
-
-async function getChatFromServer(firstTimeGet) {
-
-    if(firstTimeGet) {
-        chatBox.value = []
-    }
-
-    console.log('get -> ', firstTimeGet, isGetChatHistory)
+// 从服务器获取聊天记录
+async function getChatFromServer(isSwitchFriend) {
+    // console.log('get -> ', isSwitchFriend, isGetChatHistory)
     if (!isGetChatHistory) return
-
-    let chatBoxLen = chatBox.value.length
 
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
     isGetChatHistory = false
+
+    // 上锁后再判断是否是切换好友，这样做的好处是
+    // 可以利用锁的开关去判断该时间段是否是可以触发
+    // 滚动事件的时机
+    if(isSwitchFriend) {
+        // 这个置空的情况不希望触发滚动事件
+        // 因为这样会导致重复执行 getChatFromServer 函数
+        chatBox.value = []
+    }
+
+    let chatBoxLen = chatBox.value.length
+
     const res = await window.$axios({
         method: 'post',
         url: process.env.VUE_APP_CHATDATA,
@@ -370,8 +360,6 @@ async function getChatFromServer(firstTimeGet) {
 
     if (res.status !== 200) return
 
-    // 释放锁
-    isGetChatHistory = true
 
     if (Array.isArray(res.data)) {
         const start_sp = chatWindow.value.scrollHeight
@@ -380,19 +368,24 @@ async function getChatFromServer(firstTimeGet) {
         nextTick(() => {
             const end_sp = chatWindow.value.scrollHeight
             scrollBar.value.setScrollTop(end_sp - start_sp)
-            // isScroll = true
         })
     }
+
+    // 释放锁
+    isGetChatHistory = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
     if (res.data.length === 0) isGetChatHistory = false
 
     console.log('查询聊天记录回来了 -> ', res.data.length)
 }
+
 // 滚动条事件处理
+// 创建一个防抖实例函数
+const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val) {
-    if (Math.floor(val.scrollTop) === 0) {
-        antiShake(getChatFromServer)
+    if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
+        scrollAntiShakeFn()
     }
 }
 </script>
