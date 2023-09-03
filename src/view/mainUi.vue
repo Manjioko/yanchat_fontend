@@ -19,12 +19,7 @@
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="dShow = true">
             </section>
-            <section
-                class="text-show"
-                v-if="activeFriend"
-                v-loading="loading"
-                element-loading-background="rgb(255 255 255 / 0%)"
-            >
+            <section class="text-show" v-if="activeFriend">
                 <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
                     <div ref="chatWindow">
                         <div v-for="(textObject, idx) in chatBox" :key="idx">
@@ -210,6 +205,11 @@ function sendMessage() {
         websocket.value?.send(JSON.stringify(sendData))
         Center(sendData, 'sent')
         chatText.value = ''
+
+        nextTick(() => {
+            // 文字窗口滚动到底部
+            scrollBar.value.setScrollTop(chatWindow.value.scrollHeight)
+        })
     }
 }
 function hdkeydown() {
@@ -290,10 +290,9 @@ function byteCovert(size) {
 
 let dShow = ref(false)
 // 选择好友
-let activeFriend = ref('')
-async function handleActiveFriend(f) {
+const activeFriend = ref(null)
+function handleActiveFriend(f) {
     activeFriend.value = f
-    getChatFromServer(true)
 }
 
 function handleChatData(data) {
@@ -323,52 +322,43 @@ function handleExit() {
 const scrollBar = ref()
 const chatWindow = ref()
 
-// 滚动锁
-let isScroll = true
 // 查询锁
 let isGetChatHistory = true
 
-// 切换好友列表后，需要更新 isGetChatHistory 锁 和 isScroll 锁
+// 切换好友列表后，需要更新 isGetChatHistory 锁
 watch(() => activeFriend.value, () => {
+    console.log('切换 -》 ')
     isGetChatHistory = true
-    isScroll = true
+    getChatFromServer(true)
 })
-// 滚动监听
-watch(chatBox, () => {
-    // console.log('scroll -> ', isScroll)
-    if (chatWindow.value && isScroll) {
-        nextTick(() => {
-            console.log(' ->', chatWindow.value.scrollHeight )
-            scrollBar.value.setScrollTop(chatWindow.value.scrollHeight)
-        })
-    }
-}, { deep: true })
 
 // 防抖
 let antiTime = null
-// 加载
-const loading = ref(false)
-
 function antiShake(fn) {
-    loading.value = true
-    if (antiTime) {
-        clearTimeout(antiTime)
-        antiTime = setTimeout(() => { 
-            fn()
-        }, 1500)
-        return
+
+    const settimeout = () => {
+        antiTime = setTimeout(() => fn(), 500)
     }
-    antiTime = setTimeout(() => {
-        fn()
-    }, 1500)
+    if (!antiTime) return  settimeout()
+
+    clearTimeout(antiTime)
+    settimeout()
 }
 
 async function getChatFromServer(firstTimeGet) {
+
     if(firstTimeGet) {
         chatBox.value = []
     }
+
+    console.log('get -> ', firstTimeGet, isGetChatHistory)
+    if (!isGetChatHistory) return
+
     let chatBoxLen = chatBox.value.length
+
     // 从服务器拉取聊天记录
+    // 决定拉数据前，上锁，防止重复操作
+    isGetChatHistory = false
     const res = await window.$axios({
         method: 'post',
         url: process.env.VUE_APP_CHATDATA,
@@ -380,25 +370,28 @@ async function getChatFromServer(firstTimeGet) {
 
     if (res.status !== 200) return
 
+    // 释放锁
+    isGetChatHistory = true
+
     if (Array.isArray(res.data)) {
-        isScroll = false
         const start_sp = chatWindow.value.scrollHeight
         const chatData = handleChatData(res.data)
         chatBox.value = [...chatData, ...chatBox.value]
         nextTick(() => {
             const end_sp = chatWindow.value.scrollHeight
             scrollBar.value.setScrollTop(end_sp - start_sp)
-            isScroll = true
+            // isScroll = true
         })
     }
+
+    // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
     if (res.data.length === 0) isGetChatHistory = false
-    console.log('查询聊天记录回来了 -> ', res.data)
-    loading.value = false
+
+    console.log('查询聊天记录回来了 -> ', res.data.length)
 }
 // 滚动条事件处理
 async function handleScroll(val) {
-    if (Math.floor(val.scrollTop) === 0 && chatBox.value.length) {
-        if (!isGetChatHistory) return
+    if (Math.floor(val.scrollTop) === 0) {
         antiShake(getChatFromServer)
     }
 }
