@@ -125,7 +125,7 @@ async function addFriend() {
             friend_phone_number: friend_phone_number.value
         }
     })
-    console.log('请求回来了 -> ', res)
+    console.log('好友请求回来了 -> ', res)
 
     // 返回错误
     if (!res?.data?.friends) return
@@ -182,7 +182,7 @@ async function handleUnread() {
             user_id: userInfo.value.user_id
         }
     })
-    // console.log('unread -> ', unRead)
+    console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
     chatDataOb.value = unRead.data

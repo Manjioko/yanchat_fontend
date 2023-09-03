@@ -19,40 +19,49 @@
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="dShow = true">
             </section>
-            <section class="text-show" id="container" ref="chatWindow" v-if="activeFriend">
-                <div v-for="(textObject, idx) in chatBox" :key="idx">
-                    <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
-                    <div class="chat-box-remote" v-if="textObject.user !== 1">
-                        <img src="../assets/avatar1.png" alt="其他">
-                        <div class="chat-box-remote-message">
-                            <span class="chat-box-remote-message-text">
-                               <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
-                               <sendFile
-                                    v-else
-                                    :progress="textObject.progress"
-                                    :type="textObject.type"
-                                    :fileName="textObject.fileName"
-                                    :size="textObject.size"
-                                    :response="textObject.response"
-                               />
-                            </span>
+            <section
+                class="text-show"
+                v-if="activeFriend"
+                v-loading="loading"
+                element-loading-background="rgb(255 255 255 / 0%)"
+            >
+                <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
+                    <div ref="chatWindow">
+                        <div v-for="(textObject, idx) in chatBox" :key="idx">
+                            <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
+                            <div class="chat-box-remote" v-if="textObject.user !== 1">
+                                <img src="../assets/avatar1.png" alt="其他">
+                                <div class="chat-box-remote-message">
+                                    <span class="chat-box-remote-message-text">
+                                    <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
+                                    <sendFile
+                                        v-else
+                                        :progress="textObject.progress"
+                                        :type="textObject.type"
+                                        :fileName="textObject.fileName"
+                                        :size="textObject.size"
+                                        :response="textObject.response"
+                                    />
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="chat-box-local" v-else>
+                                <span class="chat-box-local-message">
+                                    <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
+                                    <sendFile
+                                        v-else
+                                        :progress="textObject.progress"
+                                        :type="textObject.type"
+                                        :fileName="textObject.fileName"
+                                        :size="textObject.size"
+                                        :response="textObject.response"
+                                    />
+                                </span>
+                                <img src="../assets/avatar2.png" alt="其他">
+                            </div>
                         </div>
                     </div>
-                    <div class="chat-box-local" v-else>
-                        <span class="chat-box-local-message">
-                            <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
-                            <sendFile
-                                v-else
-                                :progress="textObject.progress"
-                                :type="textObject.type"
-                                :fileName="textObject.fileName"
-                                :size="textObject.size"
-                                :response="textObject.response"
-                            />
-                        </span>
-                        <img src="../assets/avatar2.png" alt="其他">
-                    </div>
-                </div>
+                </el-scrollbar>
             </section>
             <section class="zero-friend" v-else>
                 还未选择聊天好友
@@ -184,6 +193,7 @@ function sendMessage() {
             return
         }
         const message = chatText.value
+        if (!message) return
         // console.log(activeFriend.value)
         const sendData = {
             type: 'text',
@@ -207,15 +217,6 @@ function hdkeydown() {
     sendMessage()
 }
 
-// 接收到信息时信息栏滚动到底部
-const chatWindow = ref(null)
-watch(() => chatBox.value, () => {
-    if (chatWindow.value) {
-        nextTick(() => {
-            chatWindow.value.scrollTop = chatWindow.value.scrollHeight
-        })
-    }
-})
 
 let fileData = ref('')
 // 文件上传
@@ -292,18 +293,11 @@ let dShow = ref(false)
 let activeFriend = ref('')
 async function handleActiveFriend(f) {
     activeFriend.value = f
-    // 从服务器拉取聊天记录
-    const res = await window.$axios({
-        method: 'post',
-        url: process.env.VUE_APP_CHATDATA,
-        data: {
-            chat_table: f.to_table
-        }
-    })
+    getChatFromServer(true)
+}
 
-    if (res.status !== 200) return
-
-    const chatData = res?.data.filter(i => !i.chat.type)?.map(i => {
+function handleChatData(data) {
+    return data.filter(i => !i.chat.type)?.map(i => {
         const chatOb = JSON.parse(i.chat)
         // console.log(' -> ', userInfo.value.user_id, i.user_id)
         if (userInfo.value.user_id === chatOb.user_id) {
@@ -316,14 +310,97 @@ async function handleActiveFriend(f) {
             ...i,
             ...chatOb
         }
-    })
-    chatBox.value = chatData
+    }) ?? []
 }
 
 // 处理退出登录
 function handleExit() {
     websocket?.value?.close(4001, '退出登录')
     router.go(-1)
+}
+
+// 接收到信息时信息栏滚动到底部
+const scrollBar = ref()
+const chatWindow = ref()
+
+// 滚动锁
+let isScroll = true
+// 查询锁
+let isGetChatHistory = true
+
+// 切换好友列表后，需要更新 isGetChatHistory 锁 和 isScroll 锁
+watch(() => activeFriend.value, () => {
+    isGetChatHistory = true
+    isScroll = true
+})
+// 滚动监听
+watch(chatBox, () => {
+    // console.log('scroll -> ', isScroll)
+    if (chatWindow.value && isScroll) {
+        nextTick(() => {
+            console.log(' ->', chatWindow.value.scrollHeight )
+            scrollBar.value.setScrollTop(chatWindow.value.scrollHeight)
+        })
+    }
+}, { deep: true })
+
+// 防抖
+let antiTime = null
+// 加载
+const loading = ref(false)
+
+function antiShake(fn) {
+    loading.value = true
+    if (antiTime) {
+        clearTimeout(antiTime)
+        antiTime = setTimeout(() => { 
+            fn()
+        }, 1500)
+        return
+    }
+    antiTime = setTimeout(() => {
+        fn()
+    }, 1500)
+}
+
+async function getChatFromServer(firstTimeGet) {
+    if(firstTimeGet) {
+        chatBox.value = []
+    }
+    let chatBoxLen = chatBox.value.length
+    // 从服务器拉取聊天记录
+    const res = await window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_CHATDATA,
+        data: {
+            chat_table: activeFriend.value.to_table,
+            offset: chatBoxLen
+        }
+    })
+
+    if (res.status !== 200) return
+
+    if (Array.isArray(res.data)) {
+        isScroll = false
+        const start_sp = chatWindow.value.scrollHeight
+        const chatData = handleChatData(res.data)
+        chatBox.value = [...chatData, ...chatBox.value]
+        nextTick(() => {
+            const end_sp = chatWindow.value.scrollHeight
+            scrollBar.value.setScrollTop(end_sp - start_sp)
+            isScroll = true
+        })
+    }
+    if (res.data.length === 0) isGetChatHistory = false
+    console.log('查询聊天记录回来了 -> ', res.data)
+    loading.value = false
+}
+// 滚动条事件处理
+async function handleScroll(val) {
+    if (Math.floor(val.scrollTop) === 0 && chatBox.value.length) {
+        if (!isGetChatHistory) return
+        antiShake(getChatFromServer)
+    }
 }
 </script>
 
@@ -356,7 +433,7 @@ function handleExit() {
 
 .text-show {
     flex: 1;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
 }
 

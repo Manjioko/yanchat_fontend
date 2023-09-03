@@ -58,7 +58,7 @@ async function register() {
         }
     })
     const { status, data } = res
-    console.log(status, data)
+    // console.log(status, data)
     if (status === 200) {
         if (data === 'exist') {
             return

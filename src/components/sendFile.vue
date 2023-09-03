@@ -1,5 +1,6 @@
 <script setup>
 import { InfoFilled } from '@element-plus/icons-vue'
+import fileSave from 'file-saver'
 // import { saveAs } from 'file-saver'
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -13,16 +14,8 @@ const props = defineProps({
 const confirmEvent = () => {
     console.log('confirm!', props)
     const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-    // 创建隐藏的可下载链接
-    var eleLink = document.createElement('a')
-    eleLink.download = props.response
-    eleLink.style.display = 'none'
-    eleLink.href = url
-    // 触发点击
-    document.body.appendChild(eleLink)
-    eleLink.click()
-    // 然后移除
-    document.body.removeChild(eleLink)
+    console.log('-> ', url)
+    fileSave.saveAs(url, props.fileName)
 }
 const cancelEvent = () => {
     console.log('cancel!')
@@ -98,8 +91,11 @@ const cancelEvent = () => {
 }
 
 .pr-message {
-    font-size: 18px;
+    font-size: 14px;
     color: #333333;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .pr-tip {
