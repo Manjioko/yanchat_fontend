@@ -1,14 +1,11 @@
 <template>
     <main class="main">
-        <friendsList
-            :friends="userInfo?.friends ?? '[]'"
-            :newChatData="newChatData || {}"
-            @handleActiveFriend="handleActiveFriend"
-        />
+        <friendsList :friends="userInfo?.friends ?? '[]'" :newChatData="newChatData || {}"
+            @handleActiveFriend="handleActiveFriend" />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
-                    <div :class="{isOnlink: signal === 1, isUnlink: signal !== 1}"></div>
+                    <div :class="{ isOnlink: signal === 1, isUnlink: signal !== 1 }"></div>
                     <img :src="activeFriend.avatar || require('../assets/default_avatar.png')" alt="avatar">
                     <span>{{ activeFriend.name }}</span>
                     <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
@@ -28,29 +25,36 @@
                                 <img src="../assets/avatar1.png" alt="其他">
                                 <div class="chat-box-remote-message">
                                     <span class="chat-box-remote-message-text">
-                                    <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
-                                    <sendFile
-                                        v-else
-                                        :progress="textObject.progress"
-                                        :type="textObject.type"
-                                        :fileName="textObject.fileName"
-                                        :size="textObject.size"
-                                        :response="textObject.response"
-                                    />
+                                        <!-- <span
+                                            v-if="textObject.type === 'text'"
+                                            class="chat-text"
+                                        > 
+                                        {{ textObject.text }}
+                                        </span> -->
+                                        <div
+                                            v-if="textObject.type === 'text'"
+                                            v-html="textToMarkdown(textObject.text)"
+                                            class="chat-text"
+                                        >
+                                        </div>
+                                        <sendFile v-else :progress="textObject.progress" :type="textObject.type"
+                                            :fileName="textObject.fileName" :size="textObject.size"
+                                            :response="textObject.response" />
                                     </span>
                                 </div>
                             </div>
                             <div class="chat-box-local" v-else>
                                 <span class="chat-box-local-message">
-                                    <span v-if="textObject.type === 'text'"> {{ textObject.text }}</span>
-                                    <sendFile
-                                        v-else
-                                        :progress="textObject.progress"
-                                        :type="textObject.type"
-                                        :fileName="textObject.fileName"
-                                        :size="textObject.size"
-                                        :response="textObject.response"
-                                    />
+                                    <!-- <span v-if="textObject.type === 'text'" class="chat-text"></span> -->
+                                    <div
+                                        v-if="textObject.type === 'text'"
+                                        v-html="textToMarkdown(textObject.text)"
+                                        class="chat-text"
+                                    >
+                                    </div>
+                                    <sendFile v-else :progress="textObject.progress" :type="textObject.type"
+                                        :fileName="textObject.fileName" :size="textObject.size"
+                                        :response="textObject.response" />
                                 </span>
                                 <img src="../assets/avatar2.png" alt="其他">
                             </div>
@@ -62,7 +66,9 @@
                 还未选择聊天好友
             </section>
             <section class="text-send">
-                <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息...">
+                <!-- <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息..."> -->
+                <el-input v-model="chatText" :autosize="{ minRows: 1, maxRows: 5 }" type="textarea"
+                    placeholder="在这里输入你的消息..." @keyup.shift.enter.exact="hdkeydown" />
                 <div class="upload">
                     <img src="../assets/uploadIcon.png" alt="upload">
                     <input type="file" @change="uploadFile">
@@ -79,17 +85,17 @@
         <el-dialog v-model="dShow" width="30%" center>
             <div class="d-text">
                 <div>
-                    <WarningFilled style="width: 2rem; height: 2rem; padding: 10px; color: red;"/>
+                    <WarningFilled style="width: 2rem; height: 2rem; padding: 10px; color: red;" />
                 </div>
                 <div class="d-tip">是否退出登录？</div>
             </div>
             <template #footer>
-            <span class="dialog-footer">
-                <el-button @click="dShow = false">取消</el-button>
-                <el-button type="primary" @click="handleExit">
-                确定
-                </el-button>
-            </span>
+                <span class="dialog-footer">
+                    <el-button @click="dShow = false">取消</el-button>
+                    <el-button type="primary" @click="handleExit">
+                        确定
+                    </el-button>
+                </span>
             </template>
         </el-dialog>
     </div>
@@ -97,15 +103,37 @@
 
 <script setup>
 
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { WarningFilled } from  '@element-plus/icons-vue'
+import { WarningFilled } from '@element-plus/icons-vue'
 // import { useRouter } from 'vue-router'
 import ws from '@/utils/ws.js'
 import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
 import router from '@/router/router'
 import antiShake from '@/utils/antiShake.js'
+// import 'highlight.js/styles/foundation.css'
+import hljs from 'highlight.js'
+import MarkdownIt from 'markdown-it'
+
+const md = MarkdownIt({
+    langPrefix:   'chat-text language-', 
+    html: true,
+    highlight: function (str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+        try {
+            return hljs.highlight(str, { language: lang }).value;
+        } catch (__) {
+            // 
+        }
+        }
+
+        return ''; // use external default escaping
+    }
+})
+function textToMarkdown(text) {
+    return md.render(text)
+}
 
 let chatBox = ref([])
 // let ChatData = ref({}) 
@@ -154,12 +182,12 @@ function Center(chatData, type) {
             const chat = JSON.parse(chatData)
             console.log('id 比较 -> ', chat.user_id, userInfo.value.user_id)
             if (chat.user_id === userInfo.value.user_id) {
-                chat.user = 1 
+                chat.user = 1
             } else {
                 chat.user = 0
             }
             if (chat.user_id === activeFriend.value.id) {
-                chatBox.value.push(chat) 
+                chatBox.value.push(chat)
                 newChatData.value = {
                     unread: 0,
                     chat,
@@ -189,6 +217,7 @@ function sendMessage() {
             return
         }
         const message = chatText.value
+        // console.log(chatText.value)
         if (!message) return
         // console.log(activeFriend.value)
         const sendData = {
@@ -268,7 +297,7 @@ function uploadFile(e) {
 
 
     xhr.open('post', process.env.VUE_APP_FILE)
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
             console.log('暗号正确,开始上传...')
         }
@@ -341,7 +370,7 @@ async function getChatFromServer(isSwitchFriend) {
     // 上锁后再判断是否是切换好友，这样做的好处是
     // 可以利用锁的开关去判断该时间段是否是可以触发
     // 滚动事件的时机
-    if(isSwitchFriend) {
+    if (isSwitchFriend) {
         // 这个置空的情况不希望触发滚动事件
         // 因为这样会导致重复执行 getChatFromServer 函数
         chatBox.value = []
@@ -424,7 +453,7 @@ async function handleScroll(val) {
 }
 
 .text-send {
-    height: 70px;
+    min-height: 70px;
     display: flex;
     box-sizing: border-box;
     padding: 10px;
@@ -443,6 +472,7 @@ async function handleScroll(val) {
 
     button {
         width: 70px;
+        max-height: 36px;
         background: #2F88FF;
         outline: none;
         display: flex;
@@ -545,7 +575,7 @@ async function handleScroll(val) {
     .chat-box-local-message {
         display: block;
         box-sizing: border-box;
-        padding: 12px;
+        padding: 0 12px;
         font-size: 14px;
         background: #EBF3FE;
         border-radius: 10px 10px 0px 10px;
@@ -560,6 +590,7 @@ async function handleScroll(val) {
     font-family: Source Han Sans CN;
     padding: 10px;
 }
+
 .isOnlink {
     width: 10px;
     height: 10px;
@@ -569,6 +600,7 @@ async function handleScroll(val) {
     top: 0;
     left: 38px;
 }
+
 .isUnlink {
     width: 10px;
     height: 10px;
@@ -576,28 +608,33 @@ async function handleScroll(val) {
     border-radius: 50%;
     position: absolute;
     top: 0;
-    left: 38px; 
+    left: 38px;
 }
+
 .reconnect {
     font-size: 14px !important;
     color: #9f9f9f !important;
     margin-top: 12px !important;
 }
+
 .disconnect {
     font-size: 14px !important;
     color: #ff7373 !important;
     margin-top: 12px !important;
 }
+
 .upload {
     width: 18px;
     height: 15px;
     position: relative;
     margin-right: 20px;
     margin-left: 10px;
+
     img {
         width: inherit;
         height: inherit;
     }
+
     input {
         position: absolute;
         width: 20px;
@@ -607,6 +644,7 @@ async function handleScroll(val) {
         opacity: 0;
     }
 }
+
 .send-btn {
     height: 100%;
 }
@@ -616,13 +654,16 @@ async function handleScroll(val) {
     align-items: center;
     justify-content: center;
 }
+
 .d-tip {
     font-size: 16px;
     font-weight: 500;
 }
+
 :deep .el-dialog__footer {
     text-align: end;
 }
+
 .default-avatar {
     flex: 1;
 }
@@ -635,5 +676,18 @@ async function handleScroll(val) {
     font-size: 12px;
     color: #999999;
     background-color: #f8f8f86e;
+}
+
+:deep .el-textarea__inner {
+    box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
+    resize: none;
+}
+
+.chat-text {
+    margin: 0;
+    white-space: pre-wrap;
+    display: flex;
+    flex-direction: column;
+    max-width: 450px;
 }
 </style>
