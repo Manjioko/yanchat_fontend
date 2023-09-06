@@ -695,6 +695,14 @@ async function handleScroll(val) {
     :deep ul {
         margin: 0;
     }
+    :deep pre {
+        margin-top: 8px;
+        margin-bottom: 0px;
+    }
+    :deep h1, :deep h2, :deep h3, :deep h4, :deep h5,:deep h6 {
+        margin-block-start: 8px;
+        margin-block-end: 8px;
+    }
 }
 
 // hljs 代码块设置背景色
