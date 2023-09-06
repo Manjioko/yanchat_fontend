@@ -36,16 +36,27 @@
     </div>
 
     <div>
-        <el-dialog v-model="dShow" title="添加好友" width="30%" center>
+        <el-dialog
+            v-model="dShow"
+            title="添加好友"
+            width="30%"
+            :modal="false"
+            :close-on-click-modal="false"
+            :show-close="false"
+            :append-to-body="true"
+            draggable
+            style="border-radius: 8px;text-align: center;"
+        >
             <div class="d-text">
                 <el-input
                     placeholder="输入好友手机号码"
                     v-model="friend_phone_number"
                 />
+                <div v-if="missFri" class="miss-fri">添加的好友不存在。</div>
             </div>
             <template #footer>
             <span class="dialog-footer">
-                <el-button @click="dShow = false">取消</el-button>
+                <el-button @click="handleClose">取消</el-button>
                 <el-button type="primary" @click="addFriend">
                 确定
                 </el-button>
@@ -57,6 +68,7 @@
 <script setup>
 import { ref, defineProps, onMounted, defineEmits, watch } from 'vue';
 import { Search } from '@element-plus/icons-vue'
+import antiShake from '@/utils/antiShake';
 const props = defineProps({
     friends: String,
     newChatData: Object
@@ -112,6 +124,10 @@ function handleSelect(idx, row) {
 
 // 添加好友功能
 let friend_phone_number = ref('')
+let missFri = ref(false)
+let delayToShowErr = antiShake(() => {
+    missFri.value = true
+}, 200)
 async function addFriend() {
     if (!friend_phone_number.value) {
         return
@@ -125,8 +141,13 @@ async function addFriend() {
             friend_phone_number: friend_phone_number.value
         }
     })
-    console.log('好友请求回来了 -> ', res)
-
+    console.log('好友请求回来了 -> ', res, res?.data)
+    if (res.data === 'miss') {
+        missFri.value = false
+        delayToShowErr()
+    } else {
+        missFri.value = false
+    }
     // 返回错误
     if (!res?.data?.friends) return
 
@@ -213,6 +234,12 @@ function handleUnreadDotNum(ary) {
     if (!Array.isArray(ary)) return
     const fdata = ary?.filter(i => i?.unread)
     return fdata.length
+}
+
+// 关闭添加好友框
+function handleClose() {
+    missFri.value = false
+    friend_phone_number.value = ''
 }
 </script>
 <style lang="scss" scoped>
@@ -311,5 +338,15 @@ function handleUnreadDotNum(ary) {
         line-height: 15px;
         top: 13px;
         left: 45px;
+    }
+    .miss-fri {
+        font-size: 12px;
+        padding: 10px 0;
+        color: #ff6767;
+        position: absolute;
+        right: 27px;
+    }
+    :deep .el-dialog {
+        border-radius: 8px;
     }
 </style>

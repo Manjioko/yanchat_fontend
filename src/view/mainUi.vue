@@ -117,7 +117,7 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 
 const md = MarkdownIt({
-    langPrefix:   'chat-text language-', 
+    langPrefix:   'hljs code-set language-', 
     html: true,
     highlight: function (str, lang) {
         if (lang && hljs.getLanguage(lang)) {
@@ -128,7 +128,7 @@ const md = MarkdownIt({
         }
         }
 
-        return ''; // use external default escaping
+        return '';
     }
 })
 function textToMarkdown(text) {
@@ -575,7 +575,7 @@ async function handleScroll(val) {
     .chat-box-local-message {
         display: block;
         box-sizing: border-box;
-        padding: 0 12px;
+        padding: 12px;
         font-size: 14px;
         background: #EBF3FE;
         border-radius: 10px 10px 0px 10px;
@@ -689,5 +689,16 @@ async function handleScroll(val) {
     display: flex;
     flex-direction: column;
     max-width: 450px;
+    :deep p {
+        margin: 0;
+    }
+    :deep ul {
+        margin: 0;
+    }
+}
+
+// hljs 代码块设置背景色
+:deep .hljs {
+    border-radius: 5px;
 }
 </style>

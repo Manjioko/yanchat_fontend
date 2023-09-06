@@ -2,14 +2,19 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import antiShake from '@/utils/antiShake';
 let router = ref('')
 let phone = ref('')
 let pw = ref('')
+let pwErr = ref(false)
 // let showErr = ref(false)
 // let showloginErr = ref(false)
 onMounted(() => {
     router.value = useRouter()
 })
+const delayToShowErr = antiShake(() => {
+    pwErr.value = true
+}, 300)
 async function login() {
     if (phone.value && pw.value) {
         const res = await window.$axios({
@@ -23,7 +28,13 @@ async function login() {
         const { status, data } = res
         console.log(status, data)
         if (status !== 200) return
-
+        if (data === 'pw_err') {
+            pwErr.value = false
+            delayToShowErr()
+            return
+        } else {
+            pwErr.value = false
+        }
         if (data !== 'err') {
             sessionStorage.setItem('user_info', JSON.stringify(data))
             // sessionStorage.setItem('id', `${phone.value}//client2`)
@@ -87,6 +98,7 @@ async function register() {
                 <div class="login-text">
                     <span class="login-id">密码:</span>
                     <input type="password" placeholder="请输入密码" v-model="pw" class="input" />
+                    <div v-if="pwErr" class="pw-err">密码错误！</div>
                 </div>
             </section>
             <section class="forget-pw">
@@ -118,6 +130,7 @@ async function register() {
 .login-text {
     box-sizing: border-box;
     padding: 10px;
+    position: relative;
 }
 
 .input {
@@ -203,4 +216,14 @@ async function register() {
     color: #2F88FF;
     font-weight: 500;
     padding: 20px 0;
-}</style>
+}
+.pw-err {
+    text-align: end;
+    font-size: 12px;
+    color: #ff6767;
+    margin-top: 6px;
+    // margin-right: 6px;
+    position: absolute;
+    right: 15px;
+}
+</style>
