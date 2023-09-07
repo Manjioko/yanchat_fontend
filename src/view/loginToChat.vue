@@ -37,8 +37,9 @@ async function login() {
         }
         if (data !== 'err') {
             sessionStorage.setItem('user_info', JSON.stringify(data))
-            // sessionStorage.setItem('id', `${phone.value}//client2`)
-            router.value.push({ name: 'Chat', query: { user_id: data.user_id } })
+            // 保存 user_id 到 sessionStorage
+            sessionStorage.setItem('user_id', data.user_id)
+            router.value.push({ name: 'Chat' })
             // showloginErr.value = false
             return
         }
@@ -79,7 +80,10 @@ async function register() {
             message: `${phone.value} 已经成功注册！`,
             type: 'success',
         })
-        router.value.push({ name: 'Chat', query: { user_id: data.user_id } })
+
+        // 保存 user_id 到 sessionStorage
+        sessionStorage.setItem('user_id', data.user_id)
+        router.value.push({ name: 'Chat' })
     }
 }
 

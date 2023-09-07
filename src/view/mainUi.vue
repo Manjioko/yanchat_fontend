@@ -104,7 +104,7 @@
 <script setup>
 
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+// import { useRoute } from 'vue-router'
 import { WarningFilled } from '@element-plus/icons-vue'
 // import { useRouter } from 'vue-router'
 import ws from '@/utils/ws.js'
@@ -151,10 +151,12 @@ let signal = ref(0)
 
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 
-const route = useRoute()
+// const route = useRoute()
 onMounted(async () => {
     // console.log('route -> ', userInfo.value.chat_table)
-    const url = `${process.env.VUE_APP_WS}?user_id=${route.query.user_id}`
+    const user_id = sessionStorage.getItem('user_id')
+    console.log('user id -> ', user_id)
+    const url = `${process.env.VUE_APP_WS}?user_id=${user_id}`
     ws(websocket, url, Center, signal)
 })
 
@@ -685,15 +687,26 @@ async function handleScroll(val) {
 
 .chat-text {
     margin: 0;
-    white-space: pre-wrap;
+    // white-space: pre-wrap;
+    word-wrap: break-word;
     display: flex;
     flex-direction: column;
     max-width: 450px;
     :deep p {
         margin: 0;
+        white-space: pre;
     }
-    :deep ul {
+    :deep blockquote {
+        margin: 10px;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+    :deep ul, :deep ol {
         margin: 0;
+        margin: 0;
+        padding-inline-start: 15px;
+        margin-block: 0px;
+        margin-inline: 0px;
     }
     :deep pre {
         margin-top: 8px;
