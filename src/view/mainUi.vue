@@ -20,7 +20,7 @@
                 <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
                     <div ref="chatWindow">
                         <div v-for="(textObject, idx) in chatBox" :key="idx">
-                            <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div>
+                            <!-- <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div> -->
                             <div class="chat-box-remote" v-if="textObject.user !== 1">
                                 <img src="../assets/avatar1.png" alt="其他">
                                 <div class="chat-box-remote-message">
@@ -71,7 +71,7 @@
                     placeholder="在这里输入你的消息..." @keyup.shift.enter.exact="hdkeydown" />
                 <div class="upload">
                     <img src="../assets/uploadIcon.png" alt="upload">
-                    <input type="file" @change="uploadFile">
+                    <input type="file" @change="uploadFile" v-if="activeFriend" >
                 </div>
                 <button @click="sendMessage" class="send-btn">
                     <span>发送</span>
@@ -112,6 +112,7 @@ import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
 import router from '@/router/router'
 import antiShake from '@/utils/antiShake.js'
+import { timeFormat } from '@/utils/timeFormat.js'
 // import 'highlight.js/styles/foundation.css'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
@@ -226,6 +227,7 @@ function sendMessage() {
             type: 'text',
             text: message,
             user: 1,
+            time: timeFormat(),
             // 以下的三个参数必传
             // 第一个 to_table 代表 聊天记录数据库名称
             // 第二个 to_id 代表 聊天对象的 id
@@ -321,6 +323,7 @@ function byteCovert(size) {
 }
 
 let dShow = ref(false)
+
 // 选择好友
 const activeFriend = ref(null)
 function handleActiveFriend(f) {
@@ -350,6 +353,7 @@ function handleChatData(data) {
 // 处理退出登录
 function handleExit() {
     websocket?.value?.close(4001, '退出登录')
+    sessionStorage.clear('user_info')
     router.go(-1)
 }
 
@@ -553,7 +557,7 @@ async function handleScroll(val) {
     .chat-box-remote-message {
         display: block;
         box-sizing: border-box;
-        padding: 12px;
+        padding: 10px;
         font-size: 14px;
         background: #F8F8F8;
         // opacity: 0.5;
@@ -577,7 +581,7 @@ async function handleScroll(val) {
     .chat-box-local-message {
         display: block;
         box-sizing: border-box;
-        padding: 12px;
+        padding: 10px;
         font-size: 14px;
         background: #EBF3FE;
         border-radius: 10px 10px 0px 10px;
@@ -635,6 +639,7 @@ async function handleScroll(val) {
     img {
         width: inherit;
         height: inherit;
+        -webkit-user-drag: none;
     }
 
     input {
@@ -694,12 +699,36 @@ async function handleScroll(val) {
     max-width: 450px;
     :deep p {
         margin: 0;
-        white-space: pre;
+        white-space: pre-line;
+        & > code {
+            background: #fff;
+            box-sizing: border-box;
+            padding: 4px 10px;
+            display: inline-block;
+            margin: 5px 0;
+            // font-weight: 500;
+            border-radius: 5px;
+            font-style: italic;
+        }
     }
     :deep blockquote {
-        margin: 10px;
+        position: relative;
+        margin: 0;
         word-wrap: break-word;
         white-space: normal;
+        background-color: #cacccc4d;
+        box-sizing: border-box;
+        padding: 10px;
+        border-radius: 3px;
+        &::after {
+            content: "";
+            width: 3px;
+            top: 20%;
+            height: 60%;
+            position: absolute;
+            left: 4px;
+            background-color: #7fc5d1;
+        }
     }
     :deep ul, :deep ol {
         margin: 0;
@@ -709,8 +738,8 @@ async function handleScroll(val) {
         margin-inline: 0px;
     }
     :deep pre {
-        margin-top: 8px;
-        margin-bottom: 0px;
+        margin: 8px 0;
+        // margin-bottom: 0px;
     }
     :deep h1, :deep h2, :deep h3, :deep h4, :deep h5,:deep h6 {
         margin-block-start: 8px;

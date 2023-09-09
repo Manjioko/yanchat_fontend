@@ -5,6 +5,7 @@
                 class="w-50 m-2"
                 placeholder="搜索"
                 :prefix-icon="Search"
+                v-model="searchText"
             />
             <div>
                 <span class="i-plus" @click="dShow = true">+</span>
@@ -13,6 +14,7 @@
         <main class="f-container">
             <section
                 v-for="(i, idx) in friendsList"
+                v-show="i.searchActive"
                 class="f-friends"
                 :key="i.id"
                 :class="{'i-active': i.active}"
@@ -30,7 +32,9 @@
                     <div class="i-name">{{ i.name }}</div>
                     <div class="i-msg">{{ handleUnreadMsg(chatDataOb[i.to_table]) || i.message }}</div>
                 </div>
-                <div class="i-time">{{ i.time }}</div>
+                <!-- <div class="i-time">{{ i.time }}</div> -->
+                <!-- handleShowTime -->
+                <div class="i-time">{{ handleShowTime(chatDataOb[i.to_table]) || i.time }}</div>
             </section>
         </main>
     </div>
@@ -92,14 +96,16 @@ const user_info = JSON.parse(sessionStorage.getItem('user_info'))
 onMounted(() => {
     if (!props.friends) return
     const f = JSON.parse(props.friends)
+    // console.log('f -> ', f)
     f?.forEach(item => {
         friendsList.value.push({
             name: item.user,
             id: item.user_id,
-            time: item.created_at.slice(10, -3),
+            time: '',
             message: '',
             avatar: item.avatar_url,
             active: false,
+            searchActive: true,
             to_table: item.chat_table
         })
     })
@@ -119,6 +125,7 @@ function handleSelect(idx, row) {
     })
     if (!row.to_table) return
     row.message = handleUnreadMsg(chatDataOb.value[row.to_table]) ?? row.message
+    row.time = handleShowTime(chatDataOb.value[row.to_table]) ?? row.time
     chatDataOb.value[row.to_table] = []
 }
 
@@ -156,10 +163,11 @@ async function addFriend() {
         friendsList.value.push({
             name: item.user,
             id: item.user_id,
-            time: item.created_at.slice(10, -3),
+            time: '',
             message: '',
             avatar: item.avatar_url,
             active: false,
+            searchActive: true,
             to_table: item.chat_table
         })
     })
@@ -203,7 +211,7 @@ async function handleUnread() {
             user_id: userInfo.value.user_id
         }
     })
-    // console.log('unread -> ', unRead)
+    console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
     chatDataOb.value = unRead.data
@@ -215,10 +223,19 @@ function handleUnreadMsg(unreadAry) {
     
     const len = unreadAry?.length
     if (!len || len <= 0) return
-    // console.log('-> ', unreadAry)
+    // console.log('time -> ', JSON.parse(unreadAry[len - 1]?.chat ?? '{}'))
     return JSON.parse(unreadAry[len - 1]?.chat ?? '{}').text
 }
 
+// 处理时间
+function handleShowTime(unreadAry) {
+    if (!Array.isArray(unreadAry)) return
+    
+    const len = unreadAry?.length
+    if (!len || len <= 0) return
+    // console.log('time -> ', JSON.parse(unreadAry[len - 1]?.chat ?? '{}'))
+    return JSON.parse(unreadAry[len - 1]?.chat ?? '{}').time?.slice(10, -3)
+}
 // 处理是否显示未读信息
 function showUnread(ary) {
     if (!Array.isArray(ary)) return
@@ -240,7 +257,32 @@ function handleUnreadDotNum(ary) {
 function handleClose() {
     missFri.value = false
     friend_phone_number.value = ''
+    dShow.value = false
 }
+
+// 搜索好友
+const searchText = ref('')
+const shake = antiShake(() => {
+    console.log('friends filter -> ', searchText.value)
+    const reg = new RegExp(`${searchText.value}`, 'ig')
+
+    // 筛选好友，如果没有筛选中任意一个，就显示全部
+    const fl = friendsList.value.filter(f => reg.test(f.name))
+    friendsList.value.forEach(f => {
+        if (!fl.length) {
+            f.searchActive = false
+            return
+        }
+        if (fl.includes(f)) {
+            f.searchActive = true
+        } else {
+            f.searchActive = false
+        }
+        
+    })
+}, 1000)
+watch(searchText, shake)
+
 </script>
 <style lang="scss" scoped>
     .container {
