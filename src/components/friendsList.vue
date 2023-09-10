@@ -124,9 +124,7 @@ function handleSelect(idx, row) {
         item.active = false
     })
     if (!row.to_table) return
-    row.message = handleUnreadMsg(chatDataOb.value[row.to_table]) ?? row.message
-    row.time = handleShowTime(chatDataOb.value[row.to_table]) ?? row.time
-    chatDataOb.value[row.to_table] = []
+    chatDataOb.value[row.to_table]?.forEach(item => item.unread = 0)
 }
 
 // 添加好友功能
@@ -180,12 +178,17 @@ async function addFriend() {
 // 从服务器拉取未读信息
 const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info')))
 let chatDataOb = ref({})
+watch(chatDataOb, (val) => {
+    sessionStorage.setItem('chatDataOb', JSON.stringify(val))
+},
+{ deep: true })
 onMounted(() => {
     handleUnread()
 })
 watch(() => props.newChatData, (ob) => {
     const { unread, chat } = ob
     if (!chat) return
+    // console.log('提示对象 -> ', chat)
     if (!Array.isArray(chatDataOb.value[chat.to_table])) {
         chatDataOb.value[chat.to_table] = []
         chatDataOb.value[chat.to_table].push({
@@ -202,6 +205,11 @@ watch(() => props.newChatData, (ob) => {
 
 // 处理未读信息
 async function handleUnread() {
+    const c = sessionStorage.getItem('chatDataOb')
+    if (c) {
+        chatDataOb.value = JSON.parse(c)
+        return
+    }
     const flist = JSON.parse(userInfo.value.friends)
     const unRead = await window.$axios({
         method: 'post',
@@ -211,7 +219,7 @@ async function handleUnread() {
             user_id: userInfo.value.user_id
         }
     })
-    console.log('unread -> ', unRead)
+    // console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
     chatDataOb.value = unRead.data

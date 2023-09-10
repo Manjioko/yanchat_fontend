@@ -26,7 +26,6 @@ async function login() {
             }
         })
         const { status, data } = res
-        console.log(status, data)
         if (status !== 200) return
         if (data === 'pw_err') {
             pwErr.value = false
@@ -61,6 +60,15 @@ async function login() {
 }
 
 async function register() {
+    // 校验手机号码
+    if(!(/^1[34578]\d{9}$/.test(phone.value))){
+        ElMessage({
+            message: `${phone.value}: 电话号格式有误`,
+            type: 'error',
+        })
+        return
+    }
+
     const res = await window.$axios({
         method: 'post',
         url: process.env.VUE_APP_REGISTER,

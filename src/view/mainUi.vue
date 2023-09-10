@@ -14,59 +14,17 @@
                 <div class="default-avatar" v-else>
                     <div style="width: 40px; height: 40px;"></div>
                 </div>
-                <img src="../assets/setting.png" alt="setting" @click="dShow = true">
+                <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
             </section>
             <section class="text-show" v-if="activeFriend">
                 <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
-                    <div ref="chatWindow">
-                        <div v-for="(textObject, idx) in chatBox" :key="idx">
-                            <!-- <div class="showTime" v-if="textObject.time">{{ textObject.time }}</div> -->
-                            <div class="chat-box-remote" v-if="textObject.user !== 1">
-                                <img src="../assets/avatar1.png" alt="其他">
-                                <div class="chat-box-remote-message">
-                                    <span class="chat-box-remote-message-text">
-                                        <!-- <span
-                                            v-if="textObject.type === 'text'"
-                                            class="chat-text"
-                                        > 
-                                        {{ textObject.text }}
-                                        </span> -->
-                                        <div
-                                            v-if="textObject.type === 'text'"
-                                            v-html="textToMarkdown(textObject.text)"
-                                            class="chat-text"
-                                        >
-                                        </div>
-                                        <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                                            :fileName="textObject.fileName" :size="textObject.size"
-                                            :response="textObject.response" />
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="chat-box-local" v-else>
-                                <span class="chat-box-local-message">
-                                    <!-- <span v-if="textObject.type === 'text'" class="chat-text"></span> -->
-                                    <div
-                                        v-if="textObject.type === 'text'"
-                                        v-html="textToMarkdown(textObject.text)"
-                                        class="chat-text"
-                                    >
-                                    </div>
-                                    <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                                        :fileName="textObject.fileName" :size="textObject.size"
-                                        :response="textObject.response" />
-                                </span>
-                                <img src="../assets/avatar2.png" alt="其他">
-                            </div>
-                        </div>
-                    </div>
+                    <ChatWindow ref="chatWindow" :chatBox="chatBox" />
                 </el-scrollbar>
             </section>
             <section class="zero-friend" v-else>
                 还未选择聊天好友
             </section>
             <section class="text-send">
-                <!-- <input type="text" v-model="chatText" @keyup.enter="hdkeydown" placeholder="在这里输入你的消息..."> -->
                 <el-input v-model="chatText" :autosize="{ minRows: 1, maxRows: 5 }" type="textarea"
                     placeholder="在这里输入你的消息..." @keyup.shift.enter.exact="hdkeydown" />
                 <div class="upload">
@@ -80,61 +38,19 @@
             </section>
         </section>
     </main>
-    <!-- 退出弹窗 -->
-    <div>
-        <el-dialog v-model="dShow" width="30%" center>
-            <div class="d-text">
-                <div>
-                    <WarningFilled style="width: 2rem; height: 2rem; padding: 10px; color: red;" />
-                </div>
-                <div class="d-tip">是否退出登录？</div>
-            </div>
-            <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="dShow = false">取消</el-button>
-                    <el-button type="primary" @click="handleExit">
-                        确定
-                    </el-button>
-                </span>
-            </template>
-        </el-dialog>
-    </div>
+    <AppSetting ref="appSetting" :websocket="websocket" />
 </template>
 
 <script setup>
 
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-// import { useRoute } from 'vue-router'
-import { WarningFilled } from '@element-plus/icons-vue'
-// import { useRouter } from 'vue-router'
+import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws.js'
-import sendFile from '@/components/sendFile.vue'
 import friendsList from '@/components/friendsList.vue'
-import router from '@/router/router'
 import antiShake from '@/utils/antiShake.js'
 import { timeFormat } from '@/utils/timeFormat.js'
-// import 'highlight.js/styles/foundation.css'
-import hljs from 'highlight.js'
-import MarkdownIt from 'markdown-it'
-
-const md = MarkdownIt({
-    langPrefix:   'hljs code-set language-', 
-    html: true,
-    highlight: function (str, lang) {
-        if (lang && hljs.getLanguage(lang)) {
-        try {
-            return hljs.highlight(str, { language: lang }).value;
-        } catch (__) {
-            // 
-        }
-        }
-
-        return '';
-    }
-})
-function textToMarkdown(text) {
-    return md.render(text)
-}
+import byteCovert from '@/utils/byteCovert.js'
+import AppSetting from '@/components/appSetting.vue'
 
 let chatBox = ref([])
 // let ChatData = ref({}) 
@@ -143,14 +59,13 @@ let websocket = ref({})
 const userInfo = ref({
     friends: ''
 })
-// 自己 ID
-// let id = ''
-// 聊天对象的 id
-// let other = ref('')
 // 连接信号
 let signal = ref(0)
 
+// 用户信息
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
+// 好友信息
+const userFriends = JSON.parse(userInfo.value.friends)
 
 // const route = useRoute()
 onMounted(async () => {
@@ -183,13 +98,14 @@ function Center(chatData, type) {
         console.log('收到信息 -> ', chatData)
         try {
             const chat = JSON.parse(chatData)
-            console.log('id 比较 -> ', chat.user_id, userInfo.value.user_id)
+            // console.log('id 比较 -> ', chat.user_id, userInfo.value.user_id)
             if (chat.user_id === userInfo.value.user_id) {
                 chat.user = 1
             } else {
                 chat.user = 0
             }
-            if (chat.user_id === activeFriend.value.id) {
+            // console.log('activeFriend.value -> ', activeFriend.value)
+            if (chat.user_id === activeFriend?.value?.id) {
                 chatBox.value.push(chat)
                 newChatData.value = {
                     unread: 0,
@@ -202,6 +118,8 @@ function Center(chatData, type) {
                     chat,
                 }
             }
+            // 推送消息到桌面
+            notifyToWindow(chat)
         } catch (err) {
             console.log('接收错误 -> ', err)
         }
@@ -217,6 +135,10 @@ function sendMessage() {
         if (fileData.value) {
             websocket.value?.send(JSON.stringify(fileData.value))
             fileData.value = null
+            nextTick(() => {
+                // 文字窗口滚动到底部
+                scrollBar.value.setScrollTop(chatWindow.value.dom.scrollHeight)
+            })
             return
         }
         const message = chatText.value
@@ -242,30 +164,73 @@ function sendMessage() {
 
         nextTick(() => {
             // 文字窗口滚动到底部
-            scrollBar.value.setScrollTop(chatWindow.value.scrollHeight)
+            scrollBar.value.setScrollTop(chatWindow.value.dom.scrollHeight)
         })
     }
 }
+// 键盘 摁下 enter 键触发事件
 function hdkeydown() {
     if (signal.value !== 1 || !activeFriend.value) return
     sendMessage()
 }
+onMounted(() => {
+    // notifyToWindow() 
+    if ('Notification' in window) {
+        // 浏览器支持 Web Notifications API
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(function (permission) {
+                if (permission === 'granted') {
+                    // 用户已授权
+                    console.log('用户已授权')
+                } else {
+                    // 用户拒绝了权限请求
+                    console.log('用户拒绝了权限请求')
+                }
+            })
+        }
+    } else {
+        console.log('浏览器不支持 Web Notifications API');
+    }
+    // notifyToWindow()
+})
+function notifyToWindow(textOb) {
+    if (!textOb || !textOb.text) return
+    // 在当前页面时，不弹出通知栏
+    if (!document.hidden) return
 
+    if (Notification.permission === 'granted') {
+        // console.log('新消息 -> ', userFriends)
+        const fr = userFriends?.find(f => f.user_id === textOb.user_id)
+        const notification = new Notification(fr?.user || '新消息', {
+            body: textOb.text || '',
+            // 可选的通知图标
+            icon: require('../assets/avatar1.png'),
+        });
+
+        notification.onclick = function () {
+            // 点击通知时的操作
+        };
+    }
+
+} 
 
 let fileData = ref('')
 // 文件上传
 function uploadFile(e) {
     const formData = new FormData()
-    console.log(e.target.files[0])
+    // console.log(e.target.files[0])
     formData.append("file", e.target.files[0])
     const xhr = new XMLHttpRequest()
     // 文件信息所在下标
     const index = chatBox.value.length
-    chatBox.value.push({
+    const sendData = {
         progress: 0,
         type: e.target.files[0]?.type,
         fileName: e.target.files[0]?.name,
+        // text 文本描述主要用于好友栏的提示
+        text: `[文件]${e.target.files[0]?.name ?? ''}`,
         size: byteCovert(e.target.files[0]?.size),
+        time: timeFormat(),
         response: '',
         user: 1,
         // 以下的三个参数必传
@@ -275,7 +240,8 @@ function uploadFile(e) {
         to_table: activeFriend.value.to_table,
         to_id: activeFriend.value.id,
         user_id: userInfo.value.user_id
-    })
+    }
+    Center(sendData, 'sent')
     // 监听上传进度事件
     xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
@@ -308,21 +274,6 @@ function uploadFile(e) {
     }
     xhr.send(formData)
 }
-function byteCovert(size) {
-    const m_size = size / (1024 * 1024)
-
-    if (m_size < 1) {
-        return (m_size * 1024).toFixed(2) + ' K'
-    }
-
-    if (m_size > 1024) {
-        return (m_size / 1024).toFixed(2) + ' G'
-    }
-
-    return m_size.toFixed(2) + ' M'
-}
-
-let dShow = ref(false)
 
 // 选择好友
 const activeFriend = ref(null)
@@ -350,15 +301,10 @@ function handleChatData(data) {
     }) ?? []
 }
 
-// 处理退出登录
-function handleExit() {
-    websocket?.value?.close(4001, '退出登录')
-    sessionStorage.clear('user_info')
-    router.go(-1)
-}
 
 // 接收到信息时信息栏滚动到底部
 const scrollBar = ref()
+
 const chatWindow = ref()
 
 // 查询锁
@@ -366,7 +312,7 @@ let isGetChatHistory = true
 
 // 从服务器获取聊天记录
 async function getChatFromServer(isSwitchFriend) {
-    // console.log('get -> ', isSwitchFriend, isGetChatHistory)
+    console.log('get -> ', isSwitchFriend, isGetChatHistory)
     if (!isGetChatHistory) return
 
     // 从服务器拉取聊天记录
@@ -397,11 +343,11 @@ async function getChatFromServer(isSwitchFriend) {
 
 
     if (Array.isArray(res.data)) {
-        const start_sp = chatWindow.value.scrollHeight
+        const start_sp = chatWindow.value.dom.scrollHeight
         const chatData = handleChatData(res.data)
         chatBox.value = [...chatData, ...chatBox.value]
         nextTick(() => {
-            const end_sp = chatWindow.value.scrollHeight
+            const end_sp = chatWindow.value.dom.scrollHeight
             scrollBar.value.setScrollTop(end_sp - start_sp)
         })
     }
@@ -422,6 +368,12 @@ async function handleScroll(val) {
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
         scrollAntiShakeFn()
     }
+}
+
+// app 设置弹窗弹出
+const appSetting = ref()
+function showSettingDialog() {
+    appSetting.value.showDialog(true)
 }
 </script>
 
@@ -543,51 +495,6 @@ async function handleScroll(val) {
     }
 }
 
-.chat-box-remote {
-    display: flex;
-    align-items: center;
-    margin: 8px 0;
-
-    img {
-        width: 40px;
-        height: 40px;
-        padding: 8px 16px;
-    }
-
-    .chat-box-remote-message {
-        display: block;
-        box-sizing: border-box;
-        padding: 10px;
-        font-size: 14px;
-        background: #F8F8F8;
-        // opacity: 0.5;
-        border-radius: 10px 10px 10px 0px;
-        max-width: 500px;
-    }
-}
-
-.chat-box-local {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    margin: 8px 0;
-
-    img {
-        width: 40px;
-        height: 40px;
-        padding: 8px 16px;
-    }
-
-    .chat-box-local-message {
-        display: block;
-        box-sizing: border-box;
-        padding: 10px;
-        font-size: 14px;
-        background: #EBF3FE;
-        border-radius: 10px 10px 0px 10px;
-    }
-}
-
 .showTime {
     text-align: center;
     font-size: 18px;
@@ -656,21 +563,6 @@ async function handleScroll(val) {
     height: 100%;
 }
 
-.d-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.d-tip {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-:deep .el-dialog__footer {
-    text-align: end;
-}
-
 .default-avatar {
     flex: 1;
 }
@@ -688,67 +580,5 @@ async function handleScroll(val) {
 :deep .el-textarea__inner {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     resize: none;
-}
-
-.chat-text {
-    margin: 0;
-    // white-space: pre-wrap;
-    word-wrap: break-word;
-    display: flex;
-    flex-direction: column;
-    max-width: 450px;
-    :deep p {
-        margin: 0;
-        white-space: pre-line;
-        & > code {
-            background: #fff;
-            box-sizing: border-box;
-            padding: 4px 10px;
-            display: inline-block;
-            margin: 5px 0;
-            // font-weight: 500;
-            border-radius: 5px;
-            font-style: italic;
-        }
-    }
-    :deep blockquote {
-        position: relative;
-        margin: 0;
-        word-wrap: break-word;
-        white-space: normal;
-        background-color: #cacccc4d;
-        box-sizing: border-box;
-        padding: 10px;
-        border-radius: 3px;
-        &::after {
-            content: "";
-            width: 3px;
-            top: 20%;
-            height: 60%;
-            position: absolute;
-            left: 4px;
-            background-color: #7fc5d1;
-        }
-    }
-    :deep ul, :deep ol {
-        margin: 0;
-        margin: 0;
-        padding-inline-start: 15px;
-        margin-block: 0px;
-        margin-inline: 0px;
-    }
-    :deep pre {
-        margin: 8px 0;
-        // margin-bottom: 0px;
-    }
-    :deep h1, :deep h2, :deep h3, :deep h4, :deep h5,:deep h6 {
-        margin-block-start: 8px;
-        margin-block-end: 8px;
-    }
-}
-
-// hljs 代码块设置背景色
-:deep .hljs {
-    border-radius: 5px;
 }
 </style>
