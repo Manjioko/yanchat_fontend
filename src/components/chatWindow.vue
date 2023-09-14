@@ -1,41 +1,45 @@
 <template>
-    <div ref="dom">
-        <div v-for="(textObject, idx) in chatBox" :key="idx">
-            <div class="chat-box-remote" v-if="textObject.user !== 1">
-                <img src="../assets/avatar1.png" alt="其他">
-                <div class="chat-box-remote-message">
-                    <span class="chat-box-remote-message-text">
-                        <div
-                            v-if="textObject.type === 'text'"
-                            v-html="textToMarkdown(textObject.text)"
-                            class="chat-text"
-                        >
+    <div class="text-show">
+        <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
+            <div>
+                <div v-for="(textObject, idx) in chatBox" :key="idx">
+                    <div class="chat-box-remote" v-if="textObject.user !== 1">
+                        <img src="../assets/avatar1.png" alt="其他">
+                        <div class="chat-box-remote-message">
+                            <span class="chat-box-remote-message-text">
+                                <div
+                                    v-if="textObject.type === 'text'"
+                                    v-html="textToMarkdown(textObject.text)"
+                                    class="chat-text"
+                                >
+                                </div>
+                                <sendFile v-else :progress="textObject.progress" :type="textObject.type"
+                                    :fileName="textObject.fileName" :size="textObject.size"
+                                    :response="textObject.response" />
+                            </span>
                         </div>
-                        <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                            :fileName="textObject.fileName" :size="textObject.size"
-                            :response="textObject.response" />
-                    </span>
-                </div>
-            </div>
-            <div class="chat-box-local" v-else>
-                <span class="chat-box-local-message">
-                    <div
-                        v-if="textObject.type === 'text'"
-                        v-html="textToMarkdown(textObject.text)"
-                        class="chat-text"
-                    >
                     </div>
-                    <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                        :fileName="textObject.fileName" :size="textObject.size"
-                        :response="textObject.response" />
-                </span>
-                <img src="../assets/avatar2.png" alt="其他">
-            </div>
-        </div>
+                    <div class="chat-box-local" v-else>
+                        <span class="chat-box-local-message">
+                            <div
+                                v-if="textObject.type === 'text'"
+                                v-html="textToMarkdown(textObject.text)"
+                                class="chat-text"
+                            >
+                            </div>
+                            <sendFile v-else :progress="textObject.progress" :type="textObject.type"
+                                :fileName="textObject.fileName" :size="textObject.size"
+                                :response="textObject.response" />
+                        </span>
+                        <img src="../assets/avatar2.png" alt="其他">
+                    </div>
+                </div>
+            </div>      
+        </el-scrollbar>
     </div>
 </template>
 <script setup>
-import { defineProps, defineExpose,ref } from 'vue'
+import { defineProps, defineExpose,ref, defineEmits } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
@@ -43,8 +47,9 @@ import sendFile from '@/components/sendFile.vue'
 defineProps({
     chatBox: Object,
 })
-const dom = ref()
-defineExpose({ dom })
+const scrollBar = ref()
+defineExpose({ scrollBar })
+const emit = defineEmits(['scroll'])
 
 const md = MarkdownIt({
     langPrefix:   'hljs code-set language-', 
@@ -63,6 +68,9 @@ const md = MarkdownIt({
 })
 function textToMarkdown(text) {
     return md.render(text)
+}
+function handleScroll(val) {
+    emit('scroll', val)
 }
 </script>
 <style lang="scss" scoped>
@@ -168,5 +176,10 @@ function textToMarkdown(text) {
 // hljs 代码块设置背景色
 :deep .hljs {
     border-radius: 5px;
+}
+.text-show {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
 }
 </style>

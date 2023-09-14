@@ -38,7 +38,6 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
     }
 
     ws.value.onerror = function () {
-        // appendMessage('WebSocket错误发生', 'received')
         console.log('WebSocket错误发生')
     }
 }

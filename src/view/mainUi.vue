@@ -1,7 +1,10 @@
 <template>
     <main class="main">
-        <friendsList :friends="userInfo?.friends ?? '[]'" :newChatData="newChatData || {}"
-            @handleActiveFriend="handleActiveFriend" />
+        <friendsList
+            :friends="userInfo?.friends ?? '[]'"
+            :newChatData="newChatData || {}"
+            @handleActiveFriend="handleActiveFriend"
+        />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
@@ -16,25 +19,15 @@
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
             </section>
-            <section class="text-show" v-if="activeFriend">
-                <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
-                    <ChatWindow ref="chatWindow" :chatBox="chatBox" />
-                </el-scrollbar>
-            </section>
+            <ChatWindow v-if="activeFriend" ref="chatWindow" :chatBox="chatBox" @scroll="handleScroll" />
+            <!-- <section >
+                
+            </section> -->
             <section class="zero-friend" v-else>
                 还未选择聊天好友
             </section>
-            <section class="text-send">
-                <el-input v-model="chatText" :autosize="{ minRows: 1, maxRows: 5 }" type="textarea"
-                    placeholder="在这里输入你的消息..." @keyup.shift.enter.exact="hdkeydown" />
-                <div class="upload">
-                    <img src="../assets/uploadIcon.png" alt="upload">
-                    <input type="file" @change="uploadFile" v-if="activeFriend" >
-                </div>
-                <button @click="sendMessage" class="send-btn">
-                    <span>发送</span>
-                    <img src="../assets/send.png" alt="send">
-                </button>
+            <section>
+                <SendFoot @center="Center" />
             </section>
         </section>
     </main>
@@ -48,12 +41,10 @@ import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws.js'
 import friendsList from '@/components/friendsList.vue'
 import antiShake from '@/utils/antiShake.js'
-import { timeFormat } from '@/utils/timeFormat.js'
-import byteCovert from '@/utils/byteCovert.js'
 import AppSetting from '@/components/appSetting.vue'
+import SendFoot from '@/components/sendFoot.vue'
 
 let chatBox = ref([])
-// let ChatData = ref({}) 
 // websocket 客户端
 let websocket = ref({})
 const userInfo = ref({
@@ -81,12 +72,27 @@ onBeforeUnmount(() => {
     websocket?.value?.close()
 })
 
-const chatText = ref('')
 let newChatData = ref({})
 function Center(chatData, type) {
+    if (signal.value !== 1) return
+
+    // 发送消息
     if (type === 'sent') {
         console.log('发送信息 -> ', chatData)
+        if (!websocket.value || !activeFriend.value) return
+        // 以下的三个参数必传
+        // 第一个 to_table 代表 聊天记录数据库名称
+        // 第二个 to_id 代表 聊天对象的 id
+        // 第三个 user_id 代表 自己的 id
+        Object.assign(chatData, {
+            to_table: activeFriend.value.to_table,
+            to_id: activeFriend.value.id,
+            user_id: userInfo.value.user_id
+        })
+
+        // core
         chatBox.value.push(chatData)
+        websocket.value.send(JSON.stringify(chatData))
         // 产生新的数据时需要更新数据到朋友列表
         newChatData.value = {
             // unread 为 1时标记为未读，0 时标记为已读需要展示
@@ -94,6 +100,8 @@ function Center(chatData, type) {
             chat: chatData
         }
     }
+
+    // 接收信息
     if (type === 'received') {
         console.log('收到信息 -> ', chatData)
         try {
@@ -126,73 +134,7 @@ function Center(chatData, type) {
     }
 }
 
-function sendMessage() {
-    if (signal.value !== 1) return
-
-    // console.log('websocket ', websocket.value)
-    if (websocket && activeFriend.value) {
-        // 可以通过该实例收发信息
-        if (fileData.value) {
-            websocket.value?.send(JSON.stringify(fileData.value))
-            fileData.value = null
-            nextTick(() => {
-                // 文字窗口滚动到底部
-                scrollBar.value.setScrollTop(chatWindow.value.dom.scrollHeight)
-            })
-            return
-        }
-        const message = chatText.value
-        // console.log(chatText.value)
-        if (!message) return
-        // console.log(activeFriend.value)
-        const sendData = {
-            type: 'text',
-            text: message,
-            user: 1,
-            time: timeFormat(),
-            // 以下的三个参数必传
-            // 第一个 to_table 代表 聊天记录数据库名称
-            // 第二个 to_id 代表 聊天对象的 id
-            // 第三个 user_id 代表 自己的 id
-            to_table: activeFriend.value.to_table,
-            to_id: activeFriend.value.id,
-            user_id: userInfo.value.user_id
-        }
-        websocket.value?.send(JSON.stringify(sendData))
-        Center(sendData, 'sent')
-        chatText.value = ''
-
-        nextTick(() => {
-            // 文字窗口滚动到底部
-            scrollBar.value.setScrollTop(chatWindow.value.dom.scrollHeight)
-        })
-    }
-}
-// 键盘 摁下 enter 键触发事件
-function hdkeydown() {
-    if (signal.value !== 1 || !activeFriend.value) return
-    sendMessage()
-}
-onMounted(() => {
-    // notifyToWindow() 
-    if ('Notification' in window) {
-        // 浏览器支持 Web Notifications API
-        if (Notification.permission === 'default') {
-            Notification.requestPermission().then(function (permission) {
-                if (permission === 'granted') {
-                    // 用户已授权
-                    console.log('用户已授权')
-                } else {
-                    // 用户拒绝了权限请求
-                    console.log('用户拒绝了权限请求')
-                }
-            })
-        }
-    } else {
-        console.log('浏览器不支持 Web Notifications API');
-    }
-    // notifyToWindow()
-})
+// 推送到 window 桌面
 function notifyToWindow(textOb) {
     if (!textOb || !textOb.text) return
     // 在当前页面时，不弹出通知栏
@@ -212,67 +154,6 @@ function notifyToWindow(textOb) {
         };
     }
 
-} 
-
-let fileData = ref('')
-// 文件上传
-function uploadFile(e) {
-    const formData = new FormData()
-    // console.log(e.target.files[0])
-    formData.append("file", e.target.files[0])
-    const xhr = new XMLHttpRequest()
-    // 文件信息所在下标
-    const index = chatBox.value.length
-    const sendData = {
-        progress: 0,
-        type: e.target.files[0]?.type,
-        fileName: e.target.files[0]?.name,
-        // text 文本描述主要用于好友栏的提示
-        text: `[文件]${e.target.files[0]?.name ?? ''}`,
-        size: byteCovert(e.target.files[0]?.size),
-        time: timeFormat(),
-        response: '',
-        user: 1,
-        // 以下的三个参数必传
-        // 第一个 to_table 代表 聊天记录数据库名称
-        // 第二个 to_id 代表 聊天对象的 id
-        // 第三个 user_id 代表 自己的 id
-        to_table: activeFriend.value.to_table,
-        to_id: activeFriend.value.id,
-        user_id: userInfo.value.user_id
-    }
-    Center(sendData, 'sent')
-    // 监听上传进度事件
-    xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            console.log(`文件上传进度: ${percentComplete.toFixed(2)}%`);
-            chatBox.value[index].progress = percentComplete
-        }
-    });
-
-    // 监听上传完成事件
-    xhr.addEventListener('load', (res) => {
-        console.log('上传文件完成。', res.target.response)
-        chatBox.value[index].response = res.target.response
-        // fileData.value = 'chat-file://' + JSON.stringify(chatBox.value[index])
-        fileData.value = chatBox.value[index]
-        sendMessage()
-    })
-
-    // 监听上传错误事件
-    xhr.addEventListener('error', () => {
-        console.error('上传失败。');
-    })
-
-
-    xhr.open('post', process.env.VUE_APP_FILE)
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
-            console.log('暗号正确,开始上传...')
-        }
-    }
-    xhr.send(formData)
 }
 
 // 选择好友
@@ -303,8 +184,7 @@ function handleChatData(data) {
 
 
 // 接收到信息时信息栏滚动到底部
-const scrollBar = ref()
-
+// const scrollBar = ref()
 const chatWindow = ref()
 
 // 查询锁
@@ -343,12 +223,12 @@ async function getChatFromServer(isSwitchFriend) {
 
 
     if (Array.isArray(res.data)) {
-        const start_sp = chatWindow.value.dom.scrollHeight
+        const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
         const chatData = handleChatData(res.data)
         chatBox.value = [...chatData, ...chatBox.value]
         nextTick(() => {
-            const end_sp = chatWindow.value.dom.scrollHeight
-            scrollBar.value.setScrollTop(end_sp - start_sp)
+            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+            chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
         })
     }
 
@@ -375,6 +255,7 @@ const appSetting = ref()
 function showSettingDialog() {
     appSetting.value.showDialog(true)
 }
+
 </script>
 
 <style lang="scss" scoped>
@@ -402,60 +283,6 @@ function showSettingDialog() {
     border-radius: 0 5px 5px 0;
     // border-radius: 5px;
     // box-shadow: 0px 1px 6px 6px rgba(221, 223, 230, 0.31);
-}
-
-.text-show {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-}
-
-.text-send {
-    min-height: 70px;
-    display: flex;
-    box-sizing: border-box;
-    padding: 10px;
-    border-top: 2px solid #F5F6FA;
-    align-items: center;
-    justify-content: center;
-
-    input {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-size: 12px;
-        font-weight: 300;
-        font-family: Source Han Sans CN;
-    }
-
-    button {
-        width: 70px;
-        max-height: 36px;
-        background: #2F88FF;
-        outline: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: Source Han Sans CN;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-        height: 65%;
-
-        span {
-            font-size: 12px;
-            color: #FFFFFF;
-        }
-
-        img {
-            width: 10px;
-            height: 10px;
-            margin-left: 12px;
-        }
-    }
 }
 
 .text-top {
@@ -534,33 +361,6 @@ function showSettingDialog() {
     font-size: 14px !important;
     color: #ff7373 !important;
     margin-top: 12px !important;
-}
-
-.upload {
-    width: 18px;
-    height: 15px;
-    position: relative;
-    margin-right: 20px;
-    margin-left: 10px;
-
-    img {
-        width: inherit;
-        height: inherit;
-        -webkit-user-drag: none;
-    }
-
-    input {
-        position: absolute;
-        width: 20px;
-        height: 17px;
-        top: 0;
-        left: 0;
-        opacity: 0;
-    }
-}
-
-.send-btn {
-    height: 100%;
 }
 
 .default-avatar {
