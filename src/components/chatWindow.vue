@@ -39,12 +39,12 @@
     </div>
 </template>
 <script setup>
-import { defineProps, defineExpose,ref, defineEmits } from 'vue'
+import { defineProps, defineExpose,ref, defineEmits, watchEffect, nextTick } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 
-defineProps({
+const props = defineProps({
     chatBox: Object,
 })
 const scrollBar = ref()

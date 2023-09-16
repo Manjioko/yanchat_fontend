@@ -13,11 +13,11 @@
     </div>
 </template>
 <script setup>
-import {ref, defineProps, defineEmits} from 'vue'
+import {ref, defineProps, defineEmits, reactive} from 'vue'
 import { timeFormat } from '@/utils/timeFormat.js'
 import byteCovert from '@/utils/byteCovert.js'
 
-const props = defineProps({
+defineProps({
     chatBox: Object,
     // activeFriend: Object,
     // userInfo: Object
@@ -72,7 +72,7 @@ function uploadFile(e) {
     // 文件信息所在下标
     // const index = props.chatBox.length
 
-    const box = {
+    const box = reactive({
         progress: 0,
         type: e.target.files[0]?.type,
         fileName: e.target.files[0]?.name,
@@ -82,7 +82,7 @@ function uploadFile(e) {
         time: timeFormat(),
         response: '',
         user: 1,
-    }
+    })
     // 发送信息到文本框
     sendMessage(box)
 

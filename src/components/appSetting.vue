@@ -20,12 +20,14 @@
     </div>
 </template>
 <script setup>
-import { defineProps, ref, defineExpose } from 'vue'
-import router from '@/router/router'
+import { defineProps, ref, defineExpose, defineEmits } from 'vue'
 import { WarningFilled } from '@element-plus/icons-vue'
 const props = defineProps({
     websocket: Object,
 })
+const emit = defineEmits([
+    'exit'
+])
 let dShow =  ref(false)
 defineExpose({
     showDialog
@@ -37,10 +39,8 @@ function showDialog(isShow) {
 
 // 处理退出登录
 function handleExit() {
-    props.websocket?.value?.close(4001, '退出登录')
-    sessionStorage.clear('user_info')
+    emit('exit')
     dShow = false
-    router.go(-1)
 }
 </script>
 <style lang="scss" scoped>

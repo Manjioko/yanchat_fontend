@@ -84,6 +84,9 @@ const cancelEvent = () => {
         // 修改进度条背景色 
         stroke: hsla(43, 28%, 65%, 1);
     }
+    :deep .el-progress__text {
+        display: none;
+    }
 
     //    /deep/ .el-progress__text { // 修改进度条文字提示颜色
     //        color: #00C7FD; 
