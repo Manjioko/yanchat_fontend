@@ -22,7 +22,7 @@
 <script setup>
 import { defineProps, ref, defineExpose, defineEmits } from 'vue'
 import { WarningFilled } from '@element-plus/icons-vue'
-const props = defineProps({
+defineProps({
     websocket: Object,
 })
 const emit = defineEmits([
