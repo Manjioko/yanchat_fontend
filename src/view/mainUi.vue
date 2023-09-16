@@ -20,14 +20,11 @@
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
             </section>
             <ChatWindow v-if="activeFriend" ref="chatWindow" :chatBox="chatBox" @scroll="handleScroll" />
-            <!-- <section >
-                
-            </section> -->
             <section class="zero-friend" v-else>
                 还未选择聊天好友
             </section>
             <section>
-                <SendFoot @center="Center" />
+                <SendFoot :upload-disable="!!activeFriend" @center="Center" />
             </section>
         </section>
     </main>
@@ -44,6 +41,7 @@ import antiShake from '@/utils/antiShake.js'
 import AppSetting from '@/components/appSetting.vue'
 import SendFoot from '@/components/sendFoot.vue'
 import router from '@/router/router'
+import to from 'await-to-js'
 
 let chatBox = ref([])
 // websocket 客户端
@@ -228,14 +226,19 @@ async function getChatFromServer(isSwitchFriend) {
 
     let chatBoxLen = chatBox.value.length
 
-    const res = await window.$axios({
+    const [err, res] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_CHATDATA,
         data: {
             chat_table: activeFriend.value.to_table,
             offset: chatBoxLen
         }
-    })
+    }))
+
+    if (err) {
+        console.log('获取聊天记录错误：', err)
+        return
+    }
 
     if (res.status !== 200) return
 

@@ -25,7 +25,7 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
         appendMessage('与WebSocket服务端的连接已关闭', 'received')
         signal.value = 0
         if (res.code && res.code == 4001) {
-            console.log('服务端主动断开连接 -> ', res.reason)
+            console.log('close 断开连接 -> ', res.reason)
             return
         }
         // console.log('code -> ', res)

@@ -4,7 +4,7 @@
             placeholder="在这里输入你的消息..." @keyup.shift.enter.exact="hdkeydown" />
         <div class="upload">
             <img src="../assets/uploadIcon.png" alt="upload">
-            <input type="file" @change="uploadFile">
+            <input type="file" @change="uploadFile" v-if="uploadDisable">
         </div>
         <button @click="sendMessage()" class="send-btn">
             <span>发送</span>
@@ -21,6 +21,7 @@ defineProps({
     chatBox: Object,
     // activeFriend: Object,
     // userInfo: Object
+    uploadDisable: Boolean,
 })
 const emit = defineEmits(['center', 'progress', 'response'])
 

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
+import to from 'await-to-js'
 let router = ref('')
 // 用户输入的电话号码
 let phone = ref('')
@@ -24,14 +25,20 @@ const delayToShowRepeatErr = antiShake(() => {
 async function login() {
     if (phone.value && pw.value) {
         // 发送登录请求
-        const res = await window.$axios({
+        const [err, res] = await to(window.$axios({
             method: 'post',
             url: process.env.VUE_APP_LOGIN,
             data: {
                 phone_number: phone.value,
                 password: pw.value
             }
-        })
+        }))
+
+        if (err) {
+            console.log('登录错误：', err)
+            return
+        }
+
         const { status, data } = res
         if (status !== 200) return
 
@@ -89,14 +96,20 @@ async function register() {
         return
     }
 
-    const res = await window.$axios({
+    const [err, res] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_REGISTER,
         data: {
             phone_number: phone.value,
             password: pw.value
         }
-    })
+    }))
+
+    if (err) {
+        console.log('注册错误：', err)
+        return
+    }
+
     const { status, data } = res
     // console.log(status, data)
     if (status === 200) {

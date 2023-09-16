@@ -57,6 +57,7 @@
                     v-model="friend_phone_number"
                 />
                 <div v-if="missFri" class="miss-fri">添加的好友不存在。</div>
+                <div v-if="repFri" class="miss-fri">重复添加好友。</div>
             </div>
             <template #footer>
             <span class="dialog-footer">
@@ -72,7 +73,8 @@
 <script setup>
 import { ref, defineProps, onMounted, defineEmits, watch } from 'vue';
 import { Search } from '@element-plus/icons-vue'
-import antiShake from '@/utils/antiShake';
+import antiShake from '@/utils/antiShake'
+import to from 'await-to-js'
 const props = defineProps({
     friends: String,
     newChatData: Object
@@ -128,30 +130,45 @@ function handleSelect(idx, row) {
 }
 
 // 添加好友功能
-let friend_phone_number = ref('')
-let missFri = ref(false)
+const friend_phone_number = ref('')
+const missFri = ref(false)
+const repFri = ref(false)
 let delayToShowErr = antiShake(() => {
     missFri.value = true
+}, 200)
+let delayToShowRepeatErr = antiShake(() => {
+    repFri.value = true
 }, 200)
 async function addFriend() {
     if (!friend_phone_number.value) {
         return
     }
     let phone_number = user_info.phone_number
-    const res = await  window.$axios({
+    const [err, res] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_ADDFRI,
         data: {
             phone_number: phone_number,
             friend_phone_number: friend_phone_number.value
         }
-    })
+    }))
+    if (err) {
+        console.log('添加好友错误: ', err)
+        return
+    }
     console.log('好友请求回来了 -> ', res, res?.data)
     if (res.data === 'miss') {
         missFri.value = false
         delayToShowErr()
     } else {
         missFri.value = false
+    }
+
+    if (res.data === 'exist') {
+        repFri.value = false
+        delayToShowRepeatErr()
+    } else {
+        repFri.value = false
     }
     // 返回错误
     if (!res?.data?.friends) return
@@ -211,14 +228,18 @@ async function handleUnread() {
         return
     }
     const flist = JSON.parse(userInfo.value.friends)
-    const unRead = await window.$axios({
+    const [err, unRead] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_UNREAD,
         data: {
             friends: flist?.map(i => i.chat_table),
             user_id: userInfo.value.user_id
         }
-    })
+    }))
+    if (err) {
+        console.log('处理未读消息错误：', err)
+        return
+    }
     // console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
