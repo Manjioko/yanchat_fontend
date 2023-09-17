@@ -12,9 +12,8 @@ const props = defineProps({
 })
 
 const confirmEvent = () => {
-    console.log('confirm!', props)
+    // console.log('confirm!', props)
     const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-    console.log('-> ', url)
     fileSave.saveAs(url, props.fileName)
 }
 const cancelEvent = () => {

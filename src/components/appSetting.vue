@@ -2,6 +2,9 @@
     <!-- 退出弹窗 -->
     <div>
         <el-dialog v-model="dShow" width="30%" center>
+            <div>
+                <input type="file" name="上传头像" id="avatar" @change="uploadAvatar">
+            </div>
             <div class="d-text">
                 <div>
                     <WarningFilled style="width: 2rem; height: 2rem; padding: 10px; color: red;" />
@@ -22,6 +25,7 @@
 <script setup>
 import { defineProps, ref, defineExpose, defineEmits } from 'vue'
 import { WarningFilled } from '@element-plus/icons-vue'
+import to from 'await-to-js'
 defineProps({
     websocket: Object,
 })
@@ -41,6 +45,27 @@ function showDialog(isShow) {
 function handleExit() {
     emit('exit')
     dShow = false
+}
+
+// 上传头像
+async function uploadAvatar(e) {
+    const formData = new FormData()
+    const user_id = sessionStorage.getItem('user_id')
+    formData.append('user_id', user_id)
+    formData.append("avatar", e.target.files[0])
+    console.log('url -> ', process.env.VUE_APP_AVATAR)
+    const [err, res] = await to(window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_AVATAR,
+        data: formData
+    }))
+
+    if (err) {
+        console.log('上传头像失败 -> ', err)
+        return
+    }
+
+    console.log('res -> ', res)
 }
 </script>
 <style lang="scss" scoped>

@@ -4,7 +4,7 @@
             <div>
                 <div v-for="(textObject, idx) in chatBox" :key="idx">
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
-                        <img src="../assets/avatar1.png" alt="其他">
+                        <img :src="handleAvatar(textObject)" alt="其他">
                         <div class="chat-box-remote-message">
                             <span class="chat-box-remote-message-text">
                                 <div
@@ -31,7 +31,7 @@
                                 :fileName="textObject.fileName" :size="textObject.size"
                                 :response="textObject.response" />
                         </span>
-                        <img src="../assets/avatar2.png" alt="其他">
+                        <img :src="handleAvatar(textObject)" alt="其他">
                     </div>
                 </div>
             </div>      
@@ -57,7 +57,7 @@ const md = MarkdownIt({
     highlight: function (str, lang) {
         if (lang && hljs.getLanguage(lang)) {
             try {
-                return hljs.highlight(str, { language: lang }).value;
+                return hljs.highlight(str, { language: lang }).value
             } catch (__) {
                 // 
             }
@@ -72,6 +72,13 @@ function textToMarkdown(text) {
 function handleScroll(val) {
     emit('scroll', val)
 }
+
+// 头像处理
+function handleAvatar(ob) {
+    // console.log(ob)
+    const imgUrl = `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${ob.user_id}.jpg`
+    return imgUrl
+}
 </script>
 <style lang="scss" scoped>
 .chat-box-remote {
@@ -83,6 +90,7 @@ function handleScroll(val) {
         width: 40px;
         height: 40px;
         padding: 8px 16px;
+        border-radius: 50%;
     }
 
     .chat-box-remote-message {
@@ -162,6 +170,7 @@ function handleScroll(val) {
         width: 40px;
         height: 40px;
         padding: 8px 16px;
+        border-radius: 50%;
     }
 
     .chat-box-local-message {

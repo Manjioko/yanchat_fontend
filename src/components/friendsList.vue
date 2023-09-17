@@ -1,6 +1,8 @@
 <template>
     <div class="container">
         <header class="f-header">
+            <div :class="{ isOnlink: signal === 1, isUnlink: signal !== 1 }"></div>
+            <img :src="handleAvatar()" alt="avatar" class="avatar-img">
             <el-input
                 class="w-50 m-2"
                 placeholder="搜索"
@@ -25,15 +27,13 @@
                 </div>
                 <img
                     class="i-img"
-                    :src="i.avatar_url || require('../assets/default_avatar.png')"
+                    :src="i.avatar"
                     alt="avatar"
                 >
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
                     <div class="i-msg">{{ handleUnreadMsg(chatDataOb[i.to_table]) || i.message }}</div>
                 </div>
-                <!-- <div class="i-time">{{ i.time }}</div> -->
-                <!-- handleShowTime -->
                 <div class="i-time">{{ handleShowTime(chatDataOb[i.to_table]) || i.time }}</div>
             </section>
         </main>
@@ -77,7 +77,8 @@ import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 const props = defineProps({
     friends: String,
-    newChatData: Object
+    newChatData: Object,
+    signal: Number
 })
 const emit = defineEmits(['handleActiveFriend'])
 
@@ -98,14 +99,14 @@ const user_info = JSON.parse(sessionStorage.getItem('user_info'))
 onMounted(() => {
     if (!props.friends) return
     const f = JSON.parse(props.friends)
-    // console.log('f -> ', f)
+    console.log('f -> ', f)
     f?.forEach(item => {
         friendsList.value.push({
             name: item.user,
             id: item.user_id,
             time: '',
             message: '',
-            avatar: item.avatar_url,
+            avatar: `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${item.user_id}.jpg`,
             active: false,
             searchActive: true,
             to_table: item.chat_table
@@ -180,7 +181,7 @@ async function addFriend() {
             id: item.user_id,
             time: '',
             message: '',
-            avatar: item.avatar_url,
+            avatar:  `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${item.user_id}.jpg`,
             active: false,
             searchActive: true,
             to_table: item.chat_table
@@ -285,6 +286,7 @@ function handleUnreadDotNum(ary) {
 // 关闭添加好友框
 function handleClose() {
     missFri.value = false
+    repFri.value = false
     friend_phone_number.value = ''
     dShow.value = false
 }
@@ -312,6 +314,12 @@ const shake = antiShake(() => {
 }, 1000)
 watch(searchText, shake)
 
+// 头像
+function handleAvatar() {
+    const user_id = sessionStorage.getItem('user_id')
+    return `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`
+}
+
 </script>
 <style lang="scss" scoped>
     .container {
@@ -332,6 +340,7 @@ watch(searchText, shake)
         background-color: #F5F6FA;
         justify-content: center;
         border-top-left-radius: 5px;
+        position: relative;
 
         :deep .el-input__wrapper {
             box-shadow: none;
@@ -367,6 +376,7 @@ watch(searchText, shake)
     .i-img {
         width: 35px;
         height: 35px;
+        border-radius: 50%;
     }
     .i-text {
         margin-left: 15px;
@@ -419,5 +429,30 @@ watch(searchText, shake)
     }
     :deep .el-dialog {
         border-radius: 8px;
+    }
+    .isOnlink {
+        width: 7px;
+        height: 7px;
+        background: #00daff;
+        border-radius: 50%;
+        position: absolute;
+        top: 20px;
+        left: 35px;
+    }
+
+    .isUnlink {
+        width: 7px;
+        height: 7px;
+        background: red;
+        border-radius: 50%;
+        position: absolute;
+        top: 20px;
+        left: 35px;
+    }
+    .avatar-img {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        margin-right: 12px;
     }
 </style>

@@ -3,13 +3,12 @@
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
             :newChatData="newChatData || {}"
+            :signal="signal"
             @handleActiveFriend="handleActiveFriend"
         />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
-                    <div :class="{ isOnlink: signal === 1, isUnlink: signal !== 1 }"></div>
-                    <img :src="activeFriend.avatar || require('../assets/default_avatar.png')" alt="avatar">
                     <span>{{ activeFriend.name }}</span>
                     <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
                     <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
@@ -94,7 +93,7 @@ function Center(chatData, type) {
         if (chatData.progress !== undefined) {
 
             const stop = watchEffect(() => {
-                if (chatData.progress >= 100) {
+                if (chatData.progress >= 100 && chatData.response) {
                     websocket.value.send(JSON.stringify(chatData))
                     stop()
                 }
@@ -356,26 +355,6 @@ function handleExit() {
     box-sizing: border-box;
     font-family: Source Han Sans CN;
     padding: 10px;
-}
-
-.isOnlink {
-    width: 10px;
-    height: 10px;
-    background: #00daff;
-    border-radius: 50%;
-    position: absolute;
-    top: 0;
-    left: 38px;
-}
-
-.isUnlink {
-    width: 10px;
-    height: 10px;
-    background: red;
-    border-radius: 50%;
-    position: absolute;
-    top: 0;
-    left: 38px;
 }
 
 .reconnect {

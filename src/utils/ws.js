@@ -1,4 +1,4 @@
-const MAX_RETRIES = 2
+const MAX_RETRIES = 6
 let retryCount = 0
 
 function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconnect=0') {
@@ -28,13 +28,11 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
             console.log('close 断开连接 -> ', res.reason)
             return
         }
-        // console.log('code -> ', res)
-        // reconnect()
         setTimeout(() => {
             console.log('Reconnecting to WebSocket...')
             retryCount++
             connectWebSocket(ws, url, appendMessage, signal, '&reconnect=1')
-        }, 2000) // 2 seconds
+        }, 2000)
     }
 
     ws.value.onerror = function () {

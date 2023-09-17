@@ -19,8 +19,6 @@ import byteCovert from '@/utils/byteCovert.js'
 
 defineProps({
     chatBox: Object,
-    // activeFriend: Object,
-    // userInfo: Object
     uploadDisable: Boolean,
 })
 const emit = defineEmits(['center', 'progress', 'response'])
@@ -29,7 +27,6 @@ const chatText = ref('')
 
 // 键盘 摁下 enter 键触发事件
 function hdkeydown() {
-    // if (signal.value !== 1 || !activeFriend.value) return
     sendMessage()
 }
 
@@ -57,11 +54,6 @@ function sendMessage(chatData) {
 
     // 清空聊天框
     chatText.value = ''
-
-    // nextTick(() => {
-    //     // 文字窗口滚动到底部
-    //     scrollBar.value.setScrollTop(chatWindow.value.dom.scrollHeight)
-    // })
 }
 
 // 文件上传
@@ -72,14 +64,15 @@ function uploadFile(e) {
     const xhr = new XMLHttpRequest()
     // 文件信息所在下标
     // const index = props.chatBox.length
-
+    const size = byteCovert(e.target.files[0]?.size)
+    if (!size) return 
     const box = reactive({
         progress: 0,
         type: e.target.files[0]?.type,
         fileName: e.target.files[0]?.name,
         // text 文本描述主要用于好友栏的提示
         text: `[文件]${e.target.files[0]?.name ?? ''}`,
-        size: byteCovert(e.target.files[0]?.size),
+        size,
         time: timeFormat(),
         response: '',
         user: 1,
@@ -96,7 +89,7 @@ function uploadFile(e) {
             // emit('progress',index, percentComplete)
             box.progress = percentComplete
         }
-    });
+    })
 
     // 监听上传完成事件
     xhr.addEventListener('load', (res) => {
