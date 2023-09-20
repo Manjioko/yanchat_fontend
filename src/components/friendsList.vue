@@ -127,7 +127,10 @@ function handleSelect(idx, row) {
         item.active = false
     })
     if (!row.to_table) return
-    chatDataOb.value[row.to_table]?.forEach(item => item.unread = 0)
+    console.log(' chatDataOb.value -> ', chatDataOb.value)
+    chatDataOb.value[row.to_table]?.forEach(item => {
+        if (item?.unread !== undefined) item.unread = 0
+    })
 }
 
 // 添加好友功能

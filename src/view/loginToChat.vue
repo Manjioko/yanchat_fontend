@@ -88,7 +88,7 @@ async function login() {
 
 async function register() {
     // 校验手机号码
-    if(!(/^1[34578]\d{9}$/.test(phone.value))){
+    if(!(/^1[345678]\d{9}$/.test(phone.value))){
         ElMessage({
             message: `${phone.value}: 电话号格式有误`,
             type: 'error',

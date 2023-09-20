@@ -19,7 +19,7 @@
                 <div class="nick-input">
                     <el-input v-model="nickName">
                         <template #suffix>
-                            <span class="save-text">保存</span>
+                            <span class="save-text" @click="saveNickName">保存</span>
                         </template>
                     </el-input>
                 </div>
@@ -27,26 +27,12 @@
             <div class="exit-login" @click="handleExit">
                 <div>退出登录</div>
             </div>
-            <!-- <div class="d-text">
-                <div>
-                    <WarningFilled style="width: 2rem; height: 2rem; padding: 10px; color: red;" />
-                </div>
-                <div class="d-tip">是否退出登录？</div>
-            </div> -->
-            <!-- <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="dShow = false">取消</el-button>
-                    <el-button type="primary" @click="handleExit">
-                        确定
-                    </el-button>
-                </span>
-            </template> -->
         </el-dialog>
     </div>
 </template>
 <script setup>
 import { defineProps, ref, defineExpose, defineEmits } from 'vue'
-// import { WarningFilled } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
 defineProps({
     websocket: Object,
@@ -75,7 +61,7 @@ async function uploadAvatar(e) {
     const user_id = sessionStorage.getItem('user_id')
     formData.append('user_id', user_id)
     formData.append("avatar", e.target.files[0])
-    console.log('url -> ', process.env.VUE_APP_AVATAR)
+    // console.log('url -> ', process.env.VUE_APP_AVATAR)
     const [err, res] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_AVATAR,
@@ -83,10 +69,17 @@ async function uploadAvatar(e) {
     }))
 
     if (err) {
-        console.log('上传头像失败 -> ', err)
+        // console.log('上传头像失败 -> ', err)
+        ElMessage.error('上传头像成功！')
         return
     }
 
+    if (res.status === 200) {
+        ElMessage({
+            message: '修改用户头像成功',
+            type: 'success',
+        })
+    }
     console.log('res -> ', res)
 }
 
@@ -98,9 +91,31 @@ function getAavatar() {
 
 // 保存昵称
 const nickName = ref('')
-// function saveNickName() {
-    
-// }
+async function saveNickName() {
+    const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+    console.log('user_info -> ', user_info)
+    if (!nickName.value) return console.log('昵称为空')
+    const [err, res] = await to(window.$axios({
+        method: 'post',
+        url: process.env.VUE_APP_CHANGENICK,
+        data: {
+            nick_name: nickName.value,
+            phone_number: user_info.phone_number
+        }
+    }))
+    if (err) {
+        ElMessage.error('修改昵称失败')
+        return
+    }
+    if (res.status === 200 && res.data !== 'err') {
+        nickName.value = ''
+        ElMessage({
+            message: '昵称修改成功',
+            type: 'success',
+        })
+        
+    }
+}
 </script>
 <style lang="scss" scoped>
 
