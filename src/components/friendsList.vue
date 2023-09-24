@@ -2,7 +2,7 @@
     <div class="container">
         <header class="f-header">
             <div :class="{ isOnlink: signal === 1, isUnlink: signal !== 1 }"></div>
-            <img :src="handleAvatar()" alt="avatar" class="avatar-img">
+            <img :src="avatarSrc" alt="avatar" class="avatar-img">
             <el-input
                 class="w-50 m-2"
                 placeholder="搜索"
@@ -78,7 +78,8 @@ import to from 'await-to-js'
 const props = defineProps({
     friends: String,
     newChatData: Object,
-    signal: Number
+    signal: Number,
+    avatarRefresh: String
 })
 const emit = defineEmits(['handleActiveFriend'])
 
@@ -95,11 +96,16 @@ const friendsList = ref([
 
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+const user_id = sessionStorage.getItem('user_id')
+const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`)
+watch(() => props.avatarRefresh, (val) => {
+    avatarSrc.value = val
+})
 
 onMounted(() => {
     if (!props.friends) return
     const f = JSON.parse(props.friends)
-    console.log('f -> ', f)
+    // console.log('f -> ', f)
     f?.forEach(item => {
         friendsList.value.push({
             name: item.user,
@@ -115,19 +121,24 @@ onMounted(() => {
 })
 
 let dShow = ref(false)
+const oldIdx = ref(null)
 function handleSelect(idx, row) {
     // console.log(idx, row.to_table)
     friendsList.value.forEach((item, i) => {
         if (i === idx) {
             item.active = true
-            emit('handleActiveFriend', item)
+            // 重复点击同一个对象时,只发送一次 handleActiveFriend
+            if (idx !== oldIdx.value) {
+                emit('handleActiveFriend', item)
+            }
+            oldIdx.value = idx
             return
         }
 
         item.active = false
     })
     if (!row.to_table) return
-    console.log(' chatDataOb.value -> ', chatDataOb.value)
+    // console.log(' chatDataOb.value -> ', chatDataOb.value)
     chatDataOb.value[row.to_table]?.forEach(item => {
         if (item?.unread !== undefined) item.unread = 0
     })
@@ -316,12 +327,6 @@ const shake = antiShake(() => {
     })
 }, 1000)
 watch(searchText, shake)
-
-// 头像
-function handleAvatar() {
-    const user_id = sessionStorage.getItem('user_id')
-    return `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`
-}
 
 </script>
 <style lang="scss" scoped>

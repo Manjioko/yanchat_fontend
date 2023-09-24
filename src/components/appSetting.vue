@@ -7,17 +7,22 @@
             </div> -->
             <div class="avatar">
                 <div class="avatar-container">
-                    <img :src="getAavatar()" alt="头像" class="avatar-show">
+                    <img :src="avatarSrc" alt="头像" class="avatar-show">
                     <div class="avatar-edit">
                         <img src="../assets/avatar_edit.png" alt="">
-                        <input type="file" name="上传头像" id="avatar" @change="uploadAvatar">
+                        <input
+                            type="file"
+                            name="上传头像"
+                            id="avatar"
+                            @change="uploadAvatar"
+                        >
                     </div>
                 </div>
             </div>
             <div class="nick">
                 <div class="nick-title">修改昵称：</div>
                 <div class="nick-input">
-                    <el-input v-model="nickName">
+                    <el-input :placeholder="placeholder" v-model="nickName">
                         <template #suffix>
                             <span class="save-text" @click="saveNickName">保存</span>
                         </template>
@@ -38,9 +43,15 @@ defineProps({
     websocket: Object,
 })
 const emit = defineEmits([
-    'exit'
+    'exit',
+    'avaterChange',
+    'nickNameChange'
 ])
 let dShow =  ref(false)
+const user_id = sessionStorage.getItem('user_id')
+const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+const placeholder = ref(user_info.user)
+const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`)
 defineExpose({
     showDialog
 })
@@ -70,7 +81,7 @@ async function uploadAvatar(e) {
 
     if (err) {
         // console.log('上传头像失败 -> ', err)
-        ElMessage.error('上传头像成功！')
+        ElMessage.error('上传头像失败！')
         return
     }
 
@@ -79,14 +90,10 @@ async function uploadAvatar(e) {
             message: '修改用户头像成功',
             type: 'success',
         })
+        avatarSrc.value = `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`
+        emit('avaterChange', avatarSrc.value)
     }
     console.log('res -> ', res)
-}
-
-// 获取头像
-function getAavatar() {
-    const user_id = sessionStorage.getItem('user_id')
-    return `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`
 }
 
 // 保存昵称
@@ -108,12 +115,23 @@ async function saveNickName() {
         return
     }
     if (res.status === 200 && res.data !== 'err') {
-        nickName.value = ''
         ElMessage({
             message: '昵称修改成功',
             type: 'success',
         })
-        
+        placeholder.value = nickName.value
+        nickName.value = ''
+        const [err, res] = await to(window.$axios({
+            method: 'post',
+            url: process.env.VUE_APP_GETFRIENDS,
+            data: {
+                user_id: user_id,
+                get_user_info: true
+            }
+        }))
+        if (err) return
+
+        emit('nickNameChange', res.data)
     }
 }
 </script>
@@ -171,6 +189,7 @@ async function saveNickName() {
 .save-text {
     color: #2F88FF;
     font-size: 12px;
+    cursor: pointer;
 }
 
 .exit-login {

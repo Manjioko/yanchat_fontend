@@ -31,7 +31,7 @@
                                 :fileName="textObject.fileName" :size="textObject.size"
                                 :response="textObject.response" />
                         </span>
-                        <img :src="handleAvatar(textObject)" alt="其他">
+                        <img :src="avatarSrc" alt="其他">
                     </div>
                 </div>
             </div>      
@@ -39,17 +39,23 @@
     </div>
 </template>
 <script setup>
-import { defineProps, defineExpose,ref, defineEmits } from 'vue'
+import { defineProps, defineExpose,ref, defineEmits, watch } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 
-defineProps({
+const props = defineProps({
     chatBox: Object,
+    avatarRefresh: String
 })
 const scrollBar = ref()
 defineExpose({ scrollBar })
 const emit = defineEmits(['scroll'])
+const user_id = sessionStorage.getItem('user_id')
+const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`)
+watch(() => props.avatarRefresh, (val) => {
+    avatarSrc.value = val
+})
 
 const md = MarkdownIt({
     langPrefix:   'hljs code-set language-', 

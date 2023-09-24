@@ -4,6 +4,7 @@
             :friends="userInfo?.friends ?? '[]'"
             :newChatData="newChatData || {}"
             :signal="signal"
+            :avatarRefresh="avatarRefresh || ''"
             @handleActiveFriend="handleActiveFriend"
         />
         <section class="chat-window">
@@ -18,7 +19,13 @@
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
             </section>
-            <ChatWindow v-if="activeFriend" ref="chatWindow" :chatBox="chatBox" @scroll="handleScroll" />
+            <ChatWindow
+                v-if="activeFriend"
+                ref="chatWindow"
+                :chatBox="chatBox"
+                :avatarRefresh="avatarRefresh || ''"
+                @scroll="handleScroll"
+            />
             <section class="zero-friend" v-else>
                 还未选择聊天好友
             </section>
@@ -27,7 +34,12 @@
             </section>
         </section>
     </main>
-    <AppSetting ref="appSetting" @exit="handleExit" />
+    <AppSetting
+        ref="appSetting"
+        @exit="handleExit"
+        @avaterChange="handleAvatarChange"
+        @nickNameChange="handleNickNameChange"
+    />
 </template>
 
 <script setup>
@@ -54,7 +66,7 @@ let signal = ref(0)
 // 用户信息
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 // 好友信息
-const userFriends = JSON.parse(userInfo.value.friends)
+let userFriends = JSON.parse(userInfo.value.friends)
 
 // const route = useRoute()
 onMounted(async () => {
@@ -280,6 +292,20 @@ function handleExit() {
     websocket.value.close(4001,'客户端关闭链接')
     sessionStorage.clear('user_info')
     router.go(-1)
+}
+
+// 头像更新
+const avatarRefresh = ref('')
+function handleAvatarChange(url) {
+    avatarRefresh.value = url
+}
+
+// 更新好友信息
+function handleNickNameChange(fri) {
+    console.log('好友信息 -> ', fri)
+    userInfo.value = fri
+    sessionStorage.setItem('user_info', JSON.stringify(fri))
+    userFriends = JSON.parse(fri.friends)
 }
 
 </script>
