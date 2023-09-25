@@ -14,6 +14,7 @@
                             type="file"
                             name="上传头像"
                             id="avatar"
+                            accept="image/*"
                             @change="uploadAvatar"
                         >
                     </div>

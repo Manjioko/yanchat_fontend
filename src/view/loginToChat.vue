@@ -187,6 +187,7 @@ async function register() {
     border: 1px solid #CCCCCC;
     border-radius: 4px;
     width: 19rem;
+    outline-color: #9edcff;
 }
 
 .login-id {

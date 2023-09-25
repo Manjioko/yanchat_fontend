@@ -164,6 +164,7 @@ function Center(chatData, type) {
 
 // 推送到 window 桌面
 function notifyToWindow(textOb) {
+    // console.log('text ', textOb,document.hidden)
     if (!textOb || !textOb.text) return
     // 在当前页面时，不弹出通知栏
     if (!document.hidden) return
@@ -171,10 +172,11 @@ function notifyToWindow(textOb) {
     if (Notification.permission === 'granted') {
         // console.log('新消息 -> ', userFriends)
         const fr = userFriends?.find(f => f.user_id === textOb.user_id)
+        // console.log('fr', fr)
         const notification = new Notification(fr?.user || '新消息', {
             body: textOb.text || '',
             // 可选的通知图标
-            icon: require('../assets/avatar1.png'),
+            // icon: require('../assets/avatar1.png'),
         });
 
         notification.onclick = function () {
