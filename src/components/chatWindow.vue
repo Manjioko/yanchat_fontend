@@ -3,6 +3,7 @@
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
             <div>
                 <div v-for="(textObject, idx) in chatBox" :key="idx">
+                    <div class="show-time">{{ handleTime(idx) }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他">
                         <div class="chat-box-remote-message">
@@ -84,6 +85,19 @@ function handleAvatar(ob) {
     // console.log(ob)
     const imgUrl = `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${ob.user_id}.jpg`
     return imgUrl
+}
+
+function handleTime(idx) {
+    const beforItem = props.chatBox?.[idx - 1 || 0]
+    const nowItem = props.chatBox?.[idx]
+    if (!beforItem) return ''
+    const beforTime = new Date(beforItem?.time ?? '') 
+    const nowTime = new Date(nowItem?.time ?? '')
+    const result = (nowTime - beforTime) / (1000 * 60)
+    if (result > 10) {
+        return nowItem.time
+    }
+    return ''
 }
 </script>
 <style lang="scss" scoped>
@@ -196,5 +210,11 @@ function handleAvatar(ob) {
     flex: 1;
     overflow: hidden;
     position: relative;
+}
+.show-time {
+    text-align: center;
+    font-size: 12px;
+    color: #7a7a7a;
+    margin: 20px 0;
 }
 </style>
