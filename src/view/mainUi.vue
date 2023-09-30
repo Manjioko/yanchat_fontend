@@ -24,6 +24,7 @@
                 ref="chatWindow"
                 :chatBox="chatBox"
                 :avatarRefresh="avatarRefresh || ''"
+                :markdown="isUseMd"
                 @scroll="handleScroll"
             />
             <section class="zero-friend" v-else>
@@ -39,6 +40,7 @@
         @exit="handleExit"
         @avaterChange="handleAvatarChange"
         @nickNameChange="handleNickNameChange"
+        @isUseMarkdown="handleIsUseMarkdown"
     />
 </template>
 
@@ -310,6 +312,12 @@ function handleNickNameChange(fri) {
     userFriends = JSON.parse(fri.friends)
 }
 
+// 是否使用markdown
+const isUseMd = ref(false)
+function handleIsUseMarkdown(val) {
+    isUseMd.value = val
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -329,8 +337,8 @@ function handleNickNameChange(fri) {
     width: 50vw;
     height: 92vh;
     min-width: 600px;
-    max-width: 1000px;
-    max-height: 875px;
+    max-width: 700px;
+    max-height: 700px;
     background-color: #fff;
     display: flex;
     flex-direction: column;

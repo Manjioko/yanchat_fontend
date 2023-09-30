@@ -43,7 +43,7 @@
         <el-dialog
             v-model="dShow"
             title="添加好友"
-            width="30%"
+            width="300"
             :modal="false"
             :close-on-click-modal="false"
             :show-close="false"
@@ -336,6 +336,7 @@ watch(searchText, shake)
         background-color: #fff;
         height: 92vh;
         width: 260px;
+        max-height: 700px;
         border-right: 2px solid #F5F6FA;
         border-radius: 5px 0px 0px 5px;
         

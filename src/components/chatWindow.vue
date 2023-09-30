@@ -47,7 +47,8 @@ import sendFile from '@/components/sendFile.vue'
 
 const props = defineProps({
     chatBox: Object,
-    avatarRefresh: String
+    avatarRefresh: String,
+    markdown: Boolean
 })
 const scrollBar = ref()
 defineExpose({ scrollBar })
@@ -74,7 +75,7 @@ const md = MarkdownIt({
     }
 })
 function textToMarkdown(text) {
-    return md.render(text)
+    return props.markdown ? md.render(text) : text
 }
 function handleScroll(val) {
     emit('scroll', val)

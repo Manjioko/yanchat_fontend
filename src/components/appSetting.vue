@@ -1,10 +1,7 @@
 <template>
     <!-- 退出弹窗 -->
     <div>
-        <el-dialog v-model="dShow" width="30%" center>
-            <!-- <div>
-                
-            </div> -->
+        <el-dialog v-model="dShow" width="350px" center>
             <div class="avatar">
                 <div class="avatar-container">
                     <img :src="avatarSrc" alt="头像" class="avatar-show">
@@ -21,13 +18,26 @@
                 </div>
             </div>
             <div class="nick">
-                <div class="nick-title">修改昵称：</div>
+                <div class="nick-title">修改昵称:</div>
                 <div class="nick-input">
                     <el-input :placeholder="placeholder" v-model="nickName">
                         <template #suffix>
                             <span class="save-text" @click="saveNickName">保存</span>
                         </template>
                     </el-input>
+                </div>
+            </div>
+            <div class="markdown">
+                <div class="nick-title markdown-title">是否使用Markdown:</div>
+                <div class="m-sel">
+                    <el-select v-model="isMarkdown" placeholder="Select">
+                        <el-option
+                        v-for="item in changeMarkdownList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                        />
+                    </el-select>
                 </div>
             </div>
             <div class="exit-login" @click="handleExit">
@@ -37,7 +47,7 @@
     </div>
 </template>
 <script setup>
-import { defineProps, ref, defineExpose, defineEmits } from 'vue'
+import { defineProps, ref, defineExpose, defineEmits, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
 defineProps({
@@ -46,11 +56,41 @@ defineProps({
 const emit = defineEmits([
     'exit',
     'avaterChange',
-    'nickNameChange'
+    'nickNameChange',
+    'isUseMarkdown'
 ])
+
 let dShow =  ref(false)
 const user_id = sessionStorage.getItem('user_id')
 const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+
+const changeMarkdownList = [
+    { label: '是', value: true },
+    { label: '否', value: false },
+]
+const isUseMd = sessionStorage.getItem('is_use_md') || user_info.is_use_md
+// console.log('isUseMd -> ', isUseMd)
+const isMarkdown = ref(isUseMd === 'true' || isUseMd === '1' ? true : false)
+watchEffect(async () => {
+    if (isMarkdown.value !== undefined) {
+        // console.log('changed markdown -> ', isMarkdown.value)
+        const [err] = await to(window.$axios({
+            method: 'post',
+            url: process.env.VUE_APP_MD,
+            data: {
+                user_id: user_info.user_id,
+                is_use_md: isMarkdown.value
+            }
+        }))
+        if (err) {
+            ElMessage.error('操作失败!')
+        } else {
+            sessionStorage.setItem('is_use_md', isMarkdown.value.toString())
+            emit('isUseMarkdown', isMarkdown.value)
+        }
+    }
+})
+
 const placeholder = ref(user_info.user)
 const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`)
 defineExpose({
@@ -205,4 +245,16 @@ async function saveNickName() {
     cursor: pointer;
 }
 
+.markdown-title {
+    margin-top: 13px;
+}
+.m-sel {
+    :deep .el-select {
+        width: 100%;
+    }
+    :deep .el-input__wrapper {
+        display: flex;
+        padding: 4px 11px;
+    }
+}
 </style>
