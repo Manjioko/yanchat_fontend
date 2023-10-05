@@ -1,27 +1,3 @@
-<script setup>
-import { InfoFilled } from '@element-plus/icons-vue'
-import fileSave from 'file-saver'
-// import { saveAs } from 'file-saver'
-// eslint-disable-next-line no-undef
-const props = defineProps({
-    progress: Number,
-    type: String,
-    fileName: String,
-    size: String,
-    response: String
-})
-
-const confirmEvent = () => {
-    // console.log('confirm!', props)
-    const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-    fileSave.saveAs(url, props.fileName)
-}
-const cancelEvent = () => {
-    console.log('cancel!')
-}
-
-</script>
-
 <!-- 结构部分 -->
 <template>
     <div class="pr">
@@ -55,6 +31,30 @@ const cancelEvent = () => {
         </section>
     </div>
 </template>
+
+<script setup>
+import { InfoFilled } from '@element-plus/icons-vue'
+import fileSave from 'file-saver'
+// import { saveAs } from 'file-saver'
+// eslint-disable-next-line no-undef
+const props = defineProps({
+    progress: Number,
+    type: String,
+    fileName: String,
+    size: String,
+    response: String
+})
+
+const confirmEvent = () => {
+    // console.log('confirm!', props)
+    const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+    fileSave.saveAs(url, props.fileName)
+}
+const cancelEvent = () => {
+    console.log('cancel!')
+}
+
+</script>
 
 <!-- 样式部分 -->
 <style lang="scss" scoped>

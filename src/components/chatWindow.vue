@@ -14,9 +14,14 @@
                                     class="chat-text"
                                 >
                                 </div>
-                                <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                                    :fileName="textObject.fileName" :size="textObject.size"
-                                    :response="textObject.response" />
+                                <sendFile
+                                    v-else
+                                    :progress="textObject.progress"
+                                    :type="textObject.type"
+                                    :fileName="textObject.fileName"
+                                    :size="textObject.size"
+                                    :response="textObject.response"
+                                />
                             </span>
                         </div>
                     </div>
@@ -28,9 +33,23 @@
                                 class="chat-text"
                             >
                             </div>
-                            <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                                :fileName="textObject.fileName" :size="textObject.size"
-                                :response="textObject.response" />
+                            <sendMedia
+                                v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                                :progress="textObject.progress"
+                                :type="textObject.type"
+                                :fileName="textObject.fileName"
+                                :size="textObject.size"
+                                :response="textObject.response"
+                                :src="textObject.src"
+                            />
+                            <sendFile
+                                v-else
+                                :progress="textObject.progress"
+                                :type="textObject.type"
+                                :fileName="textObject.fileName"
+                                :size="textObject.size"
+                                :response="textObject.response"
+                            />
                         </span>
                         <img :src="avatarSrc" alt="其他">
                     </div>
@@ -44,6 +63,7 @@ import { defineProps, defineExpose,ref, defineEmits, watch } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
+import sendMedia from '@/components/sendMedia.vue'
 
 const props = defineProps({
     chatBox: Object,

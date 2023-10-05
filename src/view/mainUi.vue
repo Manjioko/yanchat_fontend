@@ -105,7 +105,8 @@ function Center(chatData, type) {
         // core
         chatBox.value.push(chatData)
         if (chatData.progress !== undefined) {
-
+            if (chatData.type.includes('video') || chatData.type.includes('image'))
+                return console.log('图片或视频上传测试,不上传到服务器')
             const stop = watchEffect(() => {
                 if (chatData.progress >= 100 && chatData.response) {
                     websocket.value.send(JSON.stringify(chatData))

@@ -61,12 +61,13 @@ function sendMessage(chatData) {
     // 清空聊天框
     chatText.value = ''
 }
-
 // 文件上传
 // let fileData = ref('')
 function uploadFile(e) {
     const formData = new FormData()
     formData.append("file", e.target.files[0])
+    console.log('文件上传信息 -> ', e.target.files[0], window.URL.createObjectURL(e.target.files[0]))
+    // return
     const xhr = new XMLHttpRequest()
     // 文件信息所在下标
     // const index = props.chatBox.length
@@ -82,6 +83,7 @@ function uploadFile(e) {
         time: timeFormat(),
         response: '',
         user: 1,
+        src: window.URL.createObjectURL(e.target.files[0]),
     })
     // 发送信息到文本框
     sendMessage(box)
