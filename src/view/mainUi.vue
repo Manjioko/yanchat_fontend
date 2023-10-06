@@ -74,7 +74,7 @@ let userFriends = JSON.parse(userInfo.value.friends)
 onMounted(async () => {
     // console.log('route -> ', userInfo.value.chat_table)
     const user_id = sessionStorage.getItem('user_id')
-    console.log('user id -> ', user_id)
+    // console.log('user id -> ', user_id)
     const url = `${process.env.VUE_APP_WS}?user_id=${user_id}`
     ws(websocket, url, Center, signal)
 })
@@ -105,8 +105,16 @@ function Center(chatData, type) {
         // core
         chatBox.value.push(chatData)
         if (chatData.progress !== undefined) {
-            if (chatData.type.includes('video') || chatData.type.includes('image'))
-                return console.log('图片或视频上传测试,不上传到服务器')
+            // if (chatData.type.includes('video') || chatData.type.includes('image')) {
+            //     console.log('图片或视频上传测试,不上传到服务器')
+            // } else {
+            //     const stop = watchEffect(() => {
+            //         if (chatData.progress >= 100 && chatData.response) {
+            //             websocket.value.send(JSON.stringify(chatData))
+            //             stop()
+            //         }
+            //     })
+            // }
             const stop = watchEffect(() => {
                 if (chatData.progress >= 100 && chatData.response) {
                     websocket.value.send(JSON.stringify(chatData))
@@ -161,6 +169,7 @@ function Center(chatData, type) {
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
             chatWindow.value.scrollBar.setScrollTop(end_sp)
+            console.log('end_sp -> ', end_sp, chatWindow.value)
         })
     }
 }
@@ -193,7 +202,7 @@ function notifyToWindow(textOb) {
 const activeFriend = ref(null)
 function handleActiveFriend(f) {
     activeFriend.value = f
-    console.log('切换 -》 ')
+    // console.log('切换 -》 ')
     isGetChatHistory = true
     getChatFromServer(true)
 }
@@ -224,7 +233,7 @@ let isGetChatHistory = true
 
 // 从服务器获取聊天记录
 async function getChatFromServer(isSwitchFriend) {
-    console.log('get -> ', isSwitchFriend, isGetChatHistory)
+    // console.log('get -> ', isSwitchFriend, isGetChatHistory)
     if (!isGetChatHistory) return
 
     // 从服务器拉取聊天记录

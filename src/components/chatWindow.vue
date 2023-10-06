@@ -14,6 +14,13 @@
                                     class="chat-text"
                                 >
                                 </div>
+                                <sendMedia
+                                    v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                                    :progress="textObject.progress"
+                                    :type="textObject.type"
+                                    :src="handleSendMediaSrc(textObject)"
+                                    @loaded="handleVideoLoaded"
+                                />
                                 <sendFile
                                     v-else
                                     :progress="textObject.progress"
@@ -37,10 +44,8 @@
                                 v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
                                 :progress="textObject.progress"
                                 :type="textObject.type"
-                                :fileName="textObject.fileName"
-                                :size="textObject.size"
-                                :response="textObject.response"
-                                :src="textObject.src"
+                                :src="handleSendMediaSrc(textObject)"
+                                @loaded="handleVideoLoaded"
                             />
                             <sendFile
                                 v-else
@@ -101,6 +106,10 @@ function handleScroll(val) {
     emit('scroll', val)
 }
 
+function handleVideoLoaded() {
+    scrollBar.value.setScrollTop(scrollBar.value.wrapRef.children[0].scrollHeight)
+    // console.log('handleVideoLoaded', scrollBar.value)
+}
 // 头像处理
 function handleAvatar(ob) {
     // console.log(ob)
@@ -119,6 +128,13 @@ function handleTime(idx) {
         return nowItem.time
     }
     return ''
+}
+
+// 媒体 src 处理
+function handleSendMediaSrc(ob) {
+    // console.log('handleSendMediaSrc -> ', ob.response)
+    const mediaUrl = ob.response ? `${process.env.VUE_APP_BASE_URL}/${ob.response}` : ob.src
+    return mediaUrl
 }
 </script>
 <style lang="scss" scoped>
