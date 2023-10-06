@@ -28,7 +28,7 @@
 
     <!-- 弹框播放视频 -->
     <section class="video-dialog">
-        <el-dialog v-if="showVideo" v-model="showVideo" draggable>
+        <el-dialog v-if="showVideo" v-model="showVideo" draggable :close-on-click-modal="false">
             <videoPlay v-bind="options" />
         </el-dialog>
     </section>
@@ -179,15 +179,33 @@ function doubleclick() {
     .video-dialog {
         .el-dialog {
             background-color: rgba(0, 0, 0, 0.43);
+            border-radius: 10px;
+            box-shadow: 0px 0px 3px 2px #2c2c2cad;
+            width: fit-content;
         }
         .el-dialog__body {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 10px;
+            padding: 10px 10px;
+            width: auto;
+        }
+        .el-icon svg {
+            color: #fff
         }
         // .el-dialog__header {
         //     padding: 0;
         // }
+        .el-dialog__headerbtn {
+            width: 40px;
+            height: 38px;
+            top: 0;
+            // left: 0;
+            font-size: 25px;
+        }
+        .el-dialog__header {
+            padding: 0;
+            padding-bottom: 25px;
+        }
     }
 </style>
