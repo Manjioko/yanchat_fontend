@@ -23,8 +23,7 @@
     "unplugin-vue-components": "^0.25.1",
     "video.js": "^8.5.2",
     "vue": "^3.2.13",
-    "vue-router": "^4.2.4",
-    "vue-simple-context-menu": "^4.0.4"
+    "vue-router": "^4.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

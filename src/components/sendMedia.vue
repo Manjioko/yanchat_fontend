@@ -50,6 +50,7 @@ import { defineProps, ref, defineEmits, onMounted, onUnmounted } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import ContextMenu from '@imengyu/vue3-context-menu'
+// import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 
 const props = defineProps({
     progress: Number,

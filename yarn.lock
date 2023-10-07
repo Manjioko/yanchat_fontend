@@ -2548,11 +2548,6 @@ cli-spinners@^2.5.0:
   resolved "https://registry.npmmirror.com/cli-spinners/-/cli-spinners-2.9.0.tgz#5881d0ad96381e117bbe07ad91f2008fe6ffd8db"
   integrity sha512-4/aL9X3Wh0yiMQlE+eeRhWP6vclO3QRtw1JHKIT0FFUs5FjpFmESqtMvYZ0+lbzBw900b95mS0hohy+qn2VK/g==
 
-click-outside-vue3@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.npmmirror.com/click-outside-vue3/-/click-outside-vue3-4.0.1.tgz#81a6ac01696b301764b42db6fdbdf28e7cd8ef95"
-  integrity sha512-sbplNecrup5oGqA3o4bo8XmvHRT6q9fvw21Z67aDbTqB9M6LF7CuYLTlLvNtOgKU6W3zst5H5zJuEh4auqA34g==
-
 clipboardy@^2.3.0:
   version "2.3.0"
   resolved "https://registry.npmmirror.com/clipboardy/-/clipboardy-2.3.0.tgz#3c2903650c68e46a91b388985bc2774287dba290"
@@ -6494,13 +6489,6 @@ vue-router@^4.2.4:
   integrity sha512-9PISkmaCO02OzPVOMq2w82ilty6+xJmQrarYZDkjZBfl4RvYAlt4PKnEX21oW4KTtWfa9OuO/b3qk1Od3AEdCQ==
   dependencies:
     "@vue/devtools-api" "^6.5.0"
-
-vue-simple-context-menu@^4.0.4:
-  version "4.0.4"
-  resolved "https://registry.npmmirror.com/vue-simple-context-menu/-/vue-simple-context-menu-4.0.4.tgz#97aff25ee0ae0f82c0049797fdd60abbc3460b8d"
-  integrity sha512-Kn6rTXzKHpdTsPoKpBUQC4K+iZxpYiDU04BbGOgLuX/jLFIA7arzIstOp3+tFoV5JaWrjxGPLAuj2BAf8/G4pQ==
-  dependencies:
-    click-outside-vue3 "^4.0.1"
 
 vue-style-loader@^4.1.0, vue-style-loader@^4.1.3:
   version "4.1.3"
