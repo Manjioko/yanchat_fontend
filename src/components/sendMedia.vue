@@ -1,5 +1,10 @@
 <template>
-    <div v-if="type.includes('video')" class="video" @dblclick="doubleclick">
+    <div
+        v-if="type.includes('video')"
+        class="video"
+        @dblclick="doubleclick"
+        @contextmenu="onContextMenu"
+    >
         <div :class="{'gray-background' : stopIconShow}">
             <div v-if="isVideoLoad && progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
         </div>
@@ -23,22 +28,29 @@
             fit="cover"
             @load="emit('loaded', $event.target)"
         />
-        <!-- <img class="img-style" :src="src" @load="emit('loaded', $event.target)"> -->
     </div>
 
     <!-- 弹框播放视频 -->
     <section class="video-dialog">
         <el-dialog v-if="showVideo" v-model="showVideo" draggable :close-on-click-modal="false">
-            <videoPlay v-bind="options" />
+            <video-player
+                :src="src"
+                controls
+                :loop="false"
+                :volume="0.6"
+                :width="800"
+                :height="450"
+            />
         </el-dialog>
     </section>
+
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted, reactive } from 'vue'
-import { videoPlay } from 'vue3-video-play'
-import 'vue3-video-play/dist/style.css' // 引入css
-// import 'vue3-video-play/dist/style.css'
-// import { videoPlay } from 'vue-video-play'
+import { defineProps, ref, defineEmits, onMounted, onUnmounted } from 'vue'
+import { VideoPlayer } from '@videojs-player/vue'
+import 'video.js/dist/video-js.css'
+import ContextMenu from '@imengyu/vue3-context-menu'
+
 const props = defineProps({
     progress: Number,
     type: String,
@@ -54,32 +66,6 @@ function handleIcon() {
 const video = ref()
 const showVideo = ref(false)
 
-const options = reactive({
-  width: "800px", //播放器宽度
-  height: "450px", //播放器高度
-  color: "#409eff", //主题色
-  title: "", //视频名称
-  src: props.src, //视频源
-  muted: false, //静音
-  webFullScreen: false,
-  speedRate: ["0.75", "1.0", "1.25", "1.5", "2.0"], //播放倍速
-  autoPlay: false, //自动播放
-  loop: false, //循环播放
-  mirror: false, //镜像画面
-  ligthOff: false, //关灯模式
-  volume: 0.3, //默认音量大小
-  control: true, //是否显示控制
-  controlBtns: [
-    "audioTrack",
-    "quality",
-    "speedRate",
-    "volume",
-    "setting",
-    "pip",
-    "pageFullScreen",
-    "fullScreen",
-  ], //显示所有按钮,
-});
 function loadEmit() {
     emit('loaded', video.value)
 }
@@ -110,6 +96,33 @@ function stopVideo() {
 }
 function doubleclick() {
     showVideo.value = true
+}
+
+// 右键菜单
+function onContextMenu(e) {
+  //prevent the browser's default menu
+  e.preventDefault();
+  //show your menu
+  ContextMenu.showContextMenu({
+    x: e.x,
+    y: e.y,
+    items: [
+      { 
+        label: "A menu item", 
+        onClick: () => {
+          alert("You click a menu item");
+        }
+      },
+      { 
+        label: "A submenu", 
+        children: [
+          { label: "Item1" },
+          { label: "Item2" },
+          { label: "Item3" },
+        ]
+      },
+    ]
+  }); 
 }
 </script>
 <style lang="scss" scoped>
