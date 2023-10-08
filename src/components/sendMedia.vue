@@ -3,7 +3,7 @@
         v-if="type.includes('video')"
         class="video"
         @dblclick="doubleclick"
-        @contextmenu="onContextMenu"
+        @contextmenu.prevent="onContextMenu"
     >
         <div :class="{'gray-background' : stopIconShow}">
             <div v-if="isVideoLoad && progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
@@ -50,12 +50,14 @@ import { defineProps, ref, defineEmits, onMounted, onUnmounted } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import ContextMenu from '@imengyu/vue3-context-menu'
-// import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+import download from '@/utils/download.js'
 
 const props = defineProps({
     progress: Number,
     type: String,
     src: String,
+    response: String,
+    fileName: String
 })
 const emit = defineEmits(['loaded'])
 function handleIcon() {
@@ -98,32 +100,38 @@ function stopVideo() {
 function doubleclick() {
     showVideo.value = true
 }
-
+function ptDefault(e) {
+    e.preventDefault()
+}
 // 右键菜单
 function onContextMenu(e) {
   //prevent the browser's default menu
-  e.preventDefault();
+//   e.preventDefault();
   //show your menu
   ContextMenu.showContextMenu({
     x: e.x,
     y: e.y,
+    theme: 'flat',
     items: [
       { 
-        label: "A menu item", 
+        label: "下载到本地", 
         onClick: () => {
-          alert("You click a menu item");
+            const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            download(url, props.fileName)
         }
       },
-      { 
-        label: "A submenu", 
-        children: [
-          { label: "Item1" },
-          { label: "Item2" },
-          { label: "Item3" },
-        ]
-      },
+    //   { 
+    //     label: "A submenu", 
+    //     children: [
+    //       { label: "Item1" },
+    //       { label: "Item2" },
+    //       { label: "Item3" },
+    //     ]
+    //   },
     ]
-  }); 
+  })
+  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
+  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
 }
 </script>
 <style lang="scss" scoped>

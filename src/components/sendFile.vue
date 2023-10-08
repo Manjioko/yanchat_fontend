@@ -1,24 +1,19 @@
 <!-- 结构部分 -->
 <template>
-    <div class="pr">
+    <div class="pr" @contextmenu="onContextMenu">
         <section class="pr-word">
             <div class="pr-message">{{ fileName }}</div>
             <div class="pr-tip">{{ progress < 100 ? '正在上传' : size }}</div>
         </section>
         <section class="pr-container">
-            <el-popconfirm confirm-button-text="是的" cancel-button-text="取消" width="230" :icon="InfoFilled"
-                title="是否将文件下载到本地?" @confirm="confirmEvent" @cancel="cancelEvent">
-                <template #reference>
-                    <div v-if="type === 'application/x-zip-compressed'">
-                        <img v-if="progress < 100" src="../assets/uploadingZipFile.png" alt="uploadingZipFile" width="49">
-                        <img v-if="progress >= 100" src="../assets/uploadedZipFile.png" alt="uploadingZipFile" width="49">
-                    </div>
-                    <div v-else>    
-                        <img v-if="progress < 100" src="../assets/uploadingFile.png" alt="uploadingZipFile" width="49">
-                        <img v-if="progress >= 100" src="../assets/uploadedFile.png" alt="uploadingZipFile" width="49">
-                    </div>
-                </template>
-            </el-popconfirm>
+            <div v-if="type === 'application/x-zip-compressed'">
+                <img v-if="progress < 100" src="../assets/uploadingZipFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress >= 100" src="../assets/uploadedZipFile.png" alt="uploadingZipFile" width="49">
+            </div>
+            <div v-else>    
+                <img v-if="progress < 100" src="../assets/uploadingFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress >= 100" src="../assets/uploadedFile.png" alt="uploadingZipFile" width="49">
+            </div>
             <div class="progress" v-if="progress < 100">
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="2" :width="22">
                     <template #default="{ percentage }">
@@ -33,9 +28,9 @@
 </template>
 
 <script setup>
-import { InfoFilled } from '@element-plus/icons-vue'
-import fileSave from 'file-saver'
-// import { saveAs } from 'file-saver'
+// import { InfoFilled } from '@element-plus/icons-vue'
+import download from '@/utils/download.js'
+import ContextMenu from '@imengyu/vue3-context-menu'
 // eslint-disable-next-line no-undef
 const props = defineProps({
     progress: Number,
@@ -45,13 +40,41 @@ const props = defineProps({
     response: String
 })
 
-const confirmEvent = () => {
-    // console.log('confirm!', props)
-    const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-    fileSave.saveAs(url, props.fileName)
-}
-const cancelEvent = () => {
-    console.log('cancel!')
+// const confirmEvent = () => {
+//     const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+//     download(url, props.fileName)
+// }
+// const cancelEvent = () => {
+//     console.log('cancel!')
+// }
+
+// 右键菜单
+function onContextMenu(e) {
+  //prevent the browser's default menu
+  e.preventDefault();
+  //show your menu
+  ContextMenu.showContextMenu({
+    x: e.x,
+    y: e.y,
+    theme: 'flat',
+    items: [
+      { 
+        label: "下载到本地", 
+        onClick: () => {
+            const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            download(url, props.fileName)
+        }
+      },
+    //   { 
+    //     label: "A submenu", 
+    //     children: [
+    //       { label: "Item1" },
+    //       { label: "Item2" },
+    //       { label: "Item3" },
+    //     ]
+    //   },
+    ]
+  }); 
 }
 
 </script>

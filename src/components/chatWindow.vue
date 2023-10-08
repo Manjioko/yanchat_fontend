@@ -19,6 +19,8 @@
                                     :progress="textObject.progress"
                                     :type="textObject.type"
                                     :src="handleSendMediaSrc(textObject)"
+                                    :response="textObject.response"
+                                    :fileName="textObject.fileName"
                                     @loaded="handleVideoLoaded"
                                 />
                                 <sendFile
@@ -45,6 +47,8 @@
                                 :progress="textObject.progress"
                                 :type="textObject.type"
                                 :src="handleSendMediaSrc(textObject)"
+                                :response="textObject.response"
+                                :fileName="textObject.fileName"
                                 @loaded="handleVideoLoaded"
                             />
                             <sendFile
@@ -69,6 +73,7 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
+// import ContextMenu from '@imengyu/vue3-context-menu'
 
 const props = defineProps({
     chatBox: Object,
@@ -136,6 +141,36 @@ function handleSendMediaSrc(ob) {
     const mediaUrl = ob.response ? `${process.env.VUE_APP_BASE_URL}/${ob.response}` : ob.src
     return mediaUrl
 }
+
+// 右键菜单
+// function onContextMenu(e) {
+//   //prevent the browser's default menu
+//   e.preventDefault();
+//   //show your menu
+//   ContextMenu.showContextMenu({
+//     x: e.x,
+//     y: e.y,
+//     theme: 'flat',
+//     items: [
+//       { 
+//         label: "复制", 
+//         onClick: () => {
+//             // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+//             // download(url, props.fileName)
+//             console.log(window.getSelection().toString())
+//         }
+//       },
+//     //   { 
+//     //     label: "A submenu", 
+//     //     children: [
+//     //       { label: "Item1" },
+//     //       { label: "Item2" },
+//     //       { label: "Item3" },
+//     //     ]
+//     //   },
+//     ]
+//   }); 
+// }
 </script>
 <style lang="scss" scoped>
 .chat-box-remote {
