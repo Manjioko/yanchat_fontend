@@ -48,6 +48,9 @@ const props = defineProps({
 //     console.log('cancel!')
 // }
 
+function ptDefault(e) {
+    e.preventDefault()
+}
 // 右键菜单
 function onContextMenu(e) {
   //prevent the browser's default menu
@@ -74,7 +77,9 @@ function onContextMenu(e) {
     //     ]
     //   },
     ]
-  }); 
+  })
+  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
+  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
 }
 
 </script>

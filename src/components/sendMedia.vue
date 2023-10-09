@@ -19,7 +19,7 @@
         </div>
         <video :src="src" :class="{ 'video-style': isVideoLoad, 'default-video-style': !isVideoLoad }" ref="video" @click="stopVideo" />
     </div>
-    <div v-else class="img">
+    <div v-else class="img" @contextmenu.prevent="onContextMenuImg">
         <el-image
             class="img-style"
             :src="src"
@@ -88,6 +88,7 @@ function playVideo() {
     // showVideo.value = true
     if (props.progress < 100) return
     video.value.play()
+    video.value.muted = false
     stopIconShow.value = false
     video.value.addEventListener('ended', handleIcon)
 }
@@ -120,6 +121,14 @@ function onContextMenu(e) {
             download(url, props.fileName)
         }
       },
+      {
+        label: '静音播放',
+        onClick: () => {
+            video.value.play()
+            video.value.muted = true
+            stopIconShow.value = false
+        }
+      }
     //   { 
     //     label: "A submenu", 
     //     children: [
@@ -128,6 +137,25 @@ function onContextMenu(e) {
     //       { label: "Item3" },
     //     ]
     //   },
+    ]
+  })
+  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
+  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+}
+
+function onContextMenuImg(e) {
+  ContextMenu.showContextMenu({
+    x: e.x,
+    y: e.y,
+    theme: 'flat',
+    items: [
+      { 
+        label: "下载到本地", 
+        onClick: () => {
+            const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            download(url, props.fileName)
+        }
+      }
     ]
   })
   document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)

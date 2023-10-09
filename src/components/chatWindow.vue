@@ -1,7 +1,7 @@
 <template>
     <div class="text-show">
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
-            <div>
+            <div @contextmenu.prevent>
                 <div v-for="(textObject, idx) in chatBox" :key="idx">
                     <div class="show-time">{{ handleTime(idx) }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
@@ -12,6 +12,7 @@
                                     v-if="textObject.type === 'text'"
                                     v-html="textToMarkdown(textObject.text)"
                                     class="chat-text"
+                                    @contextmenu.prevent="handleContextMenu"
                                 >
                                 </div>
                                 <sendMedia
@@ -40,6 +41,7 @@
                                 v-if="textObject.type === 'text'"
                                 v-html="textToMarkdown(textObject.text)"
                                 class="chat-text"
+                                @contextmenu.prevent="handleContextMenu"
                             >
                             </div>
                             <sendMedia
@@ -73,7 +75,7 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
-// import ContextMenu from '@imengyu/vue3-context-menu'
+import ContextMenu from '@imengyu/vue3-context-menu'
 
 const props = defineProps({
     chatBox: Object,
@@ -113,7 +115,6 @@ function handleScroll(val) {
 
 function handleVideoLoaded() {
     scrollBar.value.setScrollTop(scrollBar.value.wrapRef.children[0].scrollHeight)
-    // console.log('handleVideoLoaded', scrollBar.value)
 }
 // 头像处理
 function handleAvatar(ob) {
@@ -137,11 +138,41 @@ function handleTime(idx) {
 
 // 媒体 src 处理
 function handleSendMediaSrc(ob) {
-    // console.log('handleSendMediaSrc -> ', ob.response)
     const mediaUrl = ob.response ? `${process.env.VUE_APP_BASE_URL}/${ob.response}` : ob.src
     return mediaUrl
 }
 
+function ptDefault(e) {
+    e.preventDefault()
+}
+function handleContextMenu(e) {
+  //prevent the browser's default menu
+  e.preventDefault();
+  //show your menu
+  ContextMenu.showContextMenu({
+    x: e.x,
+    y: e.y,
+    theme: 'flat',
+    items: [
+      { 
+        label: "复制", 
+        onClick: () => {
+            // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            // download(url, props.fileName)
+            // console.log(window.getSelection().toString())
+            const copyStr = window.getSelection().toString()
+            // 使用Clipboard API复制文本到剪贴板
+            navigator.clipboard.writeText(copyStr)
+            .catch((error) => {
+                console.log('复制失败 -> ', error);
+            })
+        }
+      },
+    ]
+  })
+  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
+  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+}
 // 右键菜单
 // function onContextMenu(e) {
 //   //prevent the browser's default menu
