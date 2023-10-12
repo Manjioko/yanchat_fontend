@@ -4,8 +4,9 @@
         class="video"
         @dblclick="doubleclick"
         @contextmenu.prevent="onContextMenu"
+        data-menu-video
     >
-        <div :class="{'gray-background' : stopIconShow}">
+        <div :class="{'gray-background' : stopIconShow}" data-menu-video>
             <div v-if="isVideoLoad && progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
         </div>
         <div class="progress" v-if="isVideoLoad && progress < 100">
@@ -19,7 +20,7 @@
         </div>
         <video :src="src" :class="{ 'video-style': isVideoLoad, 'default-video-style': !isVideoLoad }" ref="video" @click="stopVideo" />
     </div>
-    <div v-else class="img" @contextmenu.prevent="onContextMenuImg">
+    <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
         <el-image
             class="img-style"
             :src="src"

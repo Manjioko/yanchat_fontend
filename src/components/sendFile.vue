@@ -1,6 +1,6 @@
 <!-- 结构部分 -->
 <template>
-    <div class="pr" @contextmenu="onContextMenu">
+    <div class="pr" @contextmenu.prevent="onContextMenu" data-menu-file>
         <section class="pr-word">
             <div class="pr-message">{{ fileName }}</div>
             <div class="pr-tip">{{ progress < 100 ? '正在上传' : size }}</div>
