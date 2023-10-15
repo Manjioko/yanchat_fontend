@@ -1,18 +1,50 @@
 <template>
     <div class="text-show">
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
-            <div @contextmenu.prevent>
+            <div @contextmenu.prevent="handleMenu" data-menu-stop>
                 <div v-for="(textObject, idx) in chatBox" :key="idx">
-                    <div class="show-time">{{ handleTime(idx) }}</div>
-                    <div class="chat-box-remote" v-if="textObject.user !== 1">
-                        <img :src="handleAvatar(textObject)" alt="其他">
-                        <div class="chat-box-remote-message">
-                            <span class="chat-box-remote-message-text">
+                    <div class="delete-or-withdraw" v-if="!textObject.deleted && !textObject.withdraw">
+                        <div class="show-time">{{ handleTime(idx) }}</div>
+                        <div class="chat-box-remote" v-if="textObject.user !== 1">
+                            <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
+                            <div class="chat-box-remote-message">
+                                <span class="chat-box-remote-message-text">
+                                    <div
+                                        v-if="textObject.type === 'text'"
+                                        v-html="textToMarkdown(textObject.text)"
+                                        class="chat-text"
+                                        data-menu-text
+                                        :data-index="idx"
+                                    >
+                                    </div>
+                                    <sendMedia
+                                        v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                                        :progress="textObject.progress"
+                                        :type="textObject.type"
+                                        :src="handleSendMediaSrc(textObject)"
+                                        :response="textObject.response"
+                                        :fileName="textObject.fileName"
+                                        @loaded="handleVideoLoaded"
+                                    />
+                                    <sendFile
+                                        v-else
+                                        :progress="textObject.progress"
+                                        :type="textObject.type"
+                                        :fileName="textObject.fileName"
+                                        :size="textObject.size"
+                                        :response="textObject.response"
+                                    />
+                                </span>
+                            </div>
+                        </div>
+                        <div class="chat-box-local" v-else>
+                            <span class="chat-box-local-message">
                                 <div
                                     v-if="textObject.type === 'text'"
                                     v-html="textToMarkdown(textObject.text)"
                                     class="chat-text"
-                                    @contextmenu.prevent="handleContextMenu"
+                                    data-menu-text
+                                    :data-index="idx"
                                 >
                                 </div>
                                 <sendMedia
@@ -33,36 +65,8 @@
                                     :response="textObject.response"
                                 />
                             </span>
+                            <img :src="avatarSrc" alt="其他">
                         </div>
-                    </div>
-                    <div class="chat-box-local" v-else>
-                        <span class="chat-box-local-message">
-                            <div
-                                v-if="textObject.type === 'text'"
-                                v-html="textToMarkdown(textObject.text)"
-                                class="chat-text"
-                                @contextmenu.prevent="handleContextMenu"
-                            >
-                            </div>
-                            <sendMedia
-                                v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                                :progress="textObject.progress"
-                                :type="textObject.type"
-                                :src="handleSendMediaSrc(textObject)"
-                                :response="textObject.response"
-                                :fileName="textObject.fileName"
-                                @loaded="handleVideoLoaded"
-                            />
-                            <sendFile
-                                v-else
-                                :progress="textObject.progress"
-                                :type="textObject.type"
-                                :fileName="textObject.fileName"
-                                :size="textObject.size"
-                                :response="textObject.response"
-                            />
-                        </span>
-                        <img :src="avatarSrc" alt="其他">
                     </div>
                 </div>
             </div>      
@@ -75,7 +79,9 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
-import ContextMenu from '@imengyu/vue3-context-menu'
+import menu from '@/utils/contextMenu.js'
+// import menu from '@/utils/contextMenu.js'
+// import ContextMenu from '@imengyu/vue3-context-menu'
 
 const props = defineProps({
     chatBox: Object,
@@ -84,7 +90,7 @@ const props = defineProps({
 })
 const scrollBar = ref()
 defineExpose({ scrollBar })
-const emit = defineEmits(['scroll'])
+const emit = defineEmits(['scroll', 'deleted', 'withdraw'])
 const user_id = sessionStorage.getItem('user_id')
 const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
@@ -112,7 +118,7 @@ function textToMarkdown(text) {
 function handleScroll(val) {
     emit('scroll', val)
 }
-
+// let metaData
 function handleVideoLoaded() {
     scrollBar.value.setScrollTop(scrollBar.value.wrapRef.children[0].scrollHeight)
 }
@@ -142,66 +148,62 @@ function handleSendMediaSrc(ob) {
     return mediaUrl
 }
 
-function ptDefault(e) {
-    e.preventDefault()
+function handleDataSet(node, targetNode) {
+    for (let key in node.dataset) {
+        if (key.includes('menu')) {
+            if (key === 'menuText') {
+                targetNode = node
+            } else {
+                targetNode = null
+            }
+            return targetNode
+        }
+    }
+    return handleDataSet(node.parentNode,targetNode)
 }
-function handleContextMenu(e) {
-  //prevent the browser's default menu
-  e.preventDefault();
-  //show your menu
-  ContextMenu.showContextMenu({
-    x: e.x,
-    y: e.y,
-    theme: 'flat',
-    items: [
+function handleMenu(e) {
+    const node = handleDataSet(e.target)
+    const menuText = [
       { 
         label: "复制", 
         onClick: () => {
-            // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-            // download(url, props.fileName)
-            // console.log(window.getSelection().toString())
+            console.log(window.getSelection().toString())
+            console.log(navigator)
             const copyStr = window.getSelection().toString()
-            // 使用Clipboard API复制文本到剪贴板
-            navigator.clipboard.writeText(copyStr)
+            // 使用Clipboard API复制文本到剪贴板(浏览器限制,必须是 https 或者 localhost 才可以使用)
+            navigator?.clipboard?.writeText(copyStr)
             .catch((error) => {
                 console.log('复制失败 -> ', error);
             })
         }
       },
+      {
+        label: '删除',
+        onClick: () => {
+            // 本地删除
+            const index = node.dataset.index
+            emit('deleted', index)
+            console.log('删除 -> ', index)
+        }
+    },
+    {
+        label: '撤回',
+        onClick: () => {
+            // 本地撤回
+            const index = node.dataset.index
+            emit('withdraw', index)
+        }
+    },
     ]
-  })
-  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
-  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+    if (node) {
+        menu(e, menuText) 
+    }
 }
-// 右键菜单
-// function onContextMenu(e) {
-//   //prevent the browser's default menu
-//   e.preventDefault();
-//   //show your menu
-//   ContextMenu.showContextMenu({
-//     x: e.x,
-//     y: e.y,
-//     theme: 'flat',
-//     items: [
-//       { 
-//         label: "复制", 
-//         onClick: () => {
-//             // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-//             // download(url, props.fileName)
-//             console.log(window.getSelection().toString())
-//         }
-//       },
-//     //   { 
-//     //     label: "A submenu", 
-//     //     children: [
-//     //       { label: "Item1" },
-//     //       { label: "Item2" },
-//     //       { label: "Item3" },
-//     //     ]
-//     //   },
-//     ]
-//   }); 
-// }
+// const avatarSrc = ref('')
+function handleError(e) {
+    e.target.src = require('../assets/default_avatar.png')
+    avatarSrc.value = require('../assets/default_avatar.png')
+}
 </script>
 <style lang="scss" scoped>
 .chat-box-remote {

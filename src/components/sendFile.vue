@@ -30,7 +30,8 @@
 <script setup>
 // import { InfoFilled } from '@element-plus/icons-vue'
 import download from '@/utils/download.js'
-import ContextMenu from '@imengyu/vue3-context-menu'
+// import ContextMenu from '@imengyu/vue3-context-menu'
+import menu from '@/utils/contextMenu.js'
 // eslint-disable-next-line no-undef
 const props = defineProps({
     progress: Number,
@@ -48,38 +49,28 @@ const props = defineProps({
 //     console.log('cancel!')
 // }
 
-function ptDefault(e) {
-    e.preventDefault()
-}
-// 右键菜单
-function onContextMenu(e) {
-  //prevent the browser's default menu
-  e.preventDefault();
-  //show your menu
-  ContextMenu.showContextMenu({
-    x: e.x,
-    y: e.y,
-    theme: 'flat',
-    items: [
-      { 
+const items = [
+    { 
         label: "下载到本地", 
         onClick: () => {
             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
             download(url, props.fileName)
         }
-      },
-    //   { 
-    //     label: "A submenu", 
-    //     children: [
-    //       { label: "Item1" },
-    //       { label: "Item2" },
-    //       { label: "Item3" },
-    //     ]
-    //   },
-    ]
-  })
-  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
-  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+    },
+    {
+        label: '删除',
+        onClick: () => {
+        }
+    },
+    {
+        label: '撤回',
+        onClick: () => {
+        }
+    },
+]
+
+function onContextMenu(e) {
+    menu(e, items)
 }
 
 </script>

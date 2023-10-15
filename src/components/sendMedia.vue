@@ -6,7 +6,7 @@
         @contextmenu.prevent="onContextMenu"
         data-menu-video
     >
-        <div :class="{'gray-background' : stopIconShow}" data-menu-video>
+        <div :class="{'gray-background' : stopIconShow}">
             <div v-if="isVideoLoad && progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
         </div>
         <div class="progress" v-if="isVideoLoad && progress < 100">
@@ -27,7 +27,7 @@
             :zoom-rate="1.2"
             :preview-src-list="[src]"
             fit="cover"
-            @load="emit('loaded', $event.target)"
+            @load="loadEmit"
         />
     </div>
 
@@ -47,11 +47,12 @@
 
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted } from 'vue'
+import { defineProps, ref, defineEmits, onMounted, onUnmounted,computed } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
-import ContextMenu from '@imengyu/vue3-context-menu'
+// import ContextMenu from '@imengyu/vue3-context-menu'
 import download from '@/utils/download.js'
+import menu from '@/utils/contextMenu.js'
 
 const props = defineProps({
     progress: Number,
@@ -69,9 +70,15 @@ function handleIcon() {
 // 视频处理
 const video = ref()
 const showVideo = ref(false)
-
+const url = computed(() => process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response)
+const fileName = computed(() => props.fileName)
 function loadEmit() {
-    emit('loaded', video.value)
+    // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+    // const fileName = props.fileName
+    emit('loaded', {
+        url,
+        fileName,
+    })
 }
 const isVideoLoad = ref(false)
 onMounted(() => {
@@ -102,66 +109,120 @@ function stopVideo() {
 function doubleclick() {
     showVideo.value = true
 }
-function ptDefault(e) {
-    e.preventDefault()
-}
-// 右键菜单
-function onContextMenu(e) {
-  //prevent the browser's default menu
-//   e.preventDefault();
-  //show your menu
-  ContextMenu.showContextMenu({
-    x: e.x,
-    y: e.y,
-    theme: 'flat',
-    items: [
-      { 
+
+const videoMenu = [
+    { 
         label: "下载到本地", 
         onClick: () => {
             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
             download(url, props.fileName)
         }
-      },
-      {
+    },
+    {
         label: '静音播放',
         onClick: () => {
             video.value.play()
             video.value.muted = true
             stopIconShow.value = false
         }
-      }
-    //   { 
-    //     label: "A submenu", 
-    //     children: [
-    //       { label: "Item1" },
-    //       { label: "Item2" },
-    //       { label: "Item3" },
-    //     ]
-    //   },
-    ]
-  })
-  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
-  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
-}
-
-function onContextMenuImg(e) {
-  ContextMenu.showContextMenu({
-    x: e.x,
-    y: e.y,
-    theme: 'flat',
-    items: [
-      { 
+    },
+    {
+        label: '删除',
+        onClick: () => {
+        }
+    },
+    {
+        label: '撤回',
+        onClick: () => {
+        }
+    },
+]
+const imgMenu = [
+    { 
         label: "下载到本地", 
         onClick: () => {
             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
             download(url, props.fileName)
         }
-      }
-    ]
-  })
-  document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
-  document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+    },
+    {
+        label: '删除',
+        onClick: () => {
+        }
+    },
+    {
+        label: '撤回',
+        onClick: () => {
+        }
+    },
+]
+
+function onContextMenu(e) {
+    menu(e, videoMenu)
 }
+function onContextMenuImg(e) {
+    menu(e, imgMenu)
+}
+// function ptDefault(e) {
+//     e.preventDefault()
+// }
+// // 右键菜单
+// function onContextMenu(e) {
+//   //prevent the browser's default menu
+// //   e.preventDefault();
+//   //show your menu
+//   ContextMenu.showContextMenu({
+//     x: e.x,
+//     y: e.y,
+//     theme: 'flat',
+//     items: [
+//       { 
+//         label: "下载到本地", 
+//         onClick: () => {
+//             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+//             download(url, props.fileName)
+//         }
+//       },
+//       {
+//         label: '静音播放',
+//         onClick: () => {
+//             video.value.play()
+//             video.value.muted = true
+//             stopIconShow.value = false
+//         }
+//       }
+//     //   { 
+//     //     label: "A submenu", 
+//     //     children: [
+//     //       { label: "Item1" },
+//     //       { label: "Item2" },
+//     //       { label: "Item3" },
+//     //     ]
+//     //   },
+//     ]
+//   })
+//   document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
+//   document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+// }
+
+// function onContextMenuImg(e) {
+//   ContextMenu.showContextMenu({
+//     x: e.x,
+//     y: e.y,
+//     theme: 'flat',
+//     items: [
+//       { 
+//         label: "下载到本地", 
+//         onClick: () => {
+//             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+//             download(url, props.fileName)
+//         }
+//       }
+//     ]
+//   })
+//   document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
+//   document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
+// }
 </script>
 <style lang="scss" scoped>
     .video {

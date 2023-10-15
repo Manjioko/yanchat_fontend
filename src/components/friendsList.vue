@@ -2,7 +2,7 @@
     <div class="container">
         <header class="f-header">
             <div :class="{ isOnlink: signal === 1, isUnlink: signal !== 1 }"></div>
-            <img :src="avatarSrc" alt="avatar" class="avatar-img">
+            <img :src="avatarSrc" alt="avatar" class="avatar-img" @error="handleAvatarSelfErr">
             <el-input
                 class="w-50 m-2"
                 placeholder="搜索"
@@ -29,6 +29,7 @@
                     class="i-img"
                     :src="i.avatar"
                     alt="avatar"
+                    @error="handleError(i)"
                 >
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
@@ -218,8 +219,12 @@ onMounted(() => {
     handleUnread()
 })
 watch(() => props.newChatData, (ob) => {
-    const { unread, chat } = ob
+    const { unread, chat, withdrawOb } = ob
     if (!chat) return
+    if (withdrawOb) {
+        handleWithdraw(withdrawOb)
+        return
+    }
     // console.log('提示对象 -> ', chat)
     if (!Array.isArray(chatDataOb.value[chat.to_table])) {
         chatDataOb.value[chat.to_table] = []
@@ -235,7 +240,18 @@ watch(() => props.newChatData, (ob) => {
     })
 })
 
-// 处理未读信息
+// 撤回处理
+function handleWithdraw(wd) {
+    const to_table = wd.to_table
+    const lastIdx = chatDataOb.value[to_table].length - 1
+    const beforeChat = JSON.parse(chatDataOb.value[to_table][lastIdx].chat)
+    if (beforeChat.text === wd.text) {
+        beforeChat.text = '[撤回一条消息]'
+        chatDataOb.value[to_table][lastIdx].chat = JSON.stringify(beforeChat)
+    }
+}
+
+// 处理未读信息(红点提示部分)
 async function handleUnread() {
     const c = sessionStorage.getItem('chatDataOb')
     if (c) {
@@ -255,16 +271,15 @@ async function handleUnread() {
         console.log('处理未读消息错误：', err)
         return
     }
-    // console.log('unread -> ', unRead)
+    console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
     chatDataOb.value = unRead.data
 }
 
-// 处理未读信息
+// 处理未读信息(文字部分)
 function handleUnreadMsg(unreadAry) {
     if (!Array.isArray(unreadAry)) return
-    
     const len = unreadAry?.length
     if (!len || len <= 0) return
     // console.log('time -> ', JSON.parse(unreadAry[len - 1]?.chat ?? '{}'))
@@ -327,7 +342,12 @@ const shake = antiShake(() => {
     })
 }, 1000)
 watch(searchText, shake)
-
+function handleAvatarSelfErr() {
+    avatarSrc.value = require('../assets/default_avatar.png')
+}
+function handleError(i) {
+    i.avatar = require('../assets/default_avatar.png')
+}
 </script>
 <style lang="scss" scoped>
     .container {

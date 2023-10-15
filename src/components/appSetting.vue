@@ -4,7 +4,7 @@
         <el-dialog v-model="dShow" width="350px" center>
             <div class="avatar">
                 <div class="avatar-container">
-                    <img :src="avatarSrc" alt="头像" class="avatar-show">
+                    <img :src="avatarSrc" alt="头像" class="avatar-show" @error="handleError">
                     <div class="avatar-edit">
                         <img src="../assets/avatar_edit.png" alt="">
                         <input
@@ -50,6 +50,7 @@
 import { defineProps, ref, defineExpose, defineEmits, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
+// import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
 })
@@ -69,7 +70,6 @@ const changeMarkdownList = [
     { label: '否', value: false },
 ]
 const isUseMd = sessionStorage.getItem('is_use_md') || user_info.is_use_md
-// console.log('isUseMd -> ', isUseMd)
 const isMarkdown = ref(isUseMd === 'true' || isUseMd === '1' ? true : false)
 watchEffect(async () => {
     if (isMarkdown.value !== undefined) {
@@ -174,6 +174,11 @@ async function saveNickName() {
 
         emit('nickNameChange', res.data)
     }
+}
+
+function handleError() {
+    // console.log('头像加载失败')
+    avatarSrc.value = require('../assets/default_avatar.png')
 }
 </script>
 <style lang="scss" scoped>

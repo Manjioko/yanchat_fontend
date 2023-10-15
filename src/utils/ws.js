@@ -18,6 +18,7 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
     }
 
     ws.value.onmessage = function (event) {
+        console.log('message -> ', event.data)
         appendMessage(event.data, 'received')
     }
 
