@@ -2,7 +2,7 @@
     <main class="main">
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
-            :newChatData="newChatData || {}"
+            :refreshChatDataOb="newChatData || {}"
             :signal="signal"
             :avatarRefresh="avatarRefresh || ''"
             @handleActiveFriend="handleActiveFriend"
@@ -129,8 +129,8 @@ function Center(chatData, type) {
         
         // 产生新的数据时需要更新数据到朋友列表
         newChatData.value = {
-            // unread 为 1时标记为未读，0 时标记为已读需要展示
-            unread: 0,
+            // isUnread 为 1时标记为未读，0 时标记为已读需要展示
+            isUnread: 0,
             chat: chatData
         }
     }
@@ -157,7 +157,7 @@ function Center(chatData, type) {
                 } else {
                     chatBox.value.push(chat)
                     newChatData.value = {
-                        unread: 0,
+                        isUnread: 0,
                         chat,
                     }
                 }
@@ -167,16 +167,16 @@ function Center(chatData, type) {
                 // bug 撤回如果是最后的一条推送数据的话,需要做处理的(这里功能还未开发)
                 if (chat.type !== 'withdraw') {
                     newChatData.value = {
-                        unread: 1,
+                        isUnread: 1,
                         chat,
                     }   
                 } else {
                     console.log('user -> ', chat, chat.chat.to_table)
                     console.log('chatDataOb', sessionStorage.getItem('chatDataOb'))
                     newChatData.value = {
-                        unread: 1,
-                        chat,
-                        withdrawOb: chat.chat
+                        isUnread: 1,
+                        chat: chat.chat,
+                        isDel: true
                     }
                 }
 
@@ -209,7 +209,7 @@ function handleCenterWithdraw(chat) {
             i--
         }
         newChatData.value = {
-            unread: 0,
+            isUnread: 0,
             chat:i > 0 ? chatBox.value[i] : { ...chatBox.value[0], text: '' },
         }
     }
@@ -381,7 +381,7 @@ async function handleDeleted (idx) {
             i--
         }
         newChatData.value = {
-            unread: 0,
+            isUnread: 0,
             chat:i > 0 ? chatBox.value[i] : { ...chatBox.value[0], text: '' },
         }
     }
@@ -411,7 +411,7 @@ async function handleWithdraw (idx) {
             i--
         }
         newChatData.value = {
-            unread: 0,
+            isUnread: 0,
             chat: i > 0 ? chatBox.value[i] : { ...chatBox.value[0], text: '' },
         }
     }

@@ -78,7 +78,7 @@ import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 const props = defineProps({
     friends: String,
-    newChatData: Object,
+    refreshChatDataOb: Object,
     signal: Number,
     avatarRefresh: String
 })
@@ -140,9 +140,7 @@ function handleSelect(idx, row) {
     })
     if (!row.to_table) return
     // console.log(' chatDataOb.value -> ', chatDataOb.value)
-    chatDataOb.value[row.to_table]?.forEach(item => {
-        if (item?.unread !== undefined) item.unread = 0
-    })
+    chatDataOb.value[row.to_table].unread = 0
 }
 
 // 添加好友功能
@@ -208,7 +206,7 @@ async function addFriend() {
     dShow.value = false
 }
 
-// 从服务器拉取未读信息
+// 更新好友信息
 const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info')))
 let chatDataOb = ref({})
 watch(chatDataOb, (val) => {
@@ -218,36 +216,36 @@ watch(chatDataOb, (val) => {
 onMounted(() => {
     handleUnread()
 })
-watch(() => props.newChatData, (ob) => {
-    const { unread, chat, withdrawOb } = ob
+watch(() => props.refreshChatDataOb, (ob) => {
+    const { isUnread, chat, isDel } = ob
+    // console.log('ob123 -> ', ob)
     if (!chat) return
-    if (withdrawOb) {
-        handleWithdraw(withdrawOb)
+    if (isDel) {
+        handleWithdraw(ob)
         return
     }
     // console.log('提示对象 -> ', chat)
-    if (!Array.isArray(chatDataOb.value[chat.to_table])) {
-        chatDataOb.value[chat.to_table] = []
-        chatDataOb.value[chat.to_table].push({
-            unread,
-            chat: JSON.stringify(chat)
-        })
+    if (!chatDataOb.value[chat.to_table]) {
+        chatDataOb.value[chat.to_table] = {
+            unread: isUnread ? 1 : 0,
+            chat,
+        }
         return
     }
-    chatDataOb.value[chat.to_table].push({
-        unread,
-        chat: JSON.stringify(chat)
-    })
+    chatDataOb.value[chat.to_table] = {
+        unread: isUnread ? chatDataOb.value[chat.to_table].unread + 1 : 0,
+        chat,
+    }
 })
 
 // 撤回处理
 function handleWithdraw(wd) {
-    const to_table = wd.to_table
-    const lastIdx = chatDataOb.value[to_table].length - 1
-    const beforeChat = JSON.parse(chatDataOb.value[to_table][lastIdx].chat)
-    if (beforeChat.text === wd.text) {
-        beforeChat.text = '[撤回一条消息]'
-        chatDataOb.value[to_table][lastIdx].chat = JSON.stringify(beforeChat)
+    const to_table = wd.chat.to_table
+    const beforeTime = chatDataOb.value[to_table].chat.time + chatDataOb.value[to_table].chat.text
+    const nowTime = wd.chat.time + wd.chat.text
+    // console.log('beforeTime -> ', beforeTime, nowTime)
+    if (beforeTime === nowTime) {
+        chatDataOb.value[to_table].chat.text = '[撤回一条消息]'
     }
 }
 
@@ -258,6 +256,7 @@ async function handleUnread() {
         chatDataOb.value = JSON.parse(c)
         return
     }
+    // 从服务器拉取未读信息
     const flist = JSON.parse(userInfo.value.friends)
     const [err, unRead] = await to(window.$axios({
         method: 'post',
@@ -278,38 +277,26 @@ async function handleUnread() {
 }
 
 // 处理未读信息(文字部分)
-function handleUnreadMsg(unreadAry) {
-    if (!Array.isArray(unreadAry)) return
-    const len = unreadAry?.length
-    if (!len || len <= 0) return
-    // console.log('time -> ', JSON.parse(unreadAry[len - 1]?.chat ?? '{}'))
-    return JSON.parse(unreadAry[len - 1]?.chat ?? '{}').text
+function handleUnreadMsg(unreadOb) {
+    return unreadOb?.chat.text ?? ''
 }
 
 // 处理时间
-function handleShowTime(unreadAry) {
-    if (!Array.isArray(unreadAry)) return
-    
-    const len = unreadAry?.length
-    if (!len || len <= 0) return
-    // console.log('time -> ', JSON.parse(unreadAry[len - 1]?.chat ?? '{}'))
-    return JSON.parse(unreadAry[len - 1]?.chat ?? '{}').time?.slice(10, -3)
+function handleShowTime(unreadOb) {
+    // console.log('handleShowTime -> ', unreadOb)
+    return unreadOb?.chat?.time?.slice(10, -3) ?? ''
 }
 // 处理是否显示未读信息
-function showUnread(ary) {
-    if (!Array.isArray(ary)) return
-    const len = ary.length
-    if (!len) return
-    const last = ary[ary.length - 1]
-    
-    return last?.unread ??  0
+function showUnread(ob) {
+    console.log('ob -> ', ob)
+
+    return ob?.unread ?? 0
 }
 
 // 处理未读数目
-function handleUnreadDotNum(ary) {
-    if (!Array.isArray(ary)) return
-    const fdata = ary?.filter(i => i?.unread)
-    return fdata.length
+function handleUnreadDotNum(ob) {
+
+    return ob?.unread ?? ''
 }
 
 // 关闭添加好友框
