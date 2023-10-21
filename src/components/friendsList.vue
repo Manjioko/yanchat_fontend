@@ -80,7 +80,8 @@ const props = defineProps({
     friends: String,
     refreshChatDataOb: Object,
     signal: Number,
-    avatarRefresh: String
+    avatarRefresh: String,
+    tryToRefreshChatOb: Object,
 })
 const emit = defineEmits(['handleActiveFriend'])
 
@@ -140,6 +141,7 @@ function handleSelect(idx, row) {
     })
     if (!row.to_table) return
     // console.log(' chatDataOb.value -> ', chatDataOb.value)
+    if (!chatDataOb.value[row.to_table]) return
     chatDataOb.value[row.to_table].unread = 0
 }
 
@@ -216,15 +218,22 @@ watch(chatDataOb, (val) => {
 onMounted(() => {
     handleUnread()
 })
-watch(() => props.refreshChatDataOb, (ob) => {
-    const { isUnread, chat, isDel } = ob
-    // console.log('ob123 -> ', ob)
-    if (!chat) return
-    if (isDel) {
-        handleWithdraw(ob)
-        return
+watch(() => props.tryToRefreshChatOb, (chat) => {
+    const { to_table } = chat
+    // console.log('更新 chat -> ', chat, chatDataOb.value[to_table])
+    if (!to_table || !chatDataOb.value[to_table]) return
+    const beforChatId = chatDataOb.value[to_table].chat.chat_id
+    console.log('is should deleted -> ', beforChatId === chat.chat_id)
+    if (beforChatId !== chat.chat_id) return
+    chatDataOb.value[to_table] = {
+        unread: chatDataOb.value[chat.to_table].unread,
+        chat,
     }
-    // console.log('提示对象 -> ', chat)
+    console.log('更改成功 -> ', chatDataOb.value[to_table])
+})
+
+watch(() => props.refreshChatDataOb, (ob) => {
+    const { isUnread, chat } = ob
     if (!chatDataOb.value[chat.to_table]) {
         chatDataOb.value[chat.to_table] = {
             unread: isUnread ? 1 : 0,
@@ -237,17 +246,6 @@ watch(() => props.refreshChatDataOb, (ob) => {
         chat,
     }
 })
-
-// 撤回处理
-function handleWithdraw(wd) {
-    const to_table = wd.chat.to_table
-    const beforeTime = chatDataOb.value[to_table].chat.time + chatDataOb.value[to_table].chat.text
-    const nowTime = wd.chat.time + wd.chat.text
-    // console.log('beforeTime -> ', beforeTime, nowTime)
-    if (beforeTime === nowTime) {
-        chatDataOb.value[to_table].chat.text = '[撤回一条消息]'
-    }
-}
 
 // 处理未读信息(红点提示部分)
 async function handleUnread() {

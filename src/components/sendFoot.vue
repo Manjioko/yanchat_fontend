@@ -54,6 +54,7 @@ function sendMessage(chatData) {
         text: message,
         user: 1,
         time: timeFormat(),
+        chat_id: window.crypto?.randomUUID() ?? 'text_' + new Date().getTime()
     }
     // Center(dataOb, 'sent')
     emit('center', dataOb, 'sent')
@@ -84,6 +85,7 @@ function uploadFile(e) {
         response: '',
         user: 1,
         src: window.URL.createObjectURL(e.target.files[0]),
+        chat_id: window.crypto?.randomUUID() ?? 'text_' + new Date().getTime()
     })
     // 发送信息到文本框
     sendMessage(box)

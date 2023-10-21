@@ -3,6 +3,7 @@
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
             :refreshChatDataOb="newChatData || {}"
+            :tryToRefreshChatOb="trytoRfChat || {}"
             :signal="signal"
             :avatarRefresh="avatarRefresh || ''"
             @handleActiveFriend="handleActiveFriend"
@@ -87,6 +88,7 @@ onBeforeUnmount(() => {
 })
 
 let newChatData = ref({})
+let trytoRfChat = ref({})
 function Center(chatData, type) {
     if (signal.value !== 1) return
 
@@ -98,6 +100,7 @@ function Center(chatData, type) {
         // 第一个 to_table 代表 聊天记录数据库名称
         // 第二个 to_id 代表 聊天对象的 id
         // 第三个 user_id 代表 自己的 id
+        // 第四个 receivedType 代表 信息被接收时类型
         Object.assign(chatData, {
             to_table: activeFriend.value.to_table,
             to_id: activeFriend.value.id,
@@ -137,55 +140,42 @@ function Center(chatData, type) {
 
     // 接收信息
     if (type === 'received') {
-        console.log('收到信息 -> ', chatData)
         try {
-            const chat = JSON.parse(chatData)
-            // console.log('id 比较 -> ', chat.user_id, userInfo.value.user_id)
-            if (chat.user_id === userInfo.value.user_id) {
-                chat.user = 1
+            // const chatData = JSON.parse(chatData)
+            // console.log('id 比较 -> ', chatData.user_id, userInfo.value.user_id)
+            if (chatData.user_id === userInfo.value.user_id) {
+                chatData.user = 1
             } else {
-                chat.user = 0
+                chatData.user = 0
             }
             console.log('activeFriend.value -> ', activeFriend.value)
-            if (chat.user_id === activeFriend?.value?.id) {
-                console.log('发到自己的信息 -> ', chat.type)
+            if (chatData.user_id === activeFriend?.value?.id) {
+                console.log('发到自己的信息 -> ', chatData.type)
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
-                if (chat.type === 'withdraw') {
-                    console.log('撤回消息 -> ', chat)
-                    handleCenterWithdraw(chat)
-                } else {
-                    chatBox.value.push(chat)
-                    newChatData.value = {
-                        isUnread: 0,
-                        chat,
-                    }
+                chatBox.value.push(chatData)
+                newChatData.value = {
+                    isUnread: 0,
+                    chat: chatData,
                 }
             } else {
-                console.log('发到别处的信息 -> ', chat)
+                console.log('发到别处的信息 -> ', chatData)
                 // 撤回信息不推送到好友栏
-                // bug 撤回如果是最后的一条推送数据的话,需要做处理的(这里功能还未开发)
-                if (chat.type !== 'withdraw') {
-                    newChatData.value = {
-                        isUnread: 1,
-                        chat,
-                    }   
-                } else {
-                    console.log('user -> ', chat, chat.chat.to_table)
-                    console.log('chatDataOb', sessionStorage.getItem('chatDataOb'))
-                    newChatData.value = {
-                        isUnread: 1,
-                        chat: chat.chat,
-                        isDel: true
-                    }
-                }
+                newChatData.value = {
+                    isUnread: 1,
+                    chat: chatData,
+                } 
 
             }
             // 推送消息到桌面
-            notifyToWindow(chat)
+            notifyToWindow(chatData)
         } catch (err) {
             console.log('接收错误 -> ', err)
         }
+    }
+
+    if (type === 'deleted') {
+        centerDeleted(chatData)
     }
 
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
@@ -197,25 +187,22 @@ function Center(chatData, type) {
     }
 }
 
-// 撤回处理
-function handleCenterWithdraw(chat) {
-    const chatData = chat.chat
-    const idx = chatBox.value.findIndex(item => item.time === chatData.time && item.text === chatData.text)
-    console.log('撤回 idx -> ', idx, chatBox.value.length - 1)
-    const lastIdx = chatBox.value.length - 1
-    if (Number(idx) === lastIdx) {
-        let i = lastIdx - 1
-        while(i >  0 && chatBox.value[i].withdraw) {
-            i--
+// 接收信息撤回处理
+function centerDeleted(chat) {
+    const isActive = activeFriend.value?.to_table === chat.to_table
+    if (isActive) {
+        console.log('撤回 -> 0')
+        const idx = chatBox.value.findIndex(i => i.chat_id === chat.chat_id)
+        if (idx !== -1) {
+            chatBox.value.splice(idx, 1)
         }
-        newChatData.value = {
-            isUnread: 0,
-            chat:i > 0 ? chatBox.value[i] : { ...chatBox.value[0], text: '' },
-        }
+        chat.text = '[撤回一条信息]'
+        trytoRfChat.value = chat
+        return
     }
-    if (idx !== -1) {
-        chatBox.value.splice(idx, 1)
-    }
+    chat.text = '[撤回一条信息]'
+    trytoRfChat.value = chat
+    console.log('撤回 -> 1')
 }
 
 // 推送到 window 桌面
@@ -401,33 +388,26 @@ async function handleDeleted (idx) {
     }
     // console.log('删除 -> ', chatBox.value)
 }
-// 撤回处理
+
+// windowChat 撤回回调
 async function handleWithdraw (idx) {
-    chatBox.value[idx].withdraw = true
-    const lastIdx = chatBox.value.length - 1
-    if (Number(idx) === lastIdx) {
-        let i = lastIdx - 1
-        while(i >  0 && chatBox.value[i].withdraw) {
-            i--
-        }
-        newChatData.value = {
-            isUnread: 0,
-            chat: i > 0 ? chatBox.value[i] : { ...chatBox.value[0], text: '' },
-        }
-    }
     const [err, res] = await to(window.$axios({
         method: 'post',
-        url: `${process.env.VUE_APP_BASE_URL}/deleteMessage`,
+        url: `${process.env.VUE_APP_BASE_URL}/deleteChat`,
         data: {
             chat: chatBox.value[idx],
-            type: 'withdraw'
         }
     }))
     if (err) {
         console.log('撤回失败 -> ', err)
+        return
     }
-    if (res) {
+    
+    if (res.data === 'ok') {
         console.log('撤回成功 -> ', res)
+        centerDeleted(chatBox.value[idx])
+    } else {
+        console.log('撤回失败 -> ', res.data)
     }
 }
 

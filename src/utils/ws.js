@@ -19,7 +19,16 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
 
     ws.value.onmessage = function (event) {
         console.log('message -> ', event.data)
-        appendMessage(event.data, 'received')
+        let chatData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+
+        switch (chatData.receivedType) {
+            case 'deleted':
+                appendMessage(chatData, 'deleted')
+                break
+            default:
+                appendMessage(chatData, 'received')
+                break;
+        }
     }
 
     ws.value.onclose = function (res) {

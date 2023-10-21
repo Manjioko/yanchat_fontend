@@ -3,47 +3,17 @@
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
             <div @contextmenu.prevent="handleMenu" data-menu-stop>
                 <div v-for="(textObject, idx) in chatBox" :key="idx">
-                    <div class="delete-or-withdraw" v-if="!textObject.deleted && !textObject.withdraw">
-                        <div class="show-time">{{ handleTime(idx) }}</div>
-                        <div class="chat-box-remote" v-if="textObject.user !== 1">
-                            <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
-                            <div class="chat-box-remote-message">
-                                <span class="chat-box-remote-message-text">
-                                    <div
-                                        v-if="textObject.type === 'text'"
-                                        v-html="textToMarkdown(textObject.text)"
-                                        class="chat-text"
-                                        data-menu-text
-                                        :data-index="idx"
-                                    >
-                                    </div>
-                                    <sendMedia
-                                        v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                                        :progress="textObject.progress"
-                                        :type="textObject.type"
-                                        :src="handleSendMediaSrc(textObject)"
-                                        :response="textObject.response"
-                                        :fileName="textObject.fileName"
-                                        @loaded="handleVideoLoaded"
-                                    />
-                                    <sendFile
-                                        v-else
-                                        :progress="textObject.progress"
-                                        :type="textObject.type"
-                                        :fileName="textObject.fileName"
-                                        :size="textObject.size"
-                                        :response="textObject.response"
-                                    />
-                                </span>
-                            </div>
-                        </div>
-                        <div class="chat-box-local" v-else>
-                            <span class="chat-box-local-message">
+                    <div class="show-time">{{ handleTime(idx) }}</div>
+                    <div class="chat-box-remote" v-if="textObject.user !== 1">
+                        <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
+                        <div class="chat-box-remote-message">
+                            <span class="chat-box-remote-message-text">
                                 <div
                                     v-if="textObject.type === 'text'"
                                     v-html="textToMarkdown(textObject.text)"
                                     class="chat-text"
                                     data-menu-text
+                                    data-target-other
                                     :data-index="idx"
                                 >
                                 </div>
@@ -54,7 +24,10 @@
                                     :src="handleSendMediaSrc(textObject)"
                                     :response="textObject.response"
                                     :fileName="textObject.fileName"
+                                    :data-index="idx"
+                                    :user="textObject.user"
                                     @loaded="handleVideoLoaded"
+                                    @withdraw="emitWithdraw"
                                 />
                                 <sendFile
                                     v-else
@@ -63,10 +36,49 @@
                                     :fileName="textObject.fileName"
                                     :size="textObject.size"
                                     :response="textObject.response"
+                                    :user="textObject.user"
+                                    :data-index="idx"
+                                    @withdraw="emitWithdraw"
                                 />
                             </span>
-                            <img :src="avatarSrc" alt="其他">
                         </div>
+                    </div>
+                    <div class="chat-box-local" v-else>
+                        <span class="chat-box-local-message">
+                            <div
+                                v-if="textObject.type === 'text'"
+                                v-html="textToMarkdown(textObject.text)"
+                                class="chat-text"
+                                data-menu-text
+                                data-target-self
+                                :data-index="idx"
+                            >
+                            </div>
+                            <sendMedia
+                                v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                                :progress="textObject.progress"
+                                :type="textObject.type"
+                                :src="handleSendMediaSrc(textObject)"
+                                :response="textObject.response"
+                                :fileName="textObject.fileName"
+                                :data-index="idx"
+                                :user="textObject.user"
+                                @loaded="handleVideoLoaded"
+                                @withdraw="emitWithdraw"
+                            />
+                            <sendFile
+                                v-else
+                                :progress="textObject.progress"
+                                :type="textObject.type"
+                                :fileName="textObject.fileName"
+                                :size="textObject.size"
+                                :response="textObject.response"
+                                :data-index="idx"
+                                :user="textObject.user"
+                                @withdraw="emitWithdraw"
+                            />
+                        </span>
+                        <img :src="avatarSrc" alt="其他">
                     </div>
                 </div>
             </div>      
@@ -195,9 +207,23 @@ function handleMenu(e) {
         }
     },
     ]
+    if (Object.prototype.hasOwnProperty.call(node?.dataset ?? {}, 'targetOther')) {
+        const shouldRemoveMenus = ['撤回']
+        // const shouldAddMenus = []
+        for (const m of shouldRemoveMenus) {
+            const idx = menuText.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuText.splice(idx, 1)
+            }
+        }
+    }
+    
     if (node) {
         menu(e, menuText) 
     }
+}
+function emitWithdraw (index) {
+    emit('withdraw', index)
 }
 // const avatarSrc = ref('')
 function handleError(e) {

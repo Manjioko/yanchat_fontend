@@ -32,22 +32,18 @@
 import download from '@/utils/download.js'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 import menu from '@/utils/contextMenu.js'
+import { defineEmits } from 'vue'
 // eslint-disable-next-line no-undef
 const props = defineProps({
     progress: Number,
     type: String,
     fileName: String,
     size: String,
-    response: String
+    response: String,
+    dataIndex: Number,
+    user: Number
 })
-
-// const confirmEvent = () => {
-//     const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-//     download(url, props.fileName)
-// }
-// const cancelEvent = () => {
-//     console.log('cancel!')
-// }
+const emit = defineEmits(['withdraw'])
 
 const items = [
     { 
@@ -65,12 +61,24 @@ const items = [
     {
         label: '撤回',
         onClick: () => {
+            emit('withdraw', props.dataIndex)
         }
     },
 ]
 
 function onContextMenu(e) {
-    menu(e, items)
+    const menuList = [...items]
+    if (!props.user) {
+        const shouldRemoveMenus = ['撤回']
+        // const shouldAddMenus = []
+        for (const m of shouldRemoveMenus) {
+            const idx = menuList.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuList.splice(idx, 1)
+            }
+        }
+    }
+    menu(e, menuList)
 }
 
 </script>

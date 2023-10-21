@@ -59,9 +59,11 @@ const props = defineProps({
     type: String,
     src: String,
     response: String,
-    fileName: String
+    fileName: String,
+    dataIndex: Number,
+    user: Number
 })
-const emit = defineEmits(['loaded'])
+const emit = defineEmits(['loaded', 'withdraw'])
 function handleIcon() {
     stopIconShow.value = !stopIconShow.value
 }
@@ -134,6 +136,7 @@ const videoMenu = [
     {
         label: '撤回',
         onClick: () => {
+            emit('withdraw', props.dataIndex)
         }
     },
 ]
@@ -153,15 +156,38 @@ const imgMenu = [
     {
         label: '撤回',
         onClick: () => {
+            emit('withdraw', props.dataIndex)
         }
     },
 ]
 
 function onContextMenu(e) {
-    menu(e, videoMenu)
+    const menuList = [...videoMenu]
+    if (!props.user) {
+        const shouldRemoveMenus = ['撤回']
+        // const shouldAddMenus = []
+        for (const m of shouldRemoveMenus) {
+            const idx = menuList.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuList.splice(idx, 1)
+            }
+        }
+    }
+    menu(e, menuList)
 }
 function onContextMenuImg(e) {
-    menu(e, imgMenu)
+    const menuList = [...imgMenu]
+    if (!props.user) {
+        const shouldRemoveMenus = ['撤回']
+        // const shouldAddMenus = []
+        for (const m of shouldRemoveMenus) {
+            const idx = menuList.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuList.splice(idx, 1)
+            }
+        }
+    }
+    menu(e, menuList)
 }
 // function ptDefault(e) {
 //     e.preventDefault()
