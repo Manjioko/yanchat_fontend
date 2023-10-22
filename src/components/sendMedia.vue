@@ -63,7 +63,7 @@ const props = defineProps({
     dataIndex: Number,
     user: Number
 })
-const emit = defineEmits(['loaded', 'withdraw'])
+const emit = defineEmits(['loaded', 'withdraw', 'deleted'])
 function handleIcon() {
     stopIconShow.value = !stopIconShow.value
 }
@@ -131,6 +131,7 @@ const videoMenu = [
     {
         label: '删除',
         onClick: () => {
+            emit('deleted', props.dataIndex)
         }
     },
     {
@@ -151,6 +152,7 @@ const imgMenu = [
     {
         label: '删除',
         onClick: () => {
+            emit('deleted', props.dataIndex)
         }
     },
     {

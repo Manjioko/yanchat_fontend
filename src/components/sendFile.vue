@@ -43,7 +43,7 @@ const props = defineProps({
     dataIndex: Number,
     user: Number
 })
-const emit = defineEmits(['withdraw'])
+const emit = defineEmits(['withdraw','deleted'])
 
 const items = [
     { 
@@ -56,6 +56,7 @@ const items = [
     {
         label: '删除',
         onClick: () => {
+            emit('deleted', props.dataIndex)
         }
     },
     {

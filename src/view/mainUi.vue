@@ -286,7 +286,8 @@ async function getChatFromServer(isSwitchFriend) {
         url: process.env.VUE_APP_CHATDATA,
         data: {
             chat_table: activeFriend.value.to_table,
-            offset: chatBoxLen
+            offset: chatBoxLen,
+            limit: 20,
         }
     }))
 
@@ -321,6 +322,7 @@ async function getChatFromServer(isSwitchFriend) {
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val) {
+    console.log('handleScroll', val)
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
         scrollAntiShakeFn()
     }
@@ -360,33 +362,31 @@ function handleIsUseMarkdown(val) {
 
 // 删除处理
 async function handleDeleted (idx) {
-    chatBox.value[idx].deleted = true
-    const lastIdx = chatBox.value.length - 1
-    if (Number(idx) === lastIdx) {
-        let i = lastIdx - 1
-        while(i >  0 && chatBox.value[i].withdraw) {
-            i--
-        }
-        newChatData.value = {
-            isUnread: 0,
-            chat:i > 0 ? chatBox.value[i] : { ...chatBox.value[0], text: '' },
-        }
+    const user_id = sessionStorage.getItem('user_id')
+    console.log('删除 -> ', chatBox.value[idx].user_id === user_id)
+    const chat = chatBox.value[idx]
+    if (chat.user_id === user_id) {
+        chatBox.value[idx].del_self = true
+    } else {
+        chatBox.value[idx].del_other = true
     }
     const [err, res] = await to(window.$axios({
         method: 'post',
-        url: `${process.env.VUE_APP_BASE_URL}/deleteMessage`,
+        url: `${process.env.VUE_APP_BASE_URL}/updateChat`,
         data: {
             chat: chatBox.value[idx],
-            type: 'deleted'
         }
     }))
     if (err) {
         console.log('删除失败 -> ', err)
     }
-    if (res) {
+    if (res.data !== 'err') {
         console.log('删除成功 -> ', res)
+        chat.text = '[已删除一条信息]'
+        trytoRfChat.value = chat
+    } else {
+        console.log('删除失败 -> ', res.data)
     }
-    // console.log('删除 -> ', chatBox.value)
 }
 
 // windowChat 撤回回调

@@ -28,6 +28,7 @@
                                     :user="textObject.user"
                                     @loaded="handleVideoLoaded"
                                     @withdraw="emitWithdraw"
+                                    @deleted="emitDeleted"
                                 />
                                 <sendFile
                                     v-else
@@ -39,6 +40,7 @@
                                     :user="textObject.user"
                                     :data-index="idx"
                                     @withdraw="emitWithdraw"
+                                    @deleted="emitDeleted"
                                 />
                             </span>
                         </div>
@@ -65,6 +67,7 @@
                                 :user="textObject.user"
                                 @loaded="handleVideoLoaded"
                                 @withdraw="emitWithdraw"
+                                @deleted="emitDeleted"
                             />
                             <sendFile
                                 v-else
@@ -76,6 +79,7 @@
                                 :data-index="idx"
                                 :user="textObject.user"
                                 @withdraw="emitWithdraw"
+                                @deleted="emitDeleted"
                             />
                         </span>
                         <img :src="avatarSrc" alt="其他">
@@ -127,8 +131,9 @@ const md = MarkdownIt({
 function textToMarkdown(text) {
     return props.markdown ? md.render(text) : text
 }
-function handleScroll(val) {
-    emit('scroll', val)
+function handleScroll(e) {
+    // console.log('handleScroll', val)
+    emit('scroll', e)
 }
 // let metaData
 function handleVideoLoaded() {
@@ -224,6 +229,11 @@ function handleMenu(e) {
 }
 function emitWithdraw (index) {
     emit('withdraw', index)
+}
+
+function emitDeleted (index) {
+    console.log('删除 -> ', index)
+    emit('deleted', index)
 }
 // const avatarSrc = ref('')
 function handleError(e) {

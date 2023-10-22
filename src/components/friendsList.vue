@@ -271,6 +271,13 @@ async function handleUnread() {
     console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
+    // 处理一开始返回最后一条数据正好被用户删除时的情况
+    Object.keys(unRead.data).forEach(key => {
+        const chat = unRead.data[key].chat
+        if (chat.del_self || chat.del_other) {
+            chat.text = '[已删除一条消息]'
+        }
+    })
     chatDataOb.value = unRead.data
 }
 
