@@ -262,6 +262,7 @@ const chatWindow = ref()
 let isGetChatHistory = true
 
 // 从服务器获取聊天记录
+const offsetOb = {}
 async function getChatFromServer(isSwitchFriend) {
     // console.log('get -> ', isSwitchFriend, isGetChatHistory)
     if (!isGetChatHistory) return
@@ -279,15 +280,15 @@ async function getChatFromServer(isSwitchFriend) {
         chatBox.value = []
     }
 
-    let chatBoxLen = chatBox.value.length
+    // let chatBoxLen = chatBox.value.length
 
     const [err, res] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_CHATDATA,
         data: {
             chat_table: activeFriend.value.to_table,
-            offset: chatBoxLen,
-            limit: 20,
+            offset: offsetOb[activeFriend.value.to_table] || 0,
+            user_id: sessionStorage.getItem('user_id')
         }
     }))
 
@@ -297,11 +298,12 @@ async function getChatFromServer(isSwitchFriend) {
     }
 
     if (res.status !== 200) return
-
-
-    if (Array.isArray(res.data)) {
+    const { data, offset } = res.data
+    offsetOb[activeFriend.value.to_table] = offset
+    // console.log('聊天记录 -> ', res.data)
+    if (Array.isArray(data)) {
         const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-        const chatData = handleChatData(res.data)
+        const chatData = handleChatData(data)
         chatBox.value = [...chatData, ...chatBox.value]
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
@@ -313,16 +315,16 @@ async function getChatFromServer(isSwitchFriend) {
     isGetChatHistory = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (res.data.length === 0) isGetChatHistory = false
+    if (data.length === 0) isGetChatHistory = false
 
-    console.log('查询聊天记录回来了 -> ', res.data.length)
+    console.log('查询聊天记录回来了 -> ', res.data)
 }
 
 // 滚动条事件处理
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val) {
-    console.log('handleScroll', val)
+    // console.log('handleScroll', val)
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
         scrollAntiShakeFn()
     }
