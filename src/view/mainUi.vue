@@ -365,18 +365,14 @@ function handleIsUseMarkdown(val) {
 // 删除处理
 async function handleDeleted (idx) {
     const user_id = sessionStorage.getItem('user_id')
-    console.log('删除 -> ', chatBox.value[idx].user_id === user_id)
+    // console.log('删除 -> ', chatBox.value[idx].user_id === user_id)
     const chat = chatBox.value[idx]
-    if (chat.user_id === user_id) {
-        chatBox.value[idx].del_self = true
-    } else {
-        chatBox.value[idx].del_other = true
-    }
     const [err, res] = await to(window.$axios({
         method: 'post',
-        url: `${process.env.VUE_APP_BASE_URL}/updateChat`,
+        url: `${process.env.VUE_APP_BASE_URL}/deleteChat`,
         data: {
-            chat: chatBox.value[idx],
+            chat,
+            del_flag: user_id
         }
     }))
     if (err) {
@@ -384,6 +380,7 @@ async function handleDeleted (idx) {
     }
     if (res.data !== 'err') {
         console.log('删除成功 -> ', res)
+        chatBox.value.splice(idx, 1)
         chat.text = '[已删除一条信息]'
         trytoRfChat.value = chat
     } else {
