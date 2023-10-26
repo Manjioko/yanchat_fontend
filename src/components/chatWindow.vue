@@ -106,7 +106,7 @@ const props = defineProps({
 })
 const scrollBar = ref()
 defineExpose({ scrollBar })
-const emit = defineEmits(['scroll', 'deleted', 'withdraw'])
+const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded'])
 const user_id = sessionStorage.getItem('user_id')
 const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
@@ -136,8 +136,10 @@ function handleScroll(e) {
     emit('scroll', e)
 }
 // let metaData
-function handleVideoLoaded() {
-    scrollBar.value.setScrollTop(scrollBar.value.wrapRef.children[0].scrollHeight)
+function handleVideoLoaded(ob) {
+    // scrollBar.value.setScrollTop(scrollBar.value.wrapRef.children[0].scrollHeight)
+    emit('loaded', ob)
+    // props.chatBox.value[ob.index].loaded = true
 }
 // 头像处理
 function handleAvatar(ob) {

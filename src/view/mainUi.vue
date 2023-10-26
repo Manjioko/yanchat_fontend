@@ -123,6 +123,12 @@ function Center(chatData, type) {
             const stop = watchEffect(() => {
                 if (chatData.progress >= 100 && chatData.response) {
                     websocket.value.send(JSON.stringify(chatData))
+                    if (chatData.type.includes('video') || chatData.type.includes('image')) {
+                        nextTick(() => {
+                            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+                            chatWindow.value.scrollBar.setScrollTop(end_sp)
+                        })
+                    }
                     stop()
                 }
             })

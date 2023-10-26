@@ -78,6 +78,7 @@ function loadEmit() {
     // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
     // const fileName = props.fileName
     emit('loaded', {
+        index: props.dataIndex,
         url,
         fileName,
     })
