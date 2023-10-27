@@ -18,11 +18,12 @@
                 </template>
             </el-progress>
         </div>
-        <video :src="src" :class="{ 'video-style': isVideoLoad, 'default-video-style': !isVideoLoad }" ref="video" @click="stopVideo" />
+        <video :src="src" class="video-style" ref="video" @click="stopVideo" />
     </div>
     <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
         <el-image
             class="img-style"
+            ref="image"
             :src="src"
             :zoom-rate="1.2"
             :preview-src-list="[src]"
@@ -47,7 +48,7 @@
 
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted,computed } from 'vue'
+import { defineProps, ref, defineEmits, onMounted, onUnmounted,computed, inject } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 // import ContextMenu from '@imengyu/vue3-context-menu'
@@ -71,12 +72,17 @@ function handleIcon() {
 
 // 视频处理
 const video = ref()
+const image = ref()
 const showVideo = ref(false)
 const url = computed(() => process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response)
 const fileName = computed(() => props.fileName)
+const scrollBar = inject('scrollBar')
 function loadEmit() {
-    // const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-    // const fileName = props.fileName
+    if (props.type.includes('video')) {
+        scrollBar.value.wrapRef.scrollTop += video.value.clientHeight / 2
+    } else {
+        scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight / 2
+    }
     emit('loaded', {
         index: props.dataIndex,
         url,

@@ -123,12 +123,12 @@ function Center(chatData, type) {
             const stop = watchEffect(() => {
                 if (chatData.progress >= 100 && chatData.response) {
                     websocket.value.send(JSON.stringify(chatData))
-                    if (chatData.type.includes('video') || chatData.type.includes('image')) {
-                        nextTick(() => {
-                            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-                            chatWindow.value.scrollBar.setScrollTop(end_sp)
-                        })
-                    }
+                    // if (chatData.type.includes('video') || chatData.type.includes('image')) {
+                    //     nextTick(() => {
+                    //         const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+                    //         chatWindow.value.scrollBar.setScrollTop(end_sp)
+                    //     })
+                    // }
                     stop()
                 }
             })
@@ -306,7 +306,7 @@ async function getChatFromServer(isSwitchFriend) {
     if (res.status !== 200) return
     const { data, offset } = res.data
     offsetOb[activeFriend.value.to_table] = offset
-    // console.log('聊天记录 -> ', res.data)
+    console.log('聊天记录 -> ', res.data)
     if (Array.isArray(data)) {
         const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
         const chatData = handleChatData(data)
@@ -321,7 +321,7 @@ async function getChatFromServer(isSwitchFriend) {
     isGetChatHistory = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (data.length === 0) isGetChatHistory = false
+    if (data?.length === 0) isGetChatHistory = false
 
     console.log('查询聊天记录回来了 -> ', res.data)
 }

@@ -90,7 +90,7 @@
     </div>
 </template>
 <script setup>
-import { defineProps, defineExpose,ref, defineEmits, watch } from 'vue'
+import { defineProps, defineExpose,ref, defineEmits, watch, provide } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
@@ -105,6 +105,7 @@ const props = defineProps({
     markdown: Boolean
 })
 const scrollBar = ref()
+provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
 const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded'])
 const user_id = sessionStorage.getItem('user_id')
