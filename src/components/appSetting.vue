@@ -113,7 +113,6 @@ async function uploadAvatar(e) {
     const user_id = sessionStorage.getItem('user_id')
     formData.append('user_id', user_id)
     formData.append("avatar", e.target.files[0])
-    // console.log('url -> ', process.env.VUE_APP_AVATAR)
     const [err, res] = await to(window.$axios({
         method: 'post',
         url: process.env.VUE_APP_AVATAR,

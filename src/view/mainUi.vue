@@ -306,14 +306,18 @@ async function getChatFromServer(isSwitchFriend) {
     if (res.status !== 200) return
     const { data, offset } = res.data
     offsetOb[activeFriend.value.to_table] = offset
-    console.log('聊天记录 -> ', res.data)
+    // console.log('聊天记录 -> ', res.data)
     if (Array.isArray(data)) {
         const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
         const chatData = handleChatData(data)
-        chatBox.value = [...chatData, ...chatBox.value]
+        // chatBox.value = [...chatData, ...chatBox.value]
+        chatBox.value.unshift(...chatData)
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+            // console.log('end_sp -> ', end_sp - start_sp, chatWindow.value.scrollBar.wrapRef)
             chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
+            // eslint-disable-next-line no-debugger
+            // debugger
         })
     }
 
@@ -323,7 +327,7 @@ async function getChatFromServer(isSwitchFriend) {
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
     if (data?.length === 0) isGetChatHistory = false
 
-    console.log('查询聊天记录回来了 -> ', res.data)
+    // console.log('查询聊天记录回来了 -> ', res.data)
 }
 
 // 滚动条事件处理

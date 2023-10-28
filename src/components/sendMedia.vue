@@ -7,9 +7,9 @@
         data-menu-video
     >
         <div :class="{'gray-background' : stopIconShow}">
-            <div v-if="isVideoLoad && progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
+            <div v-if="progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
         </div>
-        <div class="progress" v-if="isVideoLoad && progress < 100">
+        <div class="progress" v-if="progress < 100">
             <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
                 <template #default="{ percentage }">
                     <div v-if="percentage" class="pr-text">
@@ -48,7 +48,7 @@
 
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted,computed, inject } from 'vue'
+import { defineProps, ref, defineEmits, onMounted, onUnmounted, inject } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 // import ContextMenu from '@imengyu/vue3-context-menu'
@@ -65,42 +65,72 @@ const props = defineProps({
     user: Number
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted'])
+// inject 
+const scrollBar = inject('scrollBar')
+
+// 视频播放示意 icon
 function handleIcon() {
     stopIconShow.value = !stopIconShow.value
 }
 
 
 // 视频处理
+// 视频 ref
 const video = ref()
+// 图片 ref
 const image = ref()
+// 用于点击时弹出视频
 const showVideo = ref(false)
-const url = computed(() => process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response)
-const fileName = computed(() => props.fileName)
-const scrollBar = inject('scrollBar')
+
+// 视频或者图片url
+// const url = computed(() => process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response)
+// 视频或图片的名称
+// const fileName = computed(() => props.fileName)
+
+// emit 事件
 function loadEmit() {
+    const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect()
+
+    // 为了解决视频和图片在加载之初与加载完成后高度不同，导致聊天记录位置定位错乱的问题
+    // 使用 getBoundingClientRect 方法来获取元素的位置,然后与父元素的高度进行比较
+    // 就可以确定元素是否在聊天框的可视范围之内,如果在可视范围指南,则需要将元素加载后的高度
+    // 附加到父元素的 scrollTop 上，这样就可以解决定位错乱的问题
     if (props.type.includes('video')) {
-        scrollBar.value.wrapRef.scrollTop += video.value.clientHeight / 2
-    } else {
-        scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight / 2
+        const videoRect = video.value.getBoundingClientRect()
+        if (videoRect.top > chatWindowRect.top) {
+            scrollBar.value.wrapRef.scrollTop += video.value.clientHeight
+        }
     }
-    emit('loaded', {
-        index: props.dataIndex,
-        url,
-        fileName,
-    })
+    if (props.type.includes('image'))  {
+        const imageRect = image.value.$el.getBoundingClientRect()
+        if (imageRect.top > chatWindowRect.top) {
+            scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight
+        }
+    }
 }
-const isVideoLoad = ref(false)
+
+// const isVideoLoad = ref(false)
 onMounted(() => {
     if (props.type.includes('video')) {
         video.value.addEventListener('loadeddata',loadEmit)
-        isVideoLoad.value = true
+        // videoInitHeight = video.value.clientHeight
+        // console.log('videoInitHeight -> ', videoInitHeight)
+        // isVideoLoad.value = true
         return
+    } else {
+        // image.value.addEventListener('load',loadEmit)
+        // imageInitHeight = image_div.value.clientHeight
+        // console.log('imageInitHeight -> ', imageInitHeight)
     }
 })
 onUnmounted(() => {
     video.value && video.value.removeEventListener('loadeddata', loadEmit)
 })
+
+// 视频播放暂停锁
 const stopIconShow = ref(true)
+
+// 视频播放控制事件
 function playVideo() {
     // showVideo.value = true
     if (props.progress < 100) return
@@ -110,15 +140,19 @@ function playVideo() {
     video.value.addEventListener('ended', handleIcon)
 }
 
+// 视频暂停播放控制
 function stopVideo() {
     video.value.removeEventListener('ended', handleIcon)
     video.value.pause()
     stopIconShow.value = true
 }
+
+// 双击事件
 function doubleclick() {
     showVideo.value = true
 }
 
+// 右键菜单
 const videoMenu = [
     { 
         label: "下载到本地", 
@@ -148,6 +182,7 @@ const videoMenu = [
         }
     },
 ]
+// 右键菜单
 const imgMenu = [
     { 
         label: "下载到本地", 
@@ -170,6 +205,7 @@ const imgMenu = [
     },
 ]
 
+// 菜单事件
 function onContextMenu(e) {
     const menuList = [...videoMenu]
     if (!props.user) {
@@ -198,66 +234,7 @@ function onContextMenuImg(e) {
     }
     menu(e, menuList)
 }
-// function ptDefault(e) {
-//     e.preventDefault()
-// }
-// // 右键菜单
-// function onContextMenu(e) {
-//   //prevent the browser's default menu
-// //   e.preventDefault();
-//   //show your menu
-//   ContextMenu.showContextMenu({
-//     x: e.x,
-//     y: e.y,
-//     theme: 'flat',
-//     items: [
-//       { 
-//         label: "下载到本地", 
-//         onClick: () => {
-//             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-//             download(url, props.fileName)
-//         }
-//       },
-//       {
-//         label: '静音播放',
-//         onClick: () => {
-//             video.value.play()
-//             video.value.muted = true
-//             stopIconShow.value = false
-//         }
-//       }
-//     //   { 
-//     //     label: "A submenu", 
-//     //     children: [
-//     //       { label: "Item1" },
-//     //       { label: "Item2" },
-//     //       { label: "Item3" },
-//     //     ]
-//     //   },
-//     ]
-//   })
-//   document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
-//   document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
-// }
 
-// function onContextMenuImg(e) {
-//   ContextMenu.showContextMenu({
-//     x: e.x,
-//     y: e.y,
-//     theme: 'flat',
-//     items: [
-//       { 
-//         label: "下载到本地", 
-//         onClick: () => {
-//             const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
-//             download(url, props.fileName)
-//         }
-//       }
-//     ]
-//   })
-//   document.getElementsByClassName('mx-context-menu')[0].removeEventListener('contextmenu', ptDefault)
-//   document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
-// }
 </script>
 <style lang="scss" scoped>
     .video {

@@ -2,7 +2,7 @@
     <div class="text-show">
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
             <div @contextmenu.prevent="handleMenu" data-menu-stop>
-                <div v-for="(textObject, idx) in chatBox" :key="idx">
+                <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id">
                     <div class="show-time">{{ handleTime(idx) }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
@@ -26,7 +26,6 @@
                                     :fileName="textObject.fileName"
                                     :data-index="idx"
                                     :user="textObject.user"
-                                    @loaded="handleVideoLoaded"
                                     @withdraw="emitWithdraw"
                                     @deleted="emitDeleted"
                                 />
@@ -65,7 +64,6 @@
                                 :fileName="textObject.fileName"
                                 :data-index="idx"
                                 :user="textObject.user"
-                                @loaded="handleVideoLoaded"
                                 @withdraw="emitWithdraw"
                                 @deleted="emitDeleted"
                             />
@@ -137,11 +135,6 @@ function handleScroll(e) {
     emit('scroll', e)
 }
 // let metaData
-function handleVideoLoaded(ob) {
-    // scrollBar.value.setScrollTop(scrollBar.value.wrapRef.children[0].scrollHeight)
-    emit('loaded', ob)
-    // props.chatBox.value[ob.index].loaded = true
-}
 // 头像处理
 function handleAvatar(ob) {
     // console.log(ob)
