@@ -50,6 +50,7 @@
 import { defineProps, ref, defineExpose, defineEmits, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
+import { request, api } from '@/utils/api'
 // import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
@@ -74,9 +75,9 @@ const isMarkdown = ref(isUseMd === 'true' || isUseMd === '1' ? true : false)
 watchEffect(async () => {
     if (isMarkdown.value !== undefined) {
         // console.log('changed markdown -> ', isMarkdown.value)
-        const [err] = await to(window.$axios({
+        const [err] = await to(request({
             method: 'post',
-            url: process.env.VUE_APP_MD,
+            url: api.markdown,
             data: {
                 user_id: user_info.user_id,
                 is_use_md: isMarkdown.value
@@ -113,9 +114,9 @@ async function uploadAvatar(e) {
     const user_id = sessionStorage.getItem('user_id')
     formData.append('user_id', user_id)
     formData.append("avatar", e.target.files[0])
-    const [err, res] = await to(window.$axios({
+    const [err, res] = await to(request({
         method: 'post',
-        url: process.env.VUE_APP_AVATAR,
+        url: api.avatar,
         data: formData
     }))
 
@@ -142,9 +143,9 @@ async function saveNickName() {
     const user_info = JSON.parse(sessionStorage.getItem('user_info'))
     console.log('user_info -> ', user_info)
     if (!nickName.value) return console.log('昵称为空')
-    const [err, res] = await to(window.$axios({
+    const [err, res] = await to(request({
         method: 'post',
-        url: process.env.VUE_APP_CHANGENICK,
+        url: api.changeNickName,
         data: {
             nick_name: nickName.value,
             phone_number: user_info.phone_number
@@ -161,9 +162,9 @@ async function saveNickName() {
         })
         placeholder.value = nickName.value
         nickName.value = ''
-        const [err, res] = await to(window.$axios({
+        const [err, res] = await to(request({
             method: 'post',
-            url: process.env.VUE_APP_GETFRIENDS,
+            url: api.getFriends,
             data: {
                 user_id: user_id,
                 get_user_info: true

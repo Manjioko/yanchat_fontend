@@ -72,10 +72,11 @@
     </div>
 </template>
 <script setup>
-import { ref, defineProps, onMounted, defineEmits, watch } from 'vue';
+import { ref, defineProps, onMounted, defineEmits, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
+import { request, api } from '@/utils/api'
 const props = defineProps({
     friends: String,
     refreshChatDataOb: Object,
@@ -160,9 +161,9 @@ async function addFriend() {
         return
     }
     let phone_number = user_info.phone_number
-    const [err, res] = await to(window.$axios({
+    const [err, res] = await to(request({
         method: 'post',
-        url: process.env.VUE_APP_ADDFRI,
+        url: api.addFri,
         data: {
             phone_number: phone_number,
             friend_phone_number: friend_phone_number.value
@@ -256,9 +257,9 @@ async function handleUnread() {
     }
     // 从服务器拉取未读信息
     const flist = JSON.parse(userInfo.value.friends)
-    const [err, unRead] = await to(window.$axios({
+    const [err, unRead] = await to(request({
         method: 'post',
-        url: process.env.VUE_APP_UNREAD,
+        url: api.unread,
         data: {
             friends: flist?.map(i => i.chat_table),
             user_id: userInfo.value.user_id

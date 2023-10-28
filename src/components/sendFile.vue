@@ -33,6 +33,7 @@ import download from '@/utils/download.js'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 import menu from '@/utils/contextMenu.js'
 import { defineEmits } from 'vue'
+import { api } from '@/utils/api';
 // eslint-disable-next-line no-undef
 const props = defineProps({
     progress: Number,
@@ -49,7 +50,8 @@ const items = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
+            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + props.response
             download(url, props.fileName)
         }
     },

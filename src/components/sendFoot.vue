@@ -22,6 +22,7 @@
 import {ref, defineProps, defineEmits, reactive} from 'vue'
 import { timeFormat } from '@/utils/timeFormat.js'
 import byteCovert from '@/utils/byteCovert.js'
+import { api } from '@/utils/api'
 
 defineProps({
     chatBox: Object,
@@ -116,8 +117,8 @@ function uploadFile(e) {
         console.error('上传失败。');
     })
 
-
-    xhr.open('post', process.env.VUE_APP_FILE)
+    const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
+    xhr.open('post', fileUrl)
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {

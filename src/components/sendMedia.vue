@@ -54,6 +54,7 @@ import 'video.js/dist/video-js.css'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
+import { api } from '@/utils/api'
 
 const props = defineProps({
     progress: Number,
@@ -82,10 +83,6 @@ const image = ref()
 // 用于点击时弹出视频
 const showVideo = ref(false)
 
-// 视频或者图片url
-// const url = computed(() => process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response)
-// 视频或图片的名称
-// const fileName = computed(() => props.fileName)
 
 // emit 事件
 function loadEmit() {
@@ -157,7 +154,8 @@ const videoMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
+            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + props.response
             download(url, props.fileName)
         }
     },
@@ -187,7 +185,8 @@ const imgMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const url = process.env.VUE_APP_FILE.replace(/(.+\/).+/, (m, v) => v) + props.response
+            const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
+            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + props.response
             download(url, props.fileName)
         }
     },

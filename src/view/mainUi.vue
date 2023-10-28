@@ -58,6 +58,7 @@ import AppSetting from '@/components/appSetting.vue'
 import SendFoot from '@/components/sendFoot.vue'
 import router from '@/router/router'
 import to from 'await-to-js'
+import { request, api } from '@/utils/api'
 
 let chatBox = ref([])
 // websocket 客户端
@@ -77,8 +78,9 @@ let userFriends = JSON.parse(userInfo.value.friends)
 onMounted(async () => {
     // console.log('route -> ', userInfo.value.chat_table)
     const user_id = sessionStorage.getItem('user_id')
+    const wsUrl = sessionStorage.getItem('wsBaseUrl')
     // console.log('user id -> ', user_id)
-    const url = `${process.env.VUE_APP_WS}?user_id=${user_id}`
+    const url = `${wsUrl}?user_id=${user_id}`
     ws(websocket, url, Center, signal)
 })
 
@@ -288,9 +290,9 @@ async function getChatFromServer(isSwitchFriend) {
 
     // let chatBoxLen = chatBox.value.length
 
-    const [err, res] = await to(window.$axios({
+    const [err, res] = await to(request({
         method: 'post',
-        url: process.env.VUE_APP_CHATDATA,
+        url: api.chatData,
         data: {
             chat_table: activeFriend.value.to_table,
             offset: offsetOb[activeFriend.value.to_table] || 0,
@@ -377,9 +379,9 @@ async function handleDeleted (idx) {
     const user_id = sessionStorage.getItem('user_id')
     // console.log('删除 -> ', chatBox.value[idx].user_id === user_id)
     const chat = chatBox.value[idx]
-    const [err, res] = await to(window.$axios({
+    const [err, res] = await to(request({
         method: 'post',
-        url: `${process.env.VUE_APP_BASE_URL}/deleteChat`,
+        url: api.deleteChat,
         data: {
             chat,
             del_flag: user_id
@@ -400,9 +402,9 @@ async function handleDeleted (idx) {
 
 // windowChat 撤回回调
 async function handleWithdraw (idx) {
-    const [err, res] = await to(window.$axios({
+    const [err, res] = await to(request({
         method: 'post',
-        url: `${process.env.VUE_APP_BASE_URL}/deleteChat`,
+        url: api.deleteChat,
         data: {
             chat: chatBox.value[idx],
         }

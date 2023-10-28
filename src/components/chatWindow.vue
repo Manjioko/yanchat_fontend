@@ -80,7 +80,7 @@
                                 @deleted="emitDeleted"
                             />
                         </span>
-                        <img :src="avatarSrc" alt="其他">
+                        <img :src="avatarSrc" alt="其他" @error="handleError">
                     </div>
                 </div>
             </div>      
@@ -231,7 +231,7 @@ function emitDeleted (index) {
     console.log('删除 -> ', index)
     emit('deleted', index)
 }
-// const avatarSrc = ref('')
+
 function handleError(e) {
     e.target.src = require('../assets/default_avatar.png')
     avatarSrc.value = require('../assets/default_avatar.png')
