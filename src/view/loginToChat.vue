@@ -43,7 +43,7 @@ async function login() {
         const { status, data } = res
         if (status !== 200) return
 
-        console.log('data -> ', data)
+        // console.log('data -> ', data)
 
         // 重复登录
         if (data === 'repeat') {

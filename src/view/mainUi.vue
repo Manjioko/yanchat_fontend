@@ -350,7 +350,7 @@ function showSettingDialog() {
 
 function handleExit() {
     websocket.value.close(4001,'客户端关闭链接')
-    sessionStorage.clear('user_info')
+    sessionStorage.setItem('user_info', '')
     router.go(-1)
 }
 

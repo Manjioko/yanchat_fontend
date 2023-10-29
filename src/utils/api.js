@@ -1,8 +1,8 @@
 export function request (ob) {
     const { url, params, data, method } = ob
-    const baseUrl = sessionStorage.getItem('baseUrl')
+    // const baseUrl = sessionStorage.getItem('baseUrl')
     return window.$axios({
-        url: baseUrl + url,
+        url: sessionStorage.getItem('baseUrl') + url,
         params,
         data,
         method
