@@ -349,7 +349,7 @@ function showSettingDialog() {
 }
 
 function handleExit() {
-    websocket.value.close(4001,'客户端关闭链接')
+    websocket?.value?.close(4001,'客户端关闭链接')
     sessionStorage.setItem('user_info', '')
     router.go(-1)
 }

@@ -43,17 +43,20 @@ async function login() {
         const { status, data } = res
         if (status !== 200) return
 
+        const { user_data, auth: { token, refreshToken } } = data
+        sessionStorage.setItem('Token', token)
+        sessionStorage.setItem('RefreshToken', refreshToken)
         // console.log('data -> ', data)
 
         // 重复登录
-        if (data === 'repeat') {
+        if (user_data === 'repeat') {
             repeatErr.value = false
             delayToShowRepeatErr()
             return
         }
 
         // 密码错误
-        if (data === 'pw_err') {
+        if (user_data === 'pw_err') {
             pwErr.value = false
             delayToShowErr()
             return
@@ -62,10 +65,10 @@ async function login() {
         }
 
         // 服务器无法处理的错误
-        if (data !== 'err') {
-            sessionStorage.setItem('user_info', JSON.stringify(data))
+        if (user_data !== 'err') {
+            sessionStorage.setItem('user_info', JSON.stringify(user_data))
             // 保存 user_id 到 sessionStorage
-            sessionStorage.setItem('user_id', data.user_id)
+            sessionStorage.setItem('user_id', user_data.user_id)
             router.value.push({ name: 'Chat' })
             // showloginErr.value = false
             return
@@ -80,7 +83,7 @@ async function login() {
                 center: true,
             }
         ).then(() => {
-            register(data)
+            register(user_data)
         }).catch(err => {
             console.log(err)
         })

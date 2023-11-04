@@ -1,8 +1,48 @@
+import axios from "axios"
+import router from "@/router/router"
+
+const service = axios.create({
+    baseURL: 'http://192.168.9.99:9999',
+    timeout: 5000
+})
+
+service.interceptors.request.use(config => {
+    const token = sessionStorage.getItem('Token')
+    if (token) {
+        // console.log('token 是 -> ', token)
+        config.headers['Authorization'] = 'Bearer ' + token
+    } else {
+        console.log('token 不存在')
+    }
+    return config
+}, error => {
+    console.error('request error -> ', error)
+    return Promise.reject(error)
+})
+
+service.interceptors.response.use(res => {
+    if (res.headers['x-new-token']) {
+        sessionStorage.setItem('Token', res.headers['x-new-token'])
+    }
+    return res
+}, error => {
+    // console.error('response error -> ', error)
+    if (error.response.status === 401) {
+        const refreshToken = sessionStorage.getItem('RefreshToken')
+        sessionStorage.setItem('Token', 'RefreshToken ' + refreshToken)
+        return service(error.config)
+    } else if (error.response.status === 403) {
+        sessionStorage.clear()
+        router.push('/')
+        // return Promise.reject('403')
+    }
+    return Promise.reject(error)
+})
+
 export function request (ob) {
     const { url, params, data, method } = ob
-    // const baseUrl = sessionStorage.getItem('baseUrl')
-    return window.$axios({
-        url: sessionStorage.getItem('baseUrl') + url,
+    return service({
+        url,
         params,
         data,
         method

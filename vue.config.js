@@ -14,19 +14,19 @@ module.exports = defineConfig({
       }),
     ],
   },
-  devServer: {
-    // host: 'localhost',
-    port: 8080,
-    https: false,
-    // open: true,
-    proxy: {
-      "/api": {
-        target: 'http://192.168.9.99:9999',
-        changeOrigin: true,
-        pathRewrite: {
-          "^/api": " "
-        }
-      }
-    }
-  }
+  // devServer: {
+  //   // host: 'localhost',
+  //   port: 8080,
+  //   https: false,
+  //   // open: true,
+  //   proxy: {
+  //     "/api": {
+  //       target: 'http://192.168.9.99:9999',
+  //       changeOrigin: true,
+  //       pathRewrite: {
+  //         "^/api": " "
+  //       }
+  //     }
+  //   }
+  // }
 })
