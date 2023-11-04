@@ -43,9 +43,9 @@ async function login() {
         const { status, data } = res
         if (status !== 200) return
 
-        const { user_data, auth: { token, refreshToken } } = data
-        sessionStorage.setItem('Token', token)
-        sessionStorage.setItem('RefreshToken', refreshToken)
+        const { user_data, auth } = data
+        sessionStorage.setItem('Token', auth?.token ?? '')
+        sessionStorage.setItem('RefreshToken', auth?.refreshToken ?? '')
         // console.log('data -> ', data)
 
         // 重复登录

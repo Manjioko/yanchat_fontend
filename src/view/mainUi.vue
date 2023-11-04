@@ -86,7 +86,12 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     // 卸载 websocket
-    websocket?.value?.close()
+    try {
+        websocket.value.close()
+    } catch(err) {
+        console.log('卸载 websocket 出错 -> ', err)
+    }
+    
 })
 
 let newChatData = ref({})

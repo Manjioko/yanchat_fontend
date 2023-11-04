@@ -1,7 +1,7 @@
 const MAX_RETRIES = 6
 let retryCount = 0
 
-function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconnect=0') {
+function connectWebSocket(ws, url, appendMessage, signal) {
     console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
         console.log('Max retry attempts reached. Disconnecting...')
@@ -9,7 +9,8 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
         signal.value = 2
         return
     }
-    ws.value = new WebSocket(url + otherParams)
+    const refreshToken = sessionStorage.getItem('RefreshToken')
+    ws.value = new WebSocket(url + `&token=${refreshToken}`)
 
     ws.value.onopen = function () {
         // appendMessage('已连接到WebSocket服务端', 'received')
@@ -41,7 +42,7 @@ function connectWebSocket(ws, url, appendMessage, signal, otherParams = '&reconn
         setTimeout(() => {
             console.log('Reconnecting to WebSocket...')
             retryCount++
-            connectWebSocket(ws, url, appendMessage, signal, '&reconnect=1')
+            connectWebSocket(ws, url, appendMessage, signal)
         }, 2000)
     }
 
