@@ -104,7 +104,7 @@ function getRefreshToken() {
     const user_id = userInfo.value.user_id
     refreshTokenTime = setInterval(async () => {
         const [err, res] = await to(request({
-            url: '/refreshToken',
+            url: api.refreshToken,
             method: 'post',
             data: {
                 phone_number,
