@@ -56,7 +56,7 @@ export const api = {
     avatar: '/uploadAvatar', // 加载头像
     changeNickName: '/changeNickName', // 修改昵称
     getFriends: '/getFriends', // 获取好友列表
-    addFri: '/add', // 新增好友
+    addFri: '/addFriend', // 新增好友
     unread: '/unread', // 获取未读信息
     file: '/uploadFile', // 上传文件
     chatData: '/chatData', // 获取聊天记录
