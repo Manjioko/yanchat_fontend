@@ -80,7 +80,7 @@
                                 @deleted="emitDeleted"
                             />
                         </span>
-                        <img :src="avatarSrc" alt="其他" @error="handleError">
+                        <img :src="avatarSrc" alt="其他" @error="handleSelfError">
                     </div>
                 </div>
             </div>      
@@ -107,7 +107,9 @@ provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
 const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded'])
 const user_id = sessionStorage.getItem('user_id')
-const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`)
+const baseUrl = sessionStorage.getItem('baseUrl')
+
+const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
     avatarSrc.value = val
 })
@@ -137,8 +139,9 @@ function handleScroll(e) {
 // let metaData
 // 头像处理
 function handleAvatar(ob) {
+    const baseUrl = sessionStorage.getItem('baseUrl')
     // console.log(ob)
-    const imgUrl = `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${ob.user_id}.jpg`
+    const imgUrl = `${baseUrl}/avatar/avatar_${ob.user_id}.jpg`
     return imgUrl
 }
 
@@ -157,7 +160,8 @@ function handleTime(idx) {
 
 // 媒体 src 处理
 function handleSendMediaSrc(ob) {
-    const mediaUrl = ob.response ? `${process.env.VUE_APP_BASE_URL}/${ob.response}` : ob.src
+    const baseUrl = sessionStorage.getItem('baseUrl')
+    const mediaUrl = ob.response ? `${baseUrl}/${ob.response}` : ob.src
     return mediaUrl
 }
 
@@ -234,6 +238,9 @@ function emitDeleted (index) {
 
 function handleError(e) {
     e.target.src = require('../assets/default_avatar.png')
+    // avatarSrc.value = require('../assets/default_avatar.png')
+}
+function handleSelfError() {
     avatarSrc.value = require('../assets/default_avatar.png')
 }
 </script>

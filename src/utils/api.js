@@ -2,7 +2,7 @@ import axios from "axios"
 import router from "@/router/router"
 
 const service = axios.create({
-    baseURL: 'http://192.168.9.99:9999',
+    baseURL: sessionStorage.getItem('baseUrl'),
     timeout: 5000
 })
 
@@ -32,7 +32,7 @@ service.interceptors.response.use(res => {
         sessionStorage.setItem('Token', 'RefreshToken ' + refreshToken)
         return service(error.config)
     } else if (error.response.status === 403) {
-        sessionStorage.clear()
+        sessionStorage.setItem('user_info', '')
         router.push('/')
         // return Promise.reject('403')
     }
@@ -60,5 +60,6 @@ export const api = {
     unread: '/unread', // 获取未读信息
     file: '/uploadFile', // 上传文件
     chatData: '/chatData', // 获取聊天记录
-    deleteChat: '/deleteChat' // 删除聊天记录
+    deleteChat: '/deleteChat', // 删除聊天记录
+    refreshToken: '/refreshToken' // 更新refreshToken
 }

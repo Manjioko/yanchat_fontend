@@ -23,6 +23,7 @@ import {ref, defineProps, defineEmits, reactive} from 'vue'
 import { timeFormat } from '@/utils/timeFormat.js'
 import byteCovert from '@/utils/byteCovert.js'
 import { api } from '@/utils/api'
+import router from '@/router/router';
 
 defineProps({
     chatBox: Object,
@@ -64,11 +65,10 @@ function sendMessage(chatData) {
     chatText.value = ''
 }
 // 文件上传
-// let fileData = ref('')
 function uploadFile(e) {
     const formData = new FormData()
     formData.append("file", e.target.files[0])
-    console.log('文件上传信息 -> ', e.target.files[0], window.URL.createObjectURL(e.target.files[0]))
+    // console.log('文件上传信息 -> ', e.target.files[0], window.URL.createObjectURL(e.target.files[0]))
     // return
     const xhr = new XMLHttpRequest()
     // 文件信息所在下标
@@ -119,10 +119,15 @@ function uploadFile(e) {
 
     const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
     xhr.open('post', fileUrl)
-
+    // 设置身份验证头部
+    xhr.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem('RefreshToken'))
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
             console.log('暗号正确,开始上传...')
+        }
+        if (xhr.status === 403) {
+            sessionStorage.setItem('user_info', '')
+            router.push('/')
         }
     }
     xhr.send(formData)

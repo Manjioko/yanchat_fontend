@@ -22,15 +22,18 @@
                 :class="{'i-active': i.active}"
                 @click="handleSelect(idx, i)"
             >
-                <div class="unread-dot" v-if="showUnread(chatDataOb[i.to_table])">
+                <!-- <div class="unread-dot" v-if="showUnread(chatDataOb[i.to_table])">
                     {{ handleUnreadDotNum(chatDataOb[i.to_table]) }}
-                </div>
-                <img
-                    class="i-img"
-                    :src="i.avatar"
-                    alt="avatar"
-                    @error="handleError(i)"
-                >
+                </div> -->
+                <el-badge :value="handleUnreadDotNum(chatDataOb[i.to_table])" :max="99">
+                    <img
+                        class="i-img"
+                        :src="i.avatar"
+                        alt="avatar"
+                        @error="handleError(i)"
+                    >
+                </el-badge>
+                
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
                     <div class="i-msg">{{ handleUnreadMsg(chatDataOb[i.to_table]) || i.message }}</div>
@@ -100,7 +103,8 @@ const friendsList = ref([
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info'))
 const user_id = sessionStorage.getItem('user_id')
-const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg`)
+const baseUrl = sessionStorage.getItem('baseUrl')
+const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
     avatarSrc.value = val
 })
@@ -109,13 +113,14 @@ onMounted(() => {
     if (!props.friends) return
     const f = JSON.parse(props.friends)
     // console.log('f -> ', f)
+    const baseUrl = sessionStorage.getItem('baseUrl')
     f?.forEach(item => {
         friendsList.value.push({
             name: item.user,
             id: item.user_id,
             time: '',
             message: '',
-            avatar: `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${item.user_id}.jpg`,
+            avatar: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
             active: false,
             searchActive: true,
             to_table: item.chat_table
@@ -191,13 +196,14 @@ async function addFriend() {
     if (!res?.data?.friends) return
 
     friendsList.value.length = 0
+    const baseUrl = sessionStorage.getItem('baseUrl')
     res.data.friends.forEach(item => {
         friendsList.value.push({
             name: item.user,
             id: item.user_id,
             time: '',
             message: '',
-            avatar:  `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${item.user_id}.jpg`,
+            avatar:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
             active: false,
             searchActive: true,
             to_table: item.chat_table
@@ -301,7 +307,7 @@ function showUnread(ob) {
 
 // 处理未读数目
 function handleUnreadDotNum(ob) {
-
+    if (ob?.unread === 0) return ''
     return ob?.unread ?? ''
 }
 
@@ -476,5 +482,11 @@ function handleError(i) {
         height: 35px;
         border-radius: 50%;
         margin-right: 12px;
+    }
+    ::v-deep .el-badge__content {
+        top: 4px;
+        border: none;
+        height: 16px;
+        padding: 0 5px;
     }
 </style>

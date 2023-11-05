@@ -93,7 +93,8 @@ watchEffect(async () => {
 })
 
 const placeholder = ref(user_info.user)
-const avatarSrc = ref(`${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`)
+const baseUrl = sessionStorage.getItem('baseUrl')
+const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`)
 defineExpose({
     showDialog
 })
@@ -131,7 +132,8 @@ async function uploadAvatar(e) {
             message: '修改用户头像成功',
             type: 'success',
         })
-        avatarSrc.value = `${process.env.VUE_APP_BASE_URL}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`
+        const baseUrl = sessionStorage.getItem('baseUrl')
+        avatarSrc.value = `${baseUrl}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`
         emit('avaterChange', avatarSrc.value)
     }
     console.log('res -> ', res)

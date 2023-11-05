@@ -74,6 +74,9 @@ userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
 // 好友信息
 let userFriends = JSON.parse(userInfo.value.friends)
 
+// 计时器
+let refreshTokenTime = null
+
 // const route = useRoute()
 onMounted(async () => {
     // console.log('route -> ', userInfo.value.chat_table)
@@ -82,6 +85,7 @@ onMounted(async () => {
     // console.log('user id -> ', user_id)
     const url = `${wsUrl}?user_id=${user_id}`
     ws(websocket, url, Center, signal)
+    getRefreshToken()
 })
 
 onBeforeUnmount(() => {
@@ -91,8 +95,28 @@ onBeforeUnmount(() => {
     } catch(err) {
         console.log('卸载 websocket 出错 -> ', err)
     }
-    
+    refreshTokenTime && clearInterval(refreshTokenTime)
 })
+
+// 刷新 refreshToken
+function getRefreshToken() {
+    const phone_number = userInfo.value.phone_number
+    const user_id = userInfo.value.user_id
+    refreshTokenTime = setInterval(async () => {
+        const [err, res] = await to(request({
+            url: '/refreshToken',
+            method: 'post',
+            data: {
+                phone_number,
+                user_id
+            }
+        }))
+        if (!err) {
+            console.log('新 refreshToken -> ', res.data)
+            sessionStorage.setItem('RefreshToken', res.data.refreshToken)
+        }
+    }, 1000 * 60 * 60)
+}
 
 let newChatData = ref({})
 let trytoRfChat = ref({})
