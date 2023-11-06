@@ -211,6 +211,12 @@ function handleMenu(e) {
             emit('withdraw', index)
         }
     },
+    {
+        label: '引用',
+        onClick: () => {
+            console.log(' -> 引用')
+        }
+    },
     ]
     if (Object.prototype.hasOwnProperty.call(node?.dataset ?? {}, 'targetOther')) {
         const shouldRemoveMenus = ['撤回']

@@ -33,7 +33,15 @@
             <section class="zero-friend" v-else>
                 还未选择聊天好友
             </section>
-            <section>
+            <section class="input-style">
+                <div v-if="showQuote" class="quote-style">
+                    <span class="quote-span">今天下午我们去吃煲仔饭吧??😊😍</span>
+                    <span>
+                        <el-icon class="quote-icon">
+                            <Close />
+                        </el-icon>
+                    </span>
+                </div>
                 <SendFoot :upload-disable="!!activeFriend" @center="Center" />
             </section>
         </section>
@@ -59,6 +67,7 @@ import SendFoot from '@/components/sendFoot.vue'
 import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
+import { Close } from '@element-plus/icons-vue'
 
 let chatBox = ref([])
 // websocket 客户端
@@ -215,6 +224,10 @@ function Center(chatData, type) {
         centerDeleted(chatData)
     }
 
+    if (type === 'quote') {
+        centerQuote(chatData)
+    }
+
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
@@ -228,7 +241,7 @@ function Center(chatData, type) {
 function centerDeleted(chat) {
     const isActive = activeFriend.value?.to_table === chat.to_table
     if (isActive) {
-        console.log('撤回 -> 0')
+        // console.log('撤回 -> 0')
         const idx = chatBox.value.findIndex(i => i.chat_id === chat.chat_id)
         if (idx !== -1) {
             chatBox.value.splice(idx, 1)
@@ -239,8 +252,13 @@ function centerDeleted(chat) {
     }
     chat.text = '[撤回一条信息]'
     trytoRfChat.value = chat
-    console.log('撤回 -> 1')
+    // console.log('撤回 -> 1')
 }
+
+// 接收消息引用
+function centerQuote(chat) {
+    console.log('chat -> ', chat)
+} 
 
 // 推送到 window 桌面
 function notifyToWindow(textOb) {
@@ -451,6 +469,8 @@ async function handleWithdraw (idx) {
     }
 }
 
+const showQuote = ref(false)
+
 </script>
 
 <style lang="scss" scoped>
@@ -555,5 +575,31 @@ async function handleWithdraw (idx) {
 :deep .el-textarea__inner {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     resize: none;
+}
+.input-style {
+    background-color: rgba(248, 248, 248, 0.431372549);
+}
+.quote-style {
+    background: #e0e0e08f;
+    font-size: 12px;
+    color: #ccc;
+    box-sizing: border-box;
+    padding: 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 40px;
+    width: 50%;
+}
+.quote-icon {
+    vertical-align: middle;
+    color: #0000008a;
+    cursor: pointer;
+}
+.quote-span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 </style>

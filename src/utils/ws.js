@@ -26,6 +26,9 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             case 'deleted':
                 appendMessage(chatData, 'deleted')
                 break
+            case 'quote':
+                appendMessage(chatData, 'quote')
+                break
             default:
                 appendMessage(chatData, 'received')
                 break;
