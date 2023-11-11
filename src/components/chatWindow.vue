@@ -51,6 +51,7 @@
                     </div>
                     <div class="chat-box-local" v-else>
                         <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
+                        <img src="../assets/spinner1.svg" class="spinner-style" v-spinner="textObject.text">
                         <div class="quote-and-box-style-local">
                             <span class="chat-box-local-message">
                                 <div
@@ -147,6 +148,16 @@ function textToMarkdown(text) {
 function handleScroll(e) {
     // console.log('handleScroll', val)
     emit('scroll', e)
+}
+
+// 自定义加载事件
+const vSpinner = (el, binding) => {
+    // if (!binding.value) {
+    //     el?.remove()
+    // }
+    setTimeout(() => {
+        el?.remove()
+    }, 10000)
 }
 // let metaData
 // 头像处理
@@ -360,6 +371,14 @@ function handleQuote(idx) {
         height: 40px;
         padding: 0 16px;
         border-radius: 50%;
+    }
+
+    .spinner-style {
+        width: 20px;
+        padding: 0;
+        border-radius: 0;
+        height: 20px;
+        align-self: center;
     }
 
     .chat-box-local-message {
