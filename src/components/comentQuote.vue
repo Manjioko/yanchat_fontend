@@ -3,7 +3,7 @@
         <div class="quote-style">
             <span class="quote-span">{{ comment }}</span>
             <span>
-                <el-icon class="quote-icon">
+                <el-icon class="quote-icon" @click="handleClick">
                     <Close />
                 </el-icon>
             </span>
@@ -18,8 +18,8 @@
 <!-- script setup -->
 <script setup>
 import { Close } from '@element-plus/icons-vue'
-import { defineProps } from 'vue';
-
+import { defineProps, defineEmits } from 'vue'
+const emit = defineEmits(['close'])
 defineProps({
     showInputQuote: {
         type: Boolean,
@@ -32,16 +32,22 @@ defineProps({
         }
     }
 })
+
+function handleClick() {
+    emit('close')
+}
 </script>
 <!-- style -->
 <style lang="scss" scoped>
 .input-style {
-    background-color: rgba(248, 248, 248, 0.431372549);
+    position: absolute;
+    top: -28px;
+    width: 100%;
 }
 .quote-style {
-    background: #e0e0e08f;
+    background: rgb(224 224 224 / 32%);
     font-size: 12px;
-    color: #ccc;
+    color: #555;
     box-sizing: border-box;
     padding: 7px;
     display: flex;

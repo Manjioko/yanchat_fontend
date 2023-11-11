@@ -34,8 +34,8 @@
             <section class="zero-friend" v-else>
                 还未选择聊天好友
             </section>
-            <section>
-                <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" />
+            <section style="position: relative;">
+                <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" @close="handleQuoteClose" />
                 <SendFoot :upload-disable="!!activeFriend" :quote="comment" @center="Center" />
             </section>
         </section>
@@ -480,6 +480,11 @@ async function handleQuote (idx) {
     }
 }
 
+// 关掉引用窗口
+function handleQuoteClose() {
+    comment.value = ''
+    showQuote.value = false
+}
 </script>
 
 <style lang="scss" scoped>
