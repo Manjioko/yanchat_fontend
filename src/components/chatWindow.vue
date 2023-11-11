@@ -351,7 +351,7 @@ function handleQuote(idx) {
 }
 .chat-box-local {
     display: flex;
-    align-items: start;
+    align-items: flex-start;
     justify-content: flex-end;
     padding: 12px 0;
 
