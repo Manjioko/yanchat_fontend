@@ -25,9 +25,13 @@ import byteCovert from '@/utils/byteCovert.js'
 import { api } from '@/utils/api'
 import router from '@/router/router';
 
-defineProps({
+const props = defineProps({
     chatBox: Object,
     uploadDisable: Boolean,
+    quote: {
+        type: String,
+        default: ''
+    }
 })
 const emit = defineEmits(['center', 'progress', 'response'])
 
@@ -57,6 +61,9 @@ function sendMessage(chatData) {
         user: 1,
         time: timeFormat(),
         chat_id: window.crypto?.randomUUID() ?? 'text_' + new Date().getTime()
+    }
+    if (props.quote) {
+        dataOb.quote = props.quote
     }
     // Center(dataOb, 'sent')
     emit('center', dataOb, 'sent')

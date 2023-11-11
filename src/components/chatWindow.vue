@@ -6,14 +6,59 @@
                     <div class="show-time">{{ handleTime(idx) }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
-                        <div class="chat-box-remote-message">
-                            <span class="chat-box-remote-message-text">
+                        <div class="quote-and-box-style-remote">
+                            <div class="chat-box-remote-message">
+                                <span class="chat-box-remote-message-text">
+                                    <div
+                                        v-if="textObject.type === 'text'"
+                                        v-html="textToMarkdown(textObject.text)"
+                                        class="chat-text"
+                                        data-menu-text
+                                        data-target-other
+                                        :data-index="idx"
+                                    >
+                                    </div>
+                                    <sendMedia
+                                        v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                                        :progress="textObject.progress"
+                                        :type="textObject.type"
+                                        :src="handleSendMediaSrc(textObject)"
+                                        :response="textObject.response"
+                                        :fileName="textObject.fileName"
+                                        :data-index="idx"
+                                        :user="textObject.user"
+                                        @withdraw="emitWithdraw"
+                                        @deleted="emitDeleted"
+                                        @quote="handleQuote"
+                                    />
+                                    <sendFile
+                                        v-else
+                                        :progress="textObject.progress"
+                                        :type="textObject.type"
+                                        :fileName="textObject.fileName"
+                                        :size="textObject.size"
+                                        :response="textObject.response"
+                                        :user="textObject.user"
+                                        :data-index="idx"
+                                        @withdraw="emitWithdraw"
+                                        @deleted="emitDeleted"
+                                        @quote="handleQuote"
+                                    />
+                                </span>
+                            </div>
+                            <comentQuote v-if="textObject.quote" :comment="textObject.quote" />
+                        </div>
+                    </div>
+                    <div class="chat-box-local" v-else>
+                        <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
+                        <div class="quote-and-box-style-local">
+                            <span class="chat-box-local-message">
                                 <div
                                     v-if="textObject.type === 'text'"
                                     v-html="textToMarkdown(textObject.text)"
                                     class="chat-text"
                                     data-menu-text
-                                    data-target-other
+                                    data-target-self
                                     :data-index="idx"
                                 >
                                 </div>
@@ -28,6 +73,7 @@
                                     :user="textObject.user"
                                     @withdraw="emitWithdraw"
                                     @deleted="emitDeleted"
+                                    @quote="handleQuote"
                                 />
                                 <sendFile
                                     v-else
@@ -36,50 +82,15 @@
                                     :fileName="textObject.fileName"
                                     :size="textObject.size"
                                     :response="textObject.response"
-                                    :user="textObject.user"
                                     :data-index="idx"
+                                    :user="textObject.user"
                                     @withdraw="emitWithdraw"
                                     @deleted="emitDeleted"
+                                    @quote="handleQuote"
                                 />
                             </span>
+                            <comentQuote v-if="textObject.quote" :comment="textObject.quote" />
                         </div>
-                    </div>
-                    <div class="chat-box-local" v-else>
-                        <span class="chat-box-local-message">
-                            <div
-                                v-if="textObject.type === 'text'"
-                                v-html="textToMarkdown(textObject.text)"
-                                class="chat-text"
-                                data-menu-text
-                                data-target-self
-                                :data-index="idx"
-                            >
-                            </div>
-                            <sendMedia
-                                v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                                :progress="textObject.progress"
-                                :type="textObject.type"
-                                :src="handleSendMediaSrc(textObject)"
-                                :response="textObject.response"
-                                :fileName="textObject.fileName"
-                                :data-index="idx"
-                                :user="textObject.user"
-                                @withdraw="emitWithdraw"
-                                @deleted="emitDeleted"
-                            />
-                            <sendFile
-                                v-else
-                                :progress="textObject.progress"
-                                :type="textObject.type"
-                                :fileName="textObject.fileName"
-                                :size="textObject.size"
-                                :response="textObject.response"
-                                :data-index="idx"
-                                :user="textObject.user"
-                                @withdraw="emitWithdraw"
-                                @deleted="emitDeleted"
-                            />
-                        </span>
                         <img :src="avatarSrc" alt="其他" @error="handleSelfError">
                     </div>
                 </div>
@@ -94,6 +105,7 @@ import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
 import menu from '@/utils/contextMenu.js'
+import comentQuote from './comentQuote.vue'
 // import menu from '@/utils/contextMenu.js'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 
@@ -105,7 +117,7 @@ const props = defineProps({
 const scrollBar = ref()
 provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
-const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded'])
+const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded', 'quote'])
 const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 
@@ -215,6 +227,8 @@ function handleMenu(e) {
         label: '引用',
         onClick: () => {
             console.log(' -> 引用')
+            const index = node.dataset.index
+            emit('quote', index)
         }
     },
     ]
@@ -248,6 +262,11 @@ function handleError(e) {
 }
 function handleSelfError() {
     avatarSrc.value = require('../assets/default_avatar.png')
+}
+
+function handleQuote(idx) {
+    console.log('handleQuote')
+    emit('quote', idx)
 }
 </script>
 <style lang="scss" scoped>
@@ -332,14 +351,14 @@ function handleSelfError() {
 }
 .chat-box-local {
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: flex-end;
-    margin: 8px 0;
+    padding: 12px 0;
 
     img {
         width: 40px;
         height: 40px;
-        padding: 8px 16px;
+        padding: 0 16px;
         border-radius: 50%;
     }
 
@@ -366,5 +385,16 @@ function handleSelfError() {
     font-size: 12px;
     color: #7a7a7a;
     margin: 20px 0;
+}
+.quote-and-box-style-local {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.quote-and-box-style-remote {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 </style>

@@ -65,7 +65,7 @@ const props = defineProps({
     dataIndex: Number,
     user: Number
 })
-const emit = defineEmits(['loaded', 'withdraw', 'deleted'])
+const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
 const scrollBar = inject('scrollBar')
 
@@ -179,6 +179,12 @@ const videoMenu = [
             emit('withdraw', props.dataIndex)
         }
     },
+    {
+        label: '引用',
+        onClick: () => {
+            emit('quote', props.dataIndex)
+        }
+    },
 ]
 // 右键菜单
 const imgMenu = [
@@ -200,6 +206,12 @@ const imgMenu = [
         label: '撤回',
         onClick: () => {
             emit('withdraw', props.dataIndex)
+        }
+    },
+    {
+        label: '引用',  
+        onClick: () => {
+            emit('quote', props.dataIndex)
         }
     },
 ]

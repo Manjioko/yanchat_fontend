@@ -27,11 +27,11 @@ service.interceptors.response.use(res => {
     return res
 }, error => {
     // console.error('response error -> ', error)
-    if (error.response.status === 401) {
+    if (error?.response?.status === 401) {
         const refreshToken = sessionStorage.getItem('RefreshToken')
         sessionStorage.setItem('Token', 'RefreshToken ' + refreshToken)
         return service(error.config)
-    } else if (error.response.status === 403) {
+    } else if (error?.response?.status === 403) {
         sessionStorage.setItem('user_info', '')
         router.push('/')
         // return Promise.reject('403')
@@ -61,5 +61,6 @@ export const api = {
     file: '/uploadFile', // 上传文件
     chatData: '/chatData', // 获取聊天记录
     deleteChat: '/deleteChat', // 删除聊天记录
-    refreshToken: '/refreshToken' // 更新refreshToken
+    refreshToken: '/refreshToken', // 更新refreshToken
+    quote: '/quote', // 获取引用
 }
