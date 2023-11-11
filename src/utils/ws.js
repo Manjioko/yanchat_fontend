@@ -29,8 +29,19 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             case 'quote':
                 appendMessage(chatData, 'quote')
                 break
+            case 'pong':
+                console.log('对方确认收到', chatData)
+                break
             default:
                 appendMessage(chatData, 'received')
+                {
+                    const pong = {
+                        user_id: chatData.to_id,
+                        to_id: chatData.user_id,
+                        pingpong: 'pong'
+                    }
+                    ws.value.send(JSON.stringify(pong))
+                }
                 break;
         }
     }
