@@ -175,7 +175,7 @@ function Center(chatData, type) {
             websocket.value.send(JSON.stringify(chatData))
         }
 
-        // 等待 pong
+        // 等待 pong, 显示 loading 图标
         chatData.loading = true
         
         // 产生新的数据时需要更新数据到朋友列表
@@ -261,10 +261,12 @@ function centerDeleted(chat) {
 function centerPong(chatData) {
     // console.log('Pong -> ', chatData)
     if (activeFriend.value.to_table === chatData.table_id) {
-        const chat = chatBox.value.find(c => c.chat_id === chatData.chat_id)
-        if (chat) {
-            if(chat.loading) {
-                chat.loading = false
+        const len =  chatBox.value.length - 1
+        for (let i = len; i >= 0; i--) {
+            const chat = chatBox.value[i]
+            if (chat.chat_id === chatData.chat_id) {
+                if (chat.loading) chat.loading = false
+                return
             }
         }
     }

@@ -161,13 +161,15 @@ function handleScroll(e) {
 }
 
 // 自定义加载事件
-const vSpinner = (el, binding) => {
-    binding.value.time && clearTimeout(binding.value.time)
-    binding.value.time = setTimeout(() => {
-        if (binding.value.loading) {
-            binding.value.inaccessible = true
-        }
-    }, 3000);
+const vSpinner = {
+    mounted(el, binding) {
+        binding.value.time && clearTimeout(binding.value.time)
+        binding.value.time = setTimeout(() => {
+            if (binding.value.loading) {
+                binding.value.inaccessible = true
+            }
+        }, 3000)
+    },
 }
 // let metaData
 // 头像处理
