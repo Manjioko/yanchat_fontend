@@ -174,6 +174,9 @@ function Center(chatData, type) {
         } else {
             websocket.value.send(JSON.stringify(chatData))
         }
+
+        // 等待 pong
+        chatData.loading = true
         
         // 产生新的数据时需要更新数据到朋友列表
         newChatData.value = {
@@ -223,15 +226,15 @@ function Center(chatData, type) {
         centerDeleted(chatData)
     }
 
-    if (type === 'quote') {
-        centerQuote(chatData)
+    if (type === 'pong') {
+        centerPong(chatData)
     }
 
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
             chatWindow.value.scrollBar.setScrollTop(end_sp)
-            console.log('end_sp -> ', end_sp, chatWindow.value)
+            // console.log('end_sp -> ', end_sp, chatWindow.value)
         })
     }
 }
@@ -255,8 +258,16 @@ function centerDeleted(chat) {
 }
 
 // 接收消息引用
-function centerQuote(chat) {
-    console.log('chat -> ', chat)
+function centerPong(chatData) {
+    // console.log('Pong -> ', chatData)
+    if (activeFriend.value.to_table === chatData.table_id) {
+        const chat = chatBox.value.find(c => c.chat_id === chatData.chat_id)
+        if (chat) {
+            if(chat.loading) {
+                chat.loading = false
+            }
+        }
+    }
 } 
 
 // 推送到 window 桌面

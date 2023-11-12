@@ -51,7 +51,16 @@
                     </div>
                     <div class="chat-box-local" v-else>
                         <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
-                        <img src="../assets/spinner1.svg" class="spinner-style" v-spinner="textObject.text">
+                        <img 
+                            v-if="textObject.loading"
+                            src="../assets/spinner1.svg"
+                            class="spinner-style"
+                            v-spinner="textObject"
+                        >
+                        <el-icon v-if="textObject.inaccessible" color="#f00" class="message-warning">
+                            <WarningFilled />
+                        </el-icon>
+                        
                         <div class="quote-and-box-style-local">
                             <span class="chat-box-local-message">
                                 <div
@@ -107,6 +116,7 @@ import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
 import menu from '@/utils/contextMenu.js'
 import comentQuote from './comentQuote.vue'
+import { WarningFilled } from '@element-plus/icons-vue'
 // import menu from '@/utils/contextMenu.js'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 
@@ -152,12 +162,12 @@ function handleScroll(e) {
 
 // 自定义加载事件
 const vSpinner = (el, binding) => {
-    // if (!binding.value) {
-    //     el?.remove()
-    // }
-    setTimeout(() => {
-        el?.remove()
-    }, 10000)
+    binding.value.time && clearTimeout(binding.value.time)
+    binding.value.time = setTimeout(() => {
+        if (binding.value.loading) {
+            binding.value.inaccessible = true
+        }
+    }, 3000);
 }
 // let metaData
 // 头像处理
@@ -416,4 +426,9 @@ function handleQuote(idx) {
     flex-direction: column;
     align-items: flex-start;
 }
+.message-warning {
+    align-self: center;
+    margin-right: 7px;
+    width: 12px;
+} 
 </style>

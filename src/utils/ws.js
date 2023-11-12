@@ -19,18 +19,16 @@ function connectWebSocket(ws, url, appendMessage, signal) {
     }
 
     ws.value.onmessage = function (event) {
-        console.log('message -> ', event.data)
+        // console.log('message -> ', event.data)
         let chatData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
 
         switch (chatData.receivedType) {
             case 'deleted':
                 appendMessage(chatData, 'deleted')
                 break
-            case 'quote':
-                appendMessage(chatData, 'quote')
-                break
             case 'pong':
-                console.log('对方确认收到', chatData)
+                // console.log('对方确认收到', chatData)
+                appendMessage(chatData, 'pong')
                 break
             default:
                 appendMessage(chatData, 'received')
@@ -38,6 +36,8 @@ function connectWebSocket(ws, url, appendMessage, signal) {
                     const pong = {
                         user_id: chatData.to_id,
                         to_id: chatData.user_id,
+                        table_id: chatData.to_table,
+                        chat_id: chatData.chat_id,
                         pingpong: 'pong'
                     }
                     ws.value.send(JSON.stringify(pong))

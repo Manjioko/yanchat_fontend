@@ -295,15 +295,13 @@ function handleUnreadMsg(unreadOb) {
 
 // 处理时间
 function handleShowTime(unreadOb) {
-    // console.log('handleShowTime -> ', unreadOb)
-    return unreadOb?.chat?.time?.slice(10, -3) ?? ''
-}
-// 处理是否显示未读信息
-// function showUnread(ob) {
-//     // console.log('ob -> ', ob)
+    if (unreadOb?.chat?.time) {
+        const time = unreadOb.chat.time
+        return String(time).slice(10, -3) ?? ''
+    }
 
-//     return ob?.unread ?? 0
-// }
+    return '' 
+}
 
 // 处理未读数目
 function handleUnreadDotNum(ob) {

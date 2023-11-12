@@ -66,6 +66,7 @@ async function login() {
 
         // 服务器无法处理的错误
         if (user_data !== 'err') {
+            console.log('user_info', user_data)
             sessionStorage.setItem('user_info', JSON.stringify(user_data))
             // 保存 user_id 到 sessionStorage
             sessionStorage.setItem('user_id', user_data.user_id)
