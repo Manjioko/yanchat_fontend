@@ -21,6 +21,7 @@
     "sass-loader": "^13.3.2",
     "unplugin-auto-import": "^0.16.6",
     "unplugin-vue-components": "^0.25.1",
+    "uuid": "^9.0.1",
     "video.js": "^8.5.2",
     "vue": "^3.2.13",
     "vue-router": "^4.2.4"

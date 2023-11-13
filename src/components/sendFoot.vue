@@ -23,7 +23,8 @@ import {ref, defineProps, defineEmits, reactive} from 'vue'
 import { timeFormat } from '@/utils/timeFormat.js'
 import byteCovert from '@/utils/byteCovert.js'
 import { api } from '@/utils/api'
-import router from '@/router/router';
+import router from '@/router/router'
+import { v4 as uuidv4 } from 'uuid'
 
 const props = defineProps({
     chatBox: Object,
@@ -55,12 +56,13 @@ function sendMessage(chatData) {
     if (!message) return
 
     // websocket.value?.send(JSON.stringify(sendData))
+    const uuid = uuidv4()
     const dataOb = {
         type: 'text',
         text: message,
         user: 1,
         time: timeFormat(),
-        chat_id: window.crypto?.randomUUID() ?? 'text_' + new Date().getTime()
+        chat_id: uuid
     }
     if (props.quote) {
         dataOb.quote = props.quote
@@ -82,6 +84,7 @@ function uploadFile(e) {
     // const index = props.chatBox.length
     const size = byteCovert(e.target.files[0]?.size)
     if (!size) return 
+    const uuid = uuidv4()
     const box = reactive({
         progress: 0,
         type: e.target.files[0]?.type,
@@ -93,7 +96,7 @@ function uploadFile(e) {
         response: '',
         user: 1,
         src: window.URL.createObjectURL(e.target.files[0]),
-        chat_id: window.crypto?.randomUUID() ?? 'text_' + new Date().getTime()
+        chat_id: uuid
     })
     // 发送信息到文本框
     sendMessage(box)

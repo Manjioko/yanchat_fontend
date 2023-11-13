@@ -155,7 +155,8 @@ const videoMenu = [
         label: "下载到本地", 
         onClick: () => {
             const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + props.response
+            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
+            console.log('url -> ', url)
             download(url, props.fileName)
         }
     },
@@ -192,7 +193,7 @@ const imgMenu = [
         label: "下载到本地", 
         onClick: () => {
             const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + props.response
+            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
             download(url, props.fileName)
         }
     },

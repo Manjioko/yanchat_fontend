@@ -167,6 +167,7 @@ const vSpinner = {
         binding.value.time = setTimeout(() => {
             if (binding.value.loading) {
                 binding.value.inaccessible = true
+                el.remove()
             }
         }, 3000)
     },
@@ -196,7 +197,8 @@ function handleTime(idx) {
 // 媒体 src 处理
 function handleSendMediaSrc(ob) {
     const baseUrl = sessionStorage.getItem('baseUrl')
-    const mediaUrl = ob.response ? `${baseUrl}/${ob.response}` : ob.src
+    const mediaUrl = ob.response ? `${baseUrl}/source/${ob.response}` : ob.src
+    console.log('mediaUrl -> ', mediaUrl)
     return mediaUrl
 }
 

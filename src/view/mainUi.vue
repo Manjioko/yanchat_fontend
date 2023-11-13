@@ -176,7 +176,9 @@ function Center(chatData, type) {
         }
 
         // 等待 pong, 显示 loading 图标
-        chatData.loading = true
+        if (!('progress' in chatData)) {
+            chatData.loading = true   
+        }
         
         // 产生新的数据时需要更新数据到朋友列表
         newChatData.value = {
