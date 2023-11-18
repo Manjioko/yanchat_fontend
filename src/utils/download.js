@@ -1,6 +1,38 @@
-export default function download(url, name) {
+export default function download(url, name, cb) {
     fetch(url)
-    .then(res => res.blob())
+    .then(async (res) => {
+        const clonedRes = res.clone()
+        const progress = new Promise((resolve, reject) => {
+            if (!res.ok) return reject(false)
+            let downloadSize = 0
+            const totalSize = res.headers.get('Content-Length')
+            const streamReader = res.body.getReader()
+            const readFn = () => {
+                streamReader
+                .read()
+                .then(({done, value}) => {
+                    if (done) {
+                        // console.log('下载完成!')
+                        return resolve(done)
+                    } else {
+                        downloadSize += value.byteLength
+                        const progress = (downloadSize / totalSize) * 100
+                        if (typeof cb === 'function') {
+                            cb(progress)
+                        }
+                    }
+                    readFn()
+                }).catch(() => {
+                    reject(false)
+                })
+            }
+            readFn()
+        })
+        const isSuccess =  await progress
+        if (isSuccess) return clonedRes.blob()
+        return new Error('fail to download!')
+        // return res.blob()
+    })
     .then(blob => {
         const a = document.createElement('a')
         const ObUrl = window.URL.createObjectURL(blob)
@@ -12,5 +44,8 @@ export default function download(url, name) {
     })
     .catch(err => {
         console.log('下载错误 -> ', err)
+        if (typeof cb === 'function') {
+            cb(new Error('下载失败'))
+        }
     })
 }

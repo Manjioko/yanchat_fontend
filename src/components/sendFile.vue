@@ -1,6 +1,16 @@
 <!-- 结构部分 -->
 <template>
     <div class="pr" @contextmenu.prevent="onContextMenu" data-menu-file>
+        <!-- 下载视频 loading -->
+        <div class="download-progress" :class="{ 'other-progress': user === 0}" v-if="downloadProgress && downloadProgress < 100">
+            <el-progress
+                type="circle"
+                :percentage="downloadProgress || 0"
+                color="#00daff"
+                :stroke-width="2"
+                :width="15"
+            ></el-progress>
+        </div>
         <section class="pr-word">
             <div class="pr-message">{{ fileName }}</div>
             <div class="pr-tip">{{ progress < 100 ? '正在上传' : size }}</div>
@@ -32,8 +42,9 @@
 import download from '@/utils/download.js'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 import menu from '@/utils/contextMenu.js'
-import { defineEmits } from 'vue'
-import { api } from '@/utils/api';
+import { defineEmits, ref, watch } from 'vue'
+import { api } from '@/utils/api'
+import { ElNotification } from 'element-plus'
 // eslint-disable-next-line no-undef
 const props = defineProps({
     progress: Number,
@@ -44,15 +55,36 @@ const props = defineProps({
     dataIndex: Number,
     user: Number
 })
+const downloadProgress = ref(null)
+
+watch(() => downloadProgress.value, (val) => {
+    // console.log('xxxxxxxddd ', val)
+    if(val && typeof val !== 'number') {
+        downloadProgress.value = null
+        ElNotification({
+            title: '提示',
+            message: val,
+            type: 'error',
+        })
+        return
+    }
+    if (val >= 100) {
+        downloadProgress.value = null
+    }
+})
 const emit = defineEmits(['withdraw','deleted', 'quote'])
 
 const items = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
-            download(url, props.fileName)
+            const fileUrl = sessionStorage.getItem('baseUrl') + api.file
+            const token = sessionStorage.getItem('Token')
+            const url = `${fileUrl.replace(/(.+\/).+/, (m, v) => v)}source/${props.response}?token=${token}`
+            download(url, props.fileName, function(progress) {
+                downloadProgress.value = progress
+                console.log('downloadProgress -> ', downloadProgress.value)
+            })
         }
     },
     {
@@ -99,6 +131,7 @@ function onContextMenu(e) {
     align-items: center;
     justify-content: space-between;
     width: 250px;
+    position: relative;
 }
 
 .pr-container {
@@ -147,5 +180,22 @@ function onContextMenu(e) {
     width: inherit;
     overflow: hidden;
     word-wrap: break-word;
+}
+.download-progress {
+    position: absolute;
+    top: 50%;
+    left: -12%;
+    :deep .el-progress path:first-child {
+        // 修改进度条背景色 
+        stroke: rgb(31, 31, 31);
+    }
+    :deep .el-progress__text {
+        display: none;
+    }
+}
+
+.other-progress {
+    left: auto;
+    right: -12%;
 }
 </style>

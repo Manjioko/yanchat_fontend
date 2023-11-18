@@ -1,42 +1,54 @@
 <template>
-    <div
-        v-if="type.includes('video')"
-        class="video"
-        @dblclick="doubleclick"
-        @contextmenu.prevent="onContextMenu"
-        data-menu-video
-    >
-        <div :class="{'gray-background' : stopIconShow}">
-            <div v-if="progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
+    <section class="media-sec">
+        <!-- 下载视频 loading -->
+        <div class="download-progress" v-if="downloadProgress && downloadProgress < 100">
+            <el-progress
+                type="circle"
+                :percentage="downloadProgress || 0"
+                color="#00daff"
+                :stroke-width="2"
+                :width="15"
+            ></el-progress>
         </div>
-        <div class="progress" v-if="progress < 100">
-            <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
-                <template #default="{ percentage }">
-                    <div v-if="percentage" class="pr-text">
-                        <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
-                    </div>
-                </template>
-            </el-progress>
+        <div
+            v-if="type.includes('video')"
+            class="video"
+            @dblclick="doubleclick"
+            @contextmenu.prevent="onContextMenu"
+            data-menu-video
+        >
+            <div :class="{'gray-background' : stopIconShow}">
+                <div v-if="progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
+            </div>
+            <div class="progress" v-if="progress < 100">
+                <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
+                    <template #default="{ percentage }">
+                        <div v-if="percentage" class="pr-text">
+                            <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
+                        </div>
+                    </template>
+                </el-progress>
+            </div>
+            <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" />
         </div>
-        <video :src="src" class="video-style" ref="video" @click="stopVideo" />
-    </div>
-    <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
-        <el-image
-            class="img-style"
-            ref="image"
-            :src="src"
-            :zoom-rate="1.2"
-            :preview-src-list="[src]"
-            fit="cover"
-            @load="loadEmit"
-        />
-    </div>
+        <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
+            <el-image
+                class="img-style"
+                ref="image"
+                :src="mediaSrc"
+                :zoom-rate="1.2"
+                :preview-src-list="[mediaSrc]"
+                fit="cover"
+                @load="loadEmit"
+            />
+        </div>
+    </section>
 
     <!-- 弹框播放视频 -->
     <section class="video-dialog">
         <el-dialog v-if="showVideo" v-model="showVideo" draggable :close-on-click-modal="false">
             <video-player
-                :src="src"
+                :src="mediaSrc"
                 controls
                 :loop="false"
                 :volume="0.6"
@@ -48,13 +60,14 @@
 
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted, inject } from 'vue'
+import { defineProps, ref, defineEmits, onMounted, onUnmounted, inject, watch } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
 import { api } from '@/utils/api'
+import { ElNotification } from 'element-plus'
 
 const props = defineProps({
     progress: Number,
@@ -82,6 +95,24 @@ const video = ref()
 const image = ref()
 // 用于点击时弹出视频
 const showVideo = ref(false)
+const token = sessionStorage.getItem('Token')
+const mediaSrc = `${props.src}?token=${token}`
+const downloadProgress = ref(null)
+
+watch(() => downloadProgress, (val) => {
+    if(val && typeof val !== 'number') {
+        downloadProgress.value = null
+        ElNotification({
+            title: '提示',
+            message: val,
+            type: 'error',
+        })
+        return
+    }
+    if (val >= 100) {
+        downloadProgress.value = null
+    }
+})
 
 
 // emit 事件
@@ -155,9 +186,14 @@ const videoMenu = [
         label: "下载到本地", 
         onClick: () => {
             const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
+            // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response + '?token='
+            const token = sessionStorage.getItem('Token')
+            const url  = `${fileUrl.replace(/(.+\/).+/, (m, v) => v)}source/${props.response}?token=${token}`
             console.log('url -> ', url)
-            download(url, props.fileName)
+            download(url, props.fileName, function(progress) {
+                downloadProgress.value = progress
+                // console.log('downloadProgress -> ', downloadProgress.value)
+            })
         }
     },
     {
@@ -194,7 +230,10 @@ const imgMenu = [
         onClick: () => {
             const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
-            download(url, props.fileName)
+            download(url, props.fileName,function(progress) {
+                downloadProgress.value = progress
+                // console.log('downloadProgress -> ', downloadProgress.value)
+            })
         }
     },
     {
@@ -308,6 +347,21 @@ function onContextMenuImg(e) {
         background: black;
         opacity: 0.5;
         z-index: 1;
+    }
+    .media-sec {
+        position: relative;
+    }
+    .download-progress {
+        position: absolute;
+        top: 50%;
+        left: -10%;
+        :deep .el-progress path:first-child {
+            // 修改进度条背景色 
+            stroke: rgb(31, 31, 31);
+        }
+        :deep .el-progress__text {
+            display: none;
+        }
     }
 </style>
 
