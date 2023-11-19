@@ -66,8 +66,9 @@ import 'video.js/dist/video-js.css'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
-import { api } from '@/utils/api'
-import { ElNotification } from 'element-plus'
+import { request, api } from '@/utils/api'
+import { to } from 'await-to-js'
+// import { ElNotification } from 'element-plus'
 
 const props = defineProps({
     progress: Number,
@@ -95,20 +96,33 @@ const video = ref()
 const image = ref()
 // 用于点击时弹出视频
 const showVideo = ref(false)
+const dialogSrc = ref('')
 const token = sessionStorage.getItem('Token')
-const mediaSrc = `${props.src}?token=${token}`
+const mediaSrc = ref('')
 const downloadProgress = ref(null)
 
-watch(() => downloadProgress, (val) => {
-    if(val && typeof val !== 'number') {
-        downloadProgress.value = null
-        ElNotification({
-            title: '提示',
-            message: val,
-            type: 'error',
-        })
-        return
+watch(showVideo, async val => {
+    if (val) {
+        const [err, res] = await to(request({
+            method: 'get',
+            url: api.verifyAuth,
+        }))
+        if (err) return
+        // console.log('res -> ', res)
+        if (res.status === 200) {
+            const token = sessionStorage.getItem('Token')
+            dialogSrc.value = `${props.src}?token=${token}`
+        }
     }
+})
+
+watch(() => props.src, val => {
+    if (val) {
+        mediaSrc.value = `${val}?token=${token}`
+    }
+}, { immediate: true })
+
+watch(() => downloadProgress.value, (val) => {
     if (val >= 100) {
         downloadProgress.value = null
     }
@@ -185,12 +199,9 @@ const videoMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-            // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response + '?token='
-            const token = sessionStorage.getItem('Token')
-            const url  = `${fileUrl.replace(/(.+\/).+/, (m, v) => v)}source/${props.response}?token=${token}`
-            console.log('url -> ', url)
-            download(url, props.fileName, function(progress) {
+            const url = `${api.source}/${props.response}`
+            download(url, props.fileName, function(err, progress) {
+                if (err) return downloadProgress.value = null
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
             })
@@ -228,8 +239,9 @@ const imgMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-            const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
+            // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
+            // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
+            const url = `${api.source}/${props.response}`
             download(url, props.fileName,function(progress) {
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)

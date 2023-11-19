@@ -61,7 +61,7 @@ import SendFoot from '@/components/sendFoot.vue'
 import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-// import comentQuote from '@/components/comentQuote.vue'
+import comentQuote from '@/components/comentQuote.vue'
 
 let chatBox = ref([])
 // websocket 客户端

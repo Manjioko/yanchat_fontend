@@ -44,7 +44,7 @@ import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
 import { defineEmits, ref, watch } from 'vue'
 import { api } from '@/utils/api'
-import { ElNotification } from 'element-plus'
+// import { ElNotification } from 'element-plus'
 // eslint-disable-next-line no-undef
 const props = defineProps({
     progress: Number,
@@ -58,16 +58,6 @@ const props = defineProps({
 const downloadProgress = ref(null)
 
 watch(() => downloadProgress.value, (val) => {
-    // console.log('xxxxxxxddd ', val)
-    if(val && typeof val !== 'number') {
-        downloadProgress.value = null
-        ElNotification({
-            title: '提示',
-            message: val,
-            type: 'error',
-        })
-        return
-    }
     if (val >= 100) {
         downloadProgress.value = null
     }
@@ -78,12 +68,12 @@ const items = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            const fileUrl = sessionStorage.getItem('baseUrl') + api.file
-            const token = sessionStorage.getItem('Token')
-            const url = `${fileUrl.replace(/(.+\/).+/, (m, v) => v)}source/${props.response}?token=${token}`
-            download(url, props.fileName, function(progress) {
+            // const token = sessionStorage.getItem('Token')
+            const url = `${api.source}/${props.response}`
+            download(url, props.fileName, function(err, progress) {
+                if (err) downloadProgress.value = null
                 downloadProgress.value = progress
-                console.log('downloadProgress -> ', downloadProgress.value)
+                // console.log('downloadProgress -> ', downloadProgress.value)
             })
         }
     },

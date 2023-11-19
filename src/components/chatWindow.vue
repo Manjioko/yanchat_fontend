@@ -198,7 +198,7 @@ function handleTime(idx) {
 function handleSendMediaSrc(ob) {
     const baseUrl = sessionStorage.getItem('baseUrl')
     const mediaUrl = ob.response ? `${baseUrl}/source/${ob.response}` : ob.src
-    console.log('mediaUrl -> ', mediaUrl)
+    // console.log('mediaUrl -> ', mediaUrl)
     return mediaUrl
 }
 

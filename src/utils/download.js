@@ -1,39 +1,18 @@
+import { request } from "./api"
+import { ElNotification } from 'element-plus'
+
 export default function download(url, name, cb) {
-    fetch(url)
-    .then(async (res) => {
-        const clonedRes = res.clone()
-        const progress = new Promise((resolve, reject) => {
-            if (!res.ok) return reject(false)
-            let downloadSize = 0
-            const totalSize = res.headers.get('Content-Length')
-            const streamReader = res.body.getReader()
-            const readFn = () => {
-                streamReader
-                .read()
-                .then(({done, value}) => {
-                    if (done) {
-                        // console.log('下载完成!')
-                        return resolve(done)
-                    } else {
-                        downloadSize += value.byteLength
-                        const progress = (downloadSize / totalSize) * 100
-                        if (typeof cb === 'function') {
-                            cb(progress)
-                        }
-                    }
-                    readFn()
-                }).catch(() => {
-                    reject(false)
-                })
-            }
-            readFn()
-        })
-        const isSuccess =  await progress
-        if (isSuccess) return clonedRes.blob()
-        return new Error('fail to download!')
-        // return res.blob()
-    })
-    .then(blob => {
+    const progressFn = pgEvent => {
+        const percent = Math.round((pgEvent.loaded * 100) / pgEvent.total)
+        if (typeof cb === 'function') cb(null, percent)
+    }
+    request({
+        url,
+        method: 'get',
+        responseType: 'arraybuffer',
+        onDownloadProgress: progressFn
+    }).then(res => {
+        const blob = new Blob([res.data])
         const a = document.createElement('a')
         const ObUrl = window.URL.createObjectURL(blob)
         a.download = name
@@ -47,5 +26,38 @@ export default function download(url, name, cb) {
         if (typeof cb === 'function') {
             cb(new Error('下载失败'))
         }
+        ElNotification({
+            type: 'error',
+            title: '提示',
+            message: '下载错误'
+        })
     })
+    
+}
+
+export function upload(url, data, cb) {
+    const progressFn = pgEvent => {
+        const percent = Math.round((pgEvent.loaded * 100) / pgEvent.total)
+        if (typeof cb === 'function') cb(null, percent, null)
+    }
+    request({
+        url,
+        method: 'post',
+        onUploadProgress: progressFn,
+        data
+    }).then(res => {
+        cb(null, null, res)
+    })
+    .catch(err => {
+        console.log('上传错误 -> ', err)
+        if (typeof cb === 'function') {
+            cb(new Error('上传失败'))
+        }
+        ElNotification({
+            type: 'error',
+            title: '提示',
+            message: '上传错误'
+        })
+    })
+    
 }

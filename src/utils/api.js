@@ -3,7 +3,7 @@ import router from "@/router/router"
 
 const service = axios.create({
     baseURL: sessionStorage.getItem('baseUrl'),
-    timeout: 5000
+    timeout: 50000
 })
 
 service.interceptors.request.use(config => {
@@ -40,12 +40,9 @@ service.interceptors.response.use(res => {
 })
 
 export function request (ob) {
-    const { url, params, data, method } = ob
+    // const { url, params, data, method } = ob
     return service({
-        url,
-        params,
-        data,
-        method
+        ...ob
     })
 }
 
@@ -63,4 +60,6 @@ export const api = {
     deleteChat: '/deleteChat', // 删除聊天记录
     refreshToken: '/refreshToken', // 更新refreshToken
     quote: '/quote', // 获取引用
+    source: '/source', // 文件资源
+    verifyAuth: '/verifyAuth' // 用于更新 token
 }

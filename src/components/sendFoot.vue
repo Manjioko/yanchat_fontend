@@ -23,7 +23,8 @@ import {ref, defineProps, defineEmits, reactive} from 'vue'
 import { timeFormat } from '@/utils/timeFormat.js'
 import byteCovert from '@/utils/byteCovert.js'
 import { api } from '@/utils/api'
-import router from '@/router/router'
+// import router from '@/router/router'
+import { upload } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 
 const props = defineProps({
@@ -77,11 +78,6 @@ function sendMessage(chatData) {
 function uploadFile(e) {
     const formData = new FormData()
     formData.append("file", e.target.files[0])
-    // console.log('文件上传信息 -> ', e.target.files[0], window.URL.createObjectURL(e.target.files[0]))
-    // return
-    const xhr = new XMLHttpRequest()
-    // 文件信息所在下标
-    // const index = props.chatBox.length
     const size = byteCovert(e.target.files[0]?.size)
     if (!size) return 
     const uuid = uuidv4()
@@ -95,52 +91,28 @@ function uploadFile(e) {
         time: timeFormat(),
         response: '',
         user: 1,
-        src: window.URL.createObjectURL(e.target.files[0]),
+        src: '',
         chat_id: uuid
     })
     // 发送信息到文本框
     sendMessage(box)
 
-    // 监听上传进度事件
-    xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            console.log(`文件上传进度: ${percentComplete.toFixed(2)}%`);
-            // props.chatBox.value[index].progress = percentComplete
-            // emit('progress',index, percentComplete)
-            box.progress = percentComplete
+    upload(api.file, formData, function(err, progress, response) {
+        if (err) {
+            box.progress = 0
+            box.response = ''
+            return
+        }
+
+        if (progress) {
+            box.progress = progress
+        }
+
+        if (response) {
+            box.response = response.data
+            box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response.data}`
         }
     })
-
-    // 监听上传完成事件
-    xhr.addEventListener('load', (res) => {
-        console.log('上传文件完成。', res.target.response)
-        // props.chatBox.value[index].response = res.target.response
-        // fileData.value = chatBox.value[index]
-        // emit('response', index, res.target.response)
-        // sendMessage()
-        box.response = res.target.response
-    })
-
-    // 监听上传错误事件
-    xhr.addEventListener('error', () => {
-        console.error('上传失败。');
-    })
-
-    const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
-    xhr.open('post', fileUrl)
-    // 设置身份验证头部
-    xhr.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem('RefreshToken'))
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400) {
-            console.log('暗号正确,开始上传...')
-        }
-        if (xhr.status === 403) {
-            sessionStorage.setItem('user_info', '')
-            router.push('/')
-        }
-    }
-    xhr.send(formData)
 }
 </script>
 <style lang="scss" scoped>
