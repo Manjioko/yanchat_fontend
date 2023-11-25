@@ -17,7 +17,7 @@
             @contextmenu.prevent="onContextMenu"
             data-menu-video
         >
-            <div :class="{'gray-background' : stopIconShow}">
+            <div :class="{'gray-background' : stopIconShow, 'not-allow': !options.length}">
                 <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"  @click="playVideo"></div>
             </div>
             <div class="progress" v-if="progress < 100">
@@ -42,8 +42,8 @@
                 @load="loadEmit"
             >
             <template #error>
-                <div>
-                    <icon-picture class="image-slot" />
+                <div class="image-slot">
+                    <!-- <icon-picture class="image-slot" /> -->
                 </div>
             </template>
             </el-image>
@@ -74,7 +74,7 @@ import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
 import { request, api } from '@/utils/api'
 import { to } from 'await-to-js'
-import { Picture as IconPicture } from '@element-plus/icons-vue'
+// import { Picture as IconPicture } from '@element-plus/icons-vue'
 // import { ElNotification } from 'element-plus'
 
 const props = defineProps({
@@ -387,9 +387,22 @@ async function getSource() {
         }
     }
     .image-slot {
-        width: 100px;
+        width: 70px;
+        height: 70px;
         color: #ddd;
         cursor: not-allowed;
+        background-image: url('../assets/jingzhi.png');
+        background-repeat: no-repeat;
+        background-position: 50%;
+        background-size: 70px;
+    }
+    .not-allow {
+        cursor: not-allowed;
+        background-image: url('../assets/jingzhi.png');
+        background-repeat: no-repeat;
+        background-repeat: no-repeat;
+        background-position: 50%;
+        background-size: 100px;
     }
 </style>
 
