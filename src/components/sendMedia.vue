@@ -18,7 +18,7 @@
             data-menu-video
         >
             <div :class="{'gray-background' : stopIconShow}">
-                <div v-if="progress >= 100 && stopIconShow" class="stop-to-play"  @click="playVideo"></div>
+                <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"  @click="playVideo"></div>
             </div>
             <div class="progress" v-if="progress < 100">
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
@@ -40,7 +40,13 @@
                 :preview-src-list="[mediaSrc]"
                 fit="cover"
                 @load="loadEmit"
-            />
+            >
+            <template #error>
+                <div>
+                    <icon-picture class="image-slot" />
+                </div>
+            </template>
+            </el-image>
         </div>
     </section>
 
@@ -48,7 +54,7 @@
     <section class="video-dialog">
         <el-dialog v-if="showVideo" v-model="showVideo" draggable :close-on-click-modal="false">
             <video-player
-                :src="mediaSrc"
+                :sources="options"
                 controls
                 :loop="false"
                 :volume="0.6"
@@ -68,6 +74,7 @@ import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
 import { request, api } from '@/utils/api'
 import { to } from 'await-to-js'
+import { Picture as IconPicture } from '@element-plus/icons-vue'
 // import { ElNotification } from 'element-plus'
 
 const props = defineProps({
@@ -96,36 +103,21 @@ const video = ref()
 const image = ref()
 // 用于点击时弹出视频
 const showVideo = ref(false)
-const dialogSrc = ref('')
-const token = sessionStorage.getItem('Token')
 const mediaSrc = ref('')
 const downloadProgress = ref(null)
-
-watch(showVideo, async val => {
-    if (val) {
-        const [err, res] = await to(request({
-            method: 'get',
-            url: api.verifyAuth,
-        }))
-        if (err) return
-        // console.log('res -> ', res)
-        if (res.status === 200) {
-            const token = sessionStorage.getItem('Token')
-            dialogSrc.value = `${props.src}?token=${token}`
-        }
-    }
-})
-
-watch(() => props.src, val => {
-    if (val) {
-        mediaSrc.value = `${val}?token=${token}`
-    }
-}, { immediate: true })
 
 watch(() => downloadProgress.value, (val) => {
     if (val >= 100) {
         downloadProgress.value = null
     }
+})
+
+watch(() => props.src, (val) => {
+    if (val) {
+        getSource()
+    }
+}, {
+    immediate: true
 })
 
 
@@ -155,14 +147,6 @@ function loadEmit() {
 onMounted(() => {
     if (props.type.includes('video')) {
         video.value.addEventListener('loadeddata',loadEmit)
-        // videoInitHeight = video.value.clientHeight
-        // console.log('videoInitHeight -> ', videoInitHeight)
-        // isVideoLoad.value = true
-        return
-    } else {
-        // image.value.addEventListener('load',loadEmit)
-        // imageInitHeight = image_div.value.clientHeight
-        // console.log('imageInitHeight -> ', imageInitHeight)
     }
 })
 onUnmounted(() => {
@@ -175,6 +159,7 @@ const stopIconShow = ref(true)
 // 视频播放控制事件
 function playVideo() {
     // showVideo.value = true
+    if (!options.value.length) return
     if (props.progress < 100) return
     video.value.play()
     video.value.muted = false
@@ -191,7 +176,9 @@ function stopVideo() {
 
 // 双击事件
 function doubleclick() {
+    if (!options.value.length) return
     showVideo.value = true
+    // console.log('url -> ', mediaSrc.value)
 }
 
 // 右键菜单
@@ -199,6 +186,7 @@ const videoMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
+            if (!options.value.length) return
             const url = `${api.source}/${props.response}`
             download(url, props.fileName, function(err, progress) {
                 if (err) return downloadProgress.value = null
@@ -210,6 +198,7 @@ const videoMenu = [
     {
         label: '静音播放',
         onClick: () => {
+            if (!options.value.length) return
             video.value.play()
             video.value.muted = true
             stopIconShow.value = false
@@ -239,6 +228,7 @@ const imgMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
+            if (!mediaSrc.value) return
             // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
             const url = `${api.source}/${props.response}`
@@ -298,6 +288,27 @@ function onContextMenuImg(e) {
     menu(e, menuList)
 }
 
+const options = ref([])
+async function getSource() {
+    const [err, res] = await to(request({
+        method: 'get',
+        responseType: 'arraybuffer',
+        url: `${api.source}/${props.response}`,
+    }))
+    if (err) return 
+    if (res.status === 200) {
+        const blob = new Blob([res.data], { type: props.type })
+        const newUrl = URL.createObjectURL(blob)
+        // mediaSrc 如果不设置 type 的话,无法在 video-player 上正确识别
+        // 所以通过 options 这种方式实现
+        options.value = [{
+            type: props.type.includes('video') ? 'video/mp4' : props.type,
+            src: newUrl
+        }]
+        mediaSrc.value = newUrl
+    }
+}
+
 </script>
 <style lang="scss" scoped>
     .video {
@@ -319,7 +330,7 @@ function onContextMenuImg(e) {
         width: 50px;
         height: 50px;
         position: absolute;
-        top: 50%;
+        top: 40%;
         left: calc(50% - 25px);
         cursor: pointer;
         z-index: 999;
@@ -374,6 +385,11 @@ function onContextMenuImg(e) {
         :deep .el-progress__text {
             display: none;
         }
+    }
+    .image-slot {
+        width: 100px;
+        color: #ddd;
+        cursor: not-allowed;
     }
 </style>
 
