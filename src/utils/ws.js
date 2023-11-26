@@ -1,10 +1,43 @@
-const MAX_RETRIES = 6
+const MAX_RETRIES = 3
 let retryCount = 0
+
+// 第一次再确认断开连接后,需要在 2 分钟后再重新尝试连接
+let refreshTime = 0.2
+let refreshCount = 0
+// 最多可以尝试 refresh 是 10 次
+const maxRefreshCount = 15
+// 每次 refresh 时间都是上次的 1.5 倍
+const perTime = 1.5
+
+function refreshConnectSocket() {
+    if (refreshCount < maxRefreshCount) {
+        refreshCount++
+        setTimeout(() => {
+            console.log('重连机制刷新 -> ', refreshCount)
+            connectWebSocket(...arguments)
+            refreshTime = refreshTime * perTime
+        }, refreshTime * 1000 * 60)
+
+        return true
+    }
+    return false
+    // connectWebSocket(...arguments)
+}
 
 function connectWebSocket(ws, url, appendMessage, signal) {
     console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
-        console.log('Max retry attempts reached. Disconnecting...')
+        console.log('超过重连次数...')
+        const isHasRefresh = refreshConnectSocket(ws, url, appendMessage, signal)
+        if (isHasRefresh) {
+            signal.value = 0
+            retryCount = 0
+            return
+        } else {
+            ws.value = {}
+            signal.value = 2
+            return
+        }
         ws.value = {}
         signal.value = 2
         return
@@ -16,6 +49,10 @@ function connectWebSocket(ws, url, appendMessage, signal) {
         // appendMessage('已连接到WebSocket服务端', 'received')
         signal.value = 1
         retryCount = 0 // Reset retry count on successful connection
+
+        // 重置刷新机制
+        refreshTime = 0.2
+        refreshCount = 0
     }
 
     ws.value.onmessage = function (event) {
@@ -54,10 +91,10 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             return
         }
         setTimeout(() => {
-            console.log('Reconnecting to WebSocket...')
+            console.log('正在重连 websocket ...')
             retryCount++
             connectWebSocket(ws, url, appendMessage, signal)
-        }, 2000)
+        }, 5000)
     }
 
     ws.value.onerror = function () {

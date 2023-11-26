@@ -6,6 +6,7 @@
             :autosize="{ minRows: 1, maxRows: 5 }"
             type="textarea"
             placeholder="在这里输入你的消息..."
+            @keydown.shift.enter.prevent="hdkeydown"
         />
         
         <div class="upload">
@@ -40,9 +41,9 @@ const emit = defineEmits(['center', 'progress', 'response'])
 const chatText = ref('')
 
 // 键盘 摁下 enter 键触发事件
-// function hdkeydown() {
-//     sendMessage()
-// }
+function hdkeydown() {
+    sendMessage()
+}
 
 // 发送文本到聊天框的处理器
 function sendMessage(chatData) {

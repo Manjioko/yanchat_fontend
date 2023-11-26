@@ -153,7 +153,7 @@ async function register() {
                 </div>
             </section>
             <section class="forget-pw">
-                <div>忘记密码？</div>
+                <!-- <div>忘记密码？</div> -->
             </section>
             <section>
                 <div>

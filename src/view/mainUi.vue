@@ -16,7 +16,10 @@
                     <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
                 </div>
                 <div class="default-avatar" v-else>
-                    <div style="width: 40px; height: 40px;"></div>
+                    <div style="width: 100%; height: 40px;">
+                        <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
+                        <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
+                    </div>
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
             </section>

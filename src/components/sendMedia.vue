@@ -40,6 +40,7 @@
                 :preview-src-list="[mediaSrc]"
                 fit="cover"
                 @load="loadEmit"
+                @error="handleElImageErr"
             >
             <template #error>
                 <div class="image-slot">
@@ -66,16 +67,13 @@
 
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted, inject, watch } from 'vue'
+import { defineProps, ref, defineEmits, onMounted, onUnmounted, inject, watch, nextTick } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
-// import ContextMenu from '@imengyu/vue3-context-menu'
 import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
 import { request, api } from '@/utils/api'
 import { to } from 'await-to-js'
-// import { Picture as IconPicture } from '@element-plus/icons-vue'
-// import { ElNotification } from 'element-plus'
 
 const props = defineProps({
     progress: Number,
@@ -123,6 +121,7 @@ watch(() => props.src, (val) => {
 
 // emit 事件
 function loadEmit() {
+    // console.log('src -> ', props.response)
     const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect()
 
     // 为了解决视频和图片在加载之初与加载完成后高度不同，导致聊天记录位置定位错乱的问题
@@ -306,6 +305,22 @@ async function getSource() {
             src: newUrl
         }]
         mediaSrc.value = newUrl
+    }
+}
+
+function handleElImageErr() {
+    // 这块处理的原因是因为 <el-image> 会在页面渲染后再触发 src 错误机制
+    // 导致 <template #error> 在页面渲染后再出发,这样就会导致页面
+    // 向下挤压一些像素(class image-slot 中的 height)
+    // 所以需要将其拉回来,页面看起来才是正常的
+    if (props.type.includes('image'))  {
+        const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect()
+        const imageRect = image.value.$el.getBoundingClientRect()
+        if (imageRect.top > chatWindowRect.top) {
+            nextTick(() => {
+                scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight
+            })
+        }
     }
 }
 

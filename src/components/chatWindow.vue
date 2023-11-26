@@ -163,8 +163,8 @@ function handleScroll(e) {
 // 自定义加载事件
 const vSpinner = {
     mounted(el, binding) {
-        binding.value.time && clearTimeout(binding.value.time)
-        binding.value.time = setTimeout(() => {
+        binding.value.spinnerTime && clearTimeout(binding.value.spinnerTime)
+        binding.value.spinnerTime = setTimeout(() => {
             if (binding.value.loading) {
                 binding.value.inaccessible = true
                 el.remove()
