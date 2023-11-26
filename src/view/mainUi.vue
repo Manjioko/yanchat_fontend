@@ -134,15 +134,15 @@ function Center(chatData, type) {
 
     // 发送消息
     if (type === 'sent') {
-        console.log('发送信息 -> ', chatData)
-        // if (!websocket.value) {
-        //     ElNotification({
-        //         type: 'error',
-        //         title: '提示',
-        //         message: '已经与服务器断开连接,无法发送消息'
-        //     })
-        //     return
-        // }
+        console.log('发送信息 -> ', chatData, websocket.value)
+        if (!websocket.value) {
+            ElNotification({
+                type: 'error',
+                title: '提示',
+                message: '已经与服务器断开连接,无法发送消息'
+            })
+            return
+        }
         if (!activeFriend.value) {
             ElNotification({
                 type: 'error',

@@ -34,13 +34,10 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             retryCount = 0
             return
         } else {
-            ws.value = {}
+            ws.value = null
             signal.value = 2
             return
         }
-        ws.value = {}
-        signal.value = 2
-        return
     }
     const refreshToken = sessionStorage.getItem('RefreshToken')
     ws.value = new WebSocket(url + `&token=${refreshToken}`)
