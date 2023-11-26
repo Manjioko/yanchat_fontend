@@ -1,5 +1,5 @@
 <template>
-    <main class="main">
+    <main class="main" @contextmenu.prevent>
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
             :refreshChatDataOb="newChatData || {}"
@@ -65,6 +65,7 @@ import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote.vue'
+import { ElNotification } from 'element-plus'
 
 let chatBox = ref([])
 // websocket 客户端
@@ -127,12 +128,29 @@ function getRefreshToken() {
 let newChatData = ref({})
 let trytoRfChat = ref({})
 function Center(chatData, type) {
-    if (signal.value !== 1) return
+    // if (signal.value !== 1) {
+    //     return
+    // }
 
     // 发送消息
     if (type === 'sent') {
         console.log('发送信息 -> ', chatData)
-        if (!websocket.value || !activeFriend.value) return
+        // if (!websocket.value) {
+        //     ElNotification({
+        //         type: 'error',
+        //         title: '提示',
+        //         message: '已经与服务器断开连接,无法发送消息'
+        //     })
+        //     return
+        // }
+        if (!activeFriend.value) {
+            ElNotification({
+                type: 'error',
+                title: '提示',
+                message: '尚未选择好友'
+            })
+            return
+        }
 
         // 清空引用
         showQuote.value = false
@@ -182,13 +200,16 @@ function Center(chatData, type) {
         if (!('progress' in chatData)) {
             chatData.loading = true   
         }
-        
-        // 产生新的数据时需要更新数据到朋友列表
-        newChatData.value = {
-            // isUnread 为 1时标记为未读，0 时标记为已读需要展示
-            isUnread: 0,
-            chat: chatData
-        }
+        const stopLoading = watchEffect(() => {
+            if (chatData.loading === false) {
+                newChatData.value = {
+                    // isUnread 为 1时标记为未读，0 时标记为已读需要展示
+                    isUnread: 0,
+                    chat: chatData
+                }
+                stopLoading()
+            }
+        })
     }
 
     // 接收信息
@@ -516,6 +537,7 @@ function handleQuoteClose() {
     display: flex;
     justify-content: center;
     align-items: center;
+    user-select: none;
 }
 
 .chat-window {

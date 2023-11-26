@@ -59,13 +59,13 @@ function sendMessage(chatData) {
 
     // websocket.value?.send(JSON.stringify(sendData))
     const uuid = uuidv4()
-    const dataOb = {
+    const dataOb = reactive({
         type: 'text',
         text: message,
         user: 1,
         time: timeFormat(),
         chat_id: uuid
-    }
+    })
     if (props.quote) {
         dataOb.quote = props.quote
     }
@@ -97,6 +97,8 @@ function uploadFile(e) {
     })
     // 发送信息到文本框
     sendMessage(box)
+    // 清空 targt,不然上传同一个文件会没有反应
+    e.target.value = null
 
     upload(api.file, formData, function(err, progress, response) {
         if (err) {

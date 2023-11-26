@@ -316,6 +316,7 @@ function handleQuote(idx) {
         // opacity: 0.5;
         border-radius: 10px 10px 10px 0px;
         max-width: 500px;
+        user-select: text;
     }
 }
 .chat-text {
@@ -402,6 +403,7 @@ function handleQuote(idx) {
         font-size: 14px;
         background: #EBF3FE;
         border-radius: 10px 10px 0px 10px;
+        user-select: text;
     }
 }
 // hljs 代码块设置背景色
