@@ -134,7 +134,7 @@ function Center(chatData, type) {
 
     // 发送消息
     if (type === 'sent') {
-        console.log('发送信息 -> ', chatData, websocket.value)
+        // console.log('发送信息 -> ', chatData, websocket.value)
         if (!websocket.value) {
             ElNotification({
                 type: 'error',
