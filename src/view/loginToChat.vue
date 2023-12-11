@@ -116,19 +116,34 @@ async function register() {
     }
 
     const { status, data } = res
+    const { user_data, auth } = data
     // console.log(status, data)
     if (status === 200) {
-        if (data === 'exist') {
+        if (user_data === 'exist') {
+            ElMessage({
+                message: `${phone.value} 已经注册过了！`,
+                type: 'error',
+            })
             return
         }
-        sessionStorage.setItem('user_info', JSON.stringify(data))
+        if (user_data === 'err') {
+            ElMessage({
+                message: `${phone.value} 注册失败！`,
+                type: 'error',
+            })
+            return
+        }
+        sessionStorage.setItem('Token', auth?.token ?? '')
+        sessionStorage.setItem('RefreshToken', auth?.refreshToken ?? '')
+        sessionStorage.setItem('user_info', JSON.stringify(user_data))
+        // 保存 user_id 到 sessionStorage
+        sessionStorage.setItem('user_id', user_data.user_id)
+
         ElMessage({
             message: `${phone.value} 已经成功注册！`,
             type: 'success',
         })
 
-        // 保存 user_id 到 sessionStorage
-        sessionStorage.setItem('user_id', data.user_id)
         router.value.push({ name: 'Chat' })
     }
 }
