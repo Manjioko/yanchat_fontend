@@ -4,8 +4,14 @@ import router from './router/router.js'
 import 'element-plus/theme-chalk/index.css'
 import 'highlight.js/styles/github-dark.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
-sessionStorage.setItem('wsBaseUrl', 'wss://192.168.9.99')
-sessionStorage.setItem('baseUrl', 'https://192.168.9.99')
+// sessionStorage.setItem('wsBaseUrl', 'wss://192.168.9.99')
+// sessionStorage.setItem('baseUrl', 'https://192.168.9.99')
+// console.log('cookie的值是 -> ', document.cookie)
+if (process.env.NODE_ENV === 'development') {
+    // console.log('开发环境')
+    sessionStorage.setItem('baseUrl', process.env.VUE_APP_BASE_URL)
+    sessionStorage.setItem('wsBaseUrl', process.env.VUE_APP_WS)
+}
 const app = createApp(App)
 app.use(router)
 // app.use(ContextMenu)

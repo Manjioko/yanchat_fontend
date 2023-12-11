@@ -24,6 +24,12 @@ service.interceptors.response.use(res => {
     if (res.headers['x-new-token']) {
         sessionStorage.setItem('Token', res.headers['x-new-token'])
     }
+    if (res.headers['x-new-domain']) {
+        sessionStorage.setItem('baseUrl', res.headers['x-new-domain'])
+    }
+    if (res.headers['x-new-ws']) {
+        sessionStorage.setItem('wsBaseUrl', res.headers['x-new-ws'])
+    }
     return res
 }, error => {
     // console.error('response error -> ', error)
