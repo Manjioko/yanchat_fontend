@@ -64,6 +64,9 @@ function connectWebSocket(ws, url, appendMessage, signal) {
                 // console.log('对方确认收到', chatData)
                 appendMessage(chatData, 'pong')
                 break
+            case 'videoCallStart':
+                appendMessage(chatData, 'videoCallStart')
+                break
             default:
                 appendMessage(chatData, 'received')
                 {

@@ -6,7 +6,7 @@
                 <input type="file" @change="uploadFile" v-if="uploadDisable">
             </div>
             <div class="video-call">
-                <img src="../assets/videoCall.png" alt="video-call">
+                <img src="../assets/videoCall.png" alt="video-call" @click="videoCall">
             </div>
             <div class="call">
                 <img src="../assets/call.png" alt="call">
@@ -28,6 +28,7 @@
             </button>
         </div>
     </main>
+    <videoCallOfferer v-if="showOfferer"/>
 </template>
 <script setup>
 import {ref, defineProps, defineEmits, reactive} from 'vue'
@@ -37,6 +38,8 @@ import { api } from '@/utils/api'
 // import router from '@/router/router'
 import { upload } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
+import videoCallOfferer from './videoCallOfferer.vue'
+// import videoCallAnwserer from './videoCallAnwserer.vue'
 
 const props = defineProps({
     chatBox: Object,
@@ -46,7 +49,7 @@ const props = defineProps({
         default: ''
     }
 })
-const emit = defineEmits(['center', 'progress', 'response'])
+const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart'])
 
 const chatText = ref('')
 
@@ -126,6 +129,13 @@ function uploadFile(e) {
             box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response.data}`
         }
     })
+}
+
+// 视频通话
+const showOfferer = ref(false)
+function videoCall() {
+    emit('videoCallStart', { videoCallStart: true })
+    showOfferer.value = true
 }
 </script>
 <style lang="scss" scoped>

@@ -39,7 +39,12 @@
             </section>
             <section style="position: relative;">
                 <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" @close="handleQuoteClose" />
-                <SendFoot :upload-disable="!!activeFriend" :quote="comment" @center="Center" />
+                <SendFoot
+                :upload-disable="!!activeFriend"
+                :quote="comment"
+                @center="Center"
+                @videoCallStart="handleVideoCallStart"
+                />
             </section>
         </section>
     </main>
@@ -256,6 +261,10 @@ function Center(chatData, type) {
         centerPong(chatData)
     }
 
+    if (type === 'videoCallStart') {
+        centerVideoCallStartHandleAnwserer(chatData)
+    }
+
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
@@ -296,7 +305,16 @@ function centerPong(chatData) {
             }
         }
     }
-} 
+}
+
+// 开启视频通话
+function centerVideoCallStartHandleAnwserer(chatData) {
+    console.log('视频通话开始了 -> ', chatData)
+}
+
+function handleVideoCallStart(data) {
+    console.log('点击了视频通话 -> ', data)
+}
 
 // 推送到 window 桌面
 function notifyToWindow(textOb) {
