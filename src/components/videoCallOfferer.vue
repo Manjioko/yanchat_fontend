@@ -1,13 +1,18 @@
 <!-- 结构部分 -->
 <template>
-    <VueDragResize :w="600" :h="300" :isResizable="false" :z="99999">
-        <video id="local-video" autoplay playsinline></video>
+    <VueDragResize
+        :w="width"
+        :h="height"
+        :isResizable="false"
+        :z="99999"
+    >
+        <video id="local-video" autoplay playsinline ></video>
     </VueDragResize>
 </template>
 
 <script setup>
 import VueDragResize from 'vue-drag-resize'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 // const props = defineProps({
 //     socket: {
 //         type: Object,
@@ -15,16 +20,24 @@ import { onMounted } from 'vue'
 //     }
 // })
 
-
+const width = ref(500)
+const height = ref(360)
+const localStream = ref(null)
+const localVideo = ref(null)
+const constraints = { 
+    video: {
+        width: width.value,
+        height: height.value
+    },
+    audio: false
+}
 
 
 async function start() {
-    let localStream
-    let localVideo = document.getElementById('local-video')
-    const constraints = { video: true, audio: false }
-    localStream = await navigator.mediaDevices.getUserMedia(constraints)
-
-    localVideo.srcObject = localStream
+    
+    localVideo.value = document.getElementById('local-video')
+    localStream.value = await navigator.mediaDevices.getUserMedia(constraints)
+    localVideo.value.srcObject = localStream.value
 }
 
 onMounted(() => {
