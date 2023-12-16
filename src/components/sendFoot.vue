@@ -1,23 +1,33 @@
 <template>
-    <div class="text-send">
-        <!-- @keyup.shift.enter.exact="hdkeydown" -->
-        <el-input
-            v-model="chatText"
-            :autosize="{ minRows: 1, maxRows: 5 }"
-            type="textarea"
-            placeholder="在这里输入你的消息..."
-            @keydown.shift.enter.prevent="hdkeydown"
-        />
-        
-        <div class="upload">
-            <img src="../assets/uploadIcon.png" alt="upload">
-            <input type="file" @change="uploadFile" v-if="uploadDisable">
+    <main>
+        <section class="select-tab">
+            <div class="upload">
+                <img src="../assets/folder.png" alt="upload">
+                <input type="file" @change="uploadFile" v-if="uploadDisable">
+            </div>
+            <div class="video-call">
+                <img src="../assets/videoCall.png" alt="video-call">
+            </div>
+            <div class="call">
+                <img src="../assets/call.png" alt="call">
+            </div>
+        </section>
+        <div class="text-send">
+            <!-- @keyup.shift.enter.exact="hdkeydown" -->
+            <el-input
+                v-model="chatText"
+                :autosize="{ minRows: 1, maxRows: 5 }"
+                type="textarea"
+                placeholder="在这里输入你的消息..."
+                @keydown.shift.enter.prevent="hdkeydown"
+            />
+            
+            <button @click="sendMessage()" class="send-btn">
+                <span>发送</span>
+                <img src="../assets/send.png" alt="send">
+            </button>
         </div>
-        <button @click="sendMessage()" class="send-btn">
-            <span>发送</span>
-            <img src="../assets/send.png" alt="send">
-        </button>
-    </div>
+    </main>
 </template>
 <script setup>
 import {ref, defineProps, defineEmits, reactive} from 'vue'
@@ -120,11 +130,10 @@ function uploadFile(e) {
 </script>
 <style lang="scss" scoped>
 .text-send {
-    min-height: 70px;
+    min-height: 40px;
     display: flex;
     box-sizing: border-box;
     padding: 10px;
-    border-top: 2px solid #F5F6FA;
     align-items: center;
     justify-content: center;
 
@@ -172,8 +181,7 @@ function uploadFile(e) {
     width: 18px;
     height: 15px;
     position: relative;
-    margin-right: 20px;
-    margin-left: 10px;
+    margin: 0 10px;
 
     img {
         width: inherit;
@@ -188,6 +196,23 @@ function uploadFile(e) {
         top: 0;
         left: 0;
         opacity: 0;
+    }
+}
+.select-tab {
+    padding: 5px;
+    border-top: 2px solid #F5F6FA;
+    display: flex;
+}
+.video-call {
+    margin: 0 10px;
+    img {
+        width: 18px;
+    }
+}
+.call {
+    margin: 0 10px;
+    img {
+        width: 18px;
     }
 }
 </style>
