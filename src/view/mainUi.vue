@@ -83,8 +83,8 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote.vue'
 import { ElNotification } from 'element-plus'
-import videoCallOfferer from './videoCallOfferer.vue'
-import videoCallAnwserer from './videoCallAnwserer.vue'
+import videoCallOfferer from '@/components/videoCallOfferer.vue'
+import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
 
 let chatBox = ref([])
 // websocket 客户端

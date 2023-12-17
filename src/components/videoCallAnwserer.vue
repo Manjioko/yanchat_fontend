@@ -3,6 +3,8 @@
     <VueDragResize
         :w="width"
         :h="height"
+        :x="100"
+        :y="100"
         :isResizable="false"
         :z="99999"
     >

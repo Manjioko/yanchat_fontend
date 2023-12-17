@@ -3,6 +3,9 @@ node_modules
 /dist
 /cert
 
+# 证书
+.pem
+
 
 # local env files
 .env.local
