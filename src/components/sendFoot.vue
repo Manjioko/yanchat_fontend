@@ -28,7 +28,7 @@
             </button>
         </div>
     </main>
-    <videoCallOfferer v-if="showOfferer"/>
+    <!-- <videoCallOfferer v-if="showOfferer"/> -->
 </template>
 <script setup>
 import {ref, defineProps, defineEmits, reactive} from 'vue'
@@ -38,7 +38,7 @@ import { api } from '@/utils/api'
 // import router from '@/router/router'
 import { upload } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
-import videoCallOfferer from './videoCallOfferer.vue'
+// import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
 const props = defineProps({
@@ -132,10 +132,10 @@ function uploadFile(e) {
 }
 
 // 视频通话
-const showOfferer = ref(false)
+// const showOfferer = ref(false)
 function videoCall() {
     emit('videoCallStart', { videoCallStart: true })
-    showOfferer.value = true
+    // showOfferer.value = true
 }
 </script>
 <style lang="scss" scoped>

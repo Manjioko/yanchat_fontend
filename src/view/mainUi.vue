@@ -55,6 +55,18 @@
         @nickNameChange="handleNickNameChange"
         @isUseMarkdown="handleIsUseMarkdown"
     />
+    <videoCallOfferer
+        v-if="activeFriend && showOfferer"
+        :friend="activeFriend"
+        :socket="websocket"
+        :anwser-data="videocallAnwserData"
+    />
+    <videoCallAnwserer
+        v-if="activeFriend && showAnwserer"
+        :friend="activeFriend"
+        :socket="websocket"
+        :offer-data="videocallOfferData"
+    />
 </template>
 
 <script setup>
@@ -71,6 +83,8 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote.vue'
 import { ElNotification } from 'element-plus'
+import videoCallOfferer from './videoCallOfferer.vue'
+import videoCallAnwserer from './videoCallAnwserer.vue'
 
 let chatBox = ref([])
 // websocket 客户端
@@ -261,8 +275,18 @@ function Center(chatData, type) {
         centerPong(chatData)
     }
 
-    if (type === 'videoCallStart') {
-        centerVideoCallStartHandleAnwserer(chatData)
+    if (type === 'videoCallAnwser') {
+        console.log('video call event -> ', type)
+        centerVideoCallAnwser(chatData)
+    }
+
+    if (type === 'videoCallOffer') {
+        console.log('video call event -> ', type)
+        centerVideoCallOffer(chatData)
+    }
+
+    if (type === 'videoCallLeave') {
+        console.log('video call event -> ', type)
     }
 
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
@@ -308,12 +332,25 @@ function centerPong(chatData) {
 }
 
 // 开启视频通话
-function centerVideoCallStartHandleAnwserer(chatData) {
-    console.log('视频通话开始了 -> ', chatData)
+const showAnwserer = ref(false)
+const videocallOfferData = ref(null)
+function centerVideoCallOffer(chatData) {
+    // console.log('视频通话开始了 -> ', chatData)
+    videocallOfferData.value = chatData
+    showAnwserer.value = true
 }
 
-function handleVideoCallStart(data) {
-    console.log('点击了视频通话 -> ', data)
+const showOfferer = ref(false)
+const videocallAnwserData = ref(null)
+function centerVideoCallAnwser(chatData) {
+    // console.log('视频通话开始了 -> ', chatData)
+    videocallAnwserData.value = chatData
+    // showOfferer.value = true
+}
+
+function handleVideoCallStart() {
+    // console.log('点击了视频通话 -> ', data)
+    showOfferer.value = true
 }
 
 // 推送到 window 桌面
