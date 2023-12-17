@@ -67,8 +67,8 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             case 'videoCallOffer':
                 appendMessage(chatData, 'videoCallOffer')
                 break
-            case 'videoCallAnswer':
-                appendMessage(chatData, 'videoCallAnswer')
+            case 'videoCallAnwser':
+                appendMessage(chatData, 'videoCallAnwser')
                 break
             case 'videoCallLeave':
                 appendMessage(chatData, 'videoCallLeave')

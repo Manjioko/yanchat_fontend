@@ -50,7 +50,7 @@ const sendOfferConfig = {
     type: 'offer',
     user_id,
     to_table: props.friend.to_table,
-    to_id: props.friend.to_id,
+    to_id: props.friend.id,
     data: null
 }
 
@@ -59,7 +59,7 @@ const sendIcecandidateConfig = {
     type: 'candidate',
     user_id,
     to_table: props.friend.to_table,
-    to_id: props.friend.to_id,
+    to_id: props.friend.id,
     data: null
 }
 
@@ -128,7 +128,10 @@ async function listenAnswer(answer) {
 
 // 接收 candidate
 async function listenIcecandidate(candidate) {
-    await localpeerConnection.addIceCandidate(candidate)
+    if (candidate) {
+        await localpeerConnection?.addIceCandidate(candidate)
+    }
+    
 }
 
 </script>

@@ -50,7 +50,7 @@ const sendAnwserConfig = {
     type: 'anwser',
     user_id,
     to_table: props.friend.to_table,
-    to_id: props.friend.to_id,
+    to_id: props.friend.id,
     data: null
 }
 
@@ -59,7 +59,7 @@ const sendIcecandidateConfig = {
     type: 'candidate',
     user_id,
     to_table: props.friend.to_table,
-    to_id: props.friend.to_id,
+    to_id: props.friend.id,
     data: null
 }
 
@@ -84,8 +84,6 @@ async function start() {
     localStream.getTracks().forEach((track) => {
         localpeerConnection.addTrack(track, localStream)
     })
-
-    sendAnwser()
     sendIcecandidate()
     playRemote()
 }
@@ -93,14 +91,6 @@ async function start() {
 onMounted(() => {
     start()
 })
-
-// 发送 anwser
-async function sendAnwser() {
-    let offer = await localpeerConnection.createOffer()
-    await localpeerConnection.setLocalDescription(offer)
-    sendAnwserConfig.data = localpeerConnection.localDescription
-    props.socket?.send(JSON.stringify(sendAnwserConfig))
-}
 
 // 发送候选者
 async function sendIcecandidate() {
@@ -127,12 +117,15 @@ async function listenOffer(offer) {
     await localpeerConnection.setRemoteDescription(offer)
     let remoteAnswer = await localpeerConnection.createAnswer()
     await localpeerConnection.setLocalDescription(remoteAnswer)
+    sendAnwserConfig.data = localpeerConnection.localDescription
     props.socket.send(JSON.stringify(sendAnwserConfig))
 }
 
 // 接收 candidate
 async function listenIcecandidate(candidate) {
-    await localpeerConnection.addIceCandidate(candidate)
+    if (candidate) {
+        await localpeerConnection?.addIceCandidate(candidate)
+    }
 }
 
 </script>
