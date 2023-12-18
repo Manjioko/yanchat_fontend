@@ -8,8 +8,10 @@
         :isResizable="false"
         :z="99999"
     >
-        <video id="local-video" autoplay playsinline></video>
-        <video id="remote-video" autoplay playsinline></video>
+        <div class="vide-container">
+            <video id="local-video" autoplay playsinline></video>
+            <video id="remote-video" autoplay playsinline></video>
+        </div>
     </VueDragResize>
 </template>
 
@@ -63,7 +65,19 @@ const sendIcecandidateConfig = {
     data: null
 }
 
+const sendResponseConfig = {
+    event: 'videoCallResponse',
+    type: 'response',
+    user_id,
+    to_table: props.friend.to_table,
+    to_id: props.friend.id,
+    data: null
+}
+
+const ok = ref(false)
+
 watch(() => props.offerData, (newVal) => {
+    console.log('answer 收到 ->', newVal)
     if (newVal && newVal.type === 'offer') {
         // localpeerConnection.setRemoteDescription(new RTCSessionDescription(newVal.data))
         listenOffer(newVal.data)
@@ -72,6 +86,11 @@ watch(() => props.offerData, (newVal) => {
         // localpeerConnection.addIceCandidate(new RTCIceCandidate(newVal.data))
         listenIcecandidate(newVal.data)
     }
+    if (newVal && newVal.type === 'request') {
+        ok.value = true
+    }
+}, {
+    immediate: true
 })
 
 
@@ -85,6 +104,12 @@ async function start() {
     })
     sendIcecandidate()
     playRemote()
+    if (ok.value) {
+        props.socket.send(JSON.stringify({
+            ...sendResponseConfig,
+            data: 'ok'
+        }))
+    } 
 }
 
 onMounted(() => {
@@ -130,4 +155,14 @@ async function listenIcecandidate(candidate) {
 </script>
 
 <!-- 样式部分 -->
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.de-container {
+    position: relative;
+}
+#remote-video {
+    width: 160px;
+    position: absolute;
+    right: 0;
+    border-radius: 4px;
+}
+</style>

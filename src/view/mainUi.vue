@@ -57,13 +57,13 @@
     />
     <!-- 测试模式用 -->
     <videoCallOfferer
-        v-if="activeFriend && phone.startsWith('155')"
+        v-if="activeFriend && showOfferer"
         :friend="activeFriend"
         :socket="websocket"
         :anwser-data="videocallAnwserData"
     />
     <videoCallAnwserer
-        v-if="activeFriend && phone.startsWith('137')"
+        v-if="activeFriend && showAnwserer"
         :friend="activeFriend"
         :socket="websocket"
         :offer-data="videocallOfferData"
@@ -279,18 +279,33 @@ function Center(chatData, type) {
         centerPong(chatData)
     }
 
+    // 视频通话 anwser 通信
     if (type === 'videoCallAnwser') {
-        console.log('video call event -> ', type)
+        console.log('video call event1 -> ', type)
         centerVideoCallAnwser(chatData)
     }
 
+    // 视频通话 offer 通信
     if (type === 'videoCallOffer') {
-        console.log('video call event -> ', type)
+        console.log('video call event2 -> ', type)
         centerVideoCallOffer(chatData)
     }
 
+    // 结束视频通话
     if (type === 'videoCallLeave') {
-        console.log('video call event -> ', type)
+        console.log('video call event3 -> ', type)
+    }
+
+    // 视频通话请求
+    if (type === 'videoCallRequest') {
+        console.log('video call event4 -> ', type)
+        centerVideoCallRequest(chatData)
+    }
+
+    // 视频通话请求回复
+    if (type === 'videoCallResponse') {
+        console.log('video call event5 -> ', type)
+        centerVideoCallResponse(chatData)
     }
 
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
@@ -351,6 +366,18 @@ function centerVideoCallAnwser(chatData) {
     videocallAnwserData.value = chatData
     // showOfferer.value = true
 }
+
+function centerVideoCallRequest(chatData) {
+    videocallOfferData.value = chatData
+    showAnwserer.value = true
+    console.log('请求数据是 ->', chatData)
+}
+
+function centerVideoCallResponse(chatData) {
+    videocallAnwserData.value = chatData
+}
+
+
 
 function handleVideoCallStart() {
     // console.log('点击了视频通话 -> ', data)

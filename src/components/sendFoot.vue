@@ -1,15 +1,15 @@
 <template>
     <main>
         <section class="select-tab">
-            <div class="upload">
-                <img src="../assets/folder.png" alt="upload">
-                <input type="file" @change="uploadFile" v-if="uploadDisable">
-            </div>
             <div class="video-call">
                 <img src="../assets/videoCall.png" alt="video-call" @click="videoCall">
             </div>
             <div class="call">
                 <img src="../assets/call.png" alt="call">
+            </div>
+            <div class="upload">
+                <img src="../assets/folder.png" alt="upload">
+                <input type="file" @change="uploadFile" v-if="uploadDisable">
             </div>
         </section>
         <div class="text-send">

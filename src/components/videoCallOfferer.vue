@@ -8,8 +8,10 @@
         :isResizable="false"
         :z="99999"
     >
-        <video id="local-video" autoplay playsinline></video>
-        <video id="remote-video" autoplay playsinline></video>
+        <div class="vide-container">
+            <video id="local-video" autoplay playsinline></video>
+            <video id="remote-video" autoplay playsinline></video>
+        </div>
     </VueDragResize>
 </template>
 
@@ -63,14 +65,28 @@ const sendIcecandidateConfig = {
     data: null
 }
 
+const sendRequestConfig = {
+    event: 'videoCallRequest',
+    type: 'request',
+    user_id,
+    to_table: props.friend.to_table,
+    to_id: props.friend.id,
+    data: null
+}
+
 watch(() => props.anwserData, (newVal) => {
-    if (newVal && newVal.type === 'answer') {
+    if (newVal && newVal.type === 'anwser') {
         // localpeerConnection.setRemoteDescription(new RTCSessionDescription(newVal.data))
+        console.log('answer', newVal.data )
         listenAnswer(newVal.data)
     }
     if (newVal && newVal.type === 'candidate') {
+        console.log('ice -> ', newVal.data)
         // localpeerConnection.addIceCandidate(new RTCIceCandidate(newVal.data))
         listenIcecandidate(newVal.data)
+    }
+    if (newVal && newVal.type === 'response') {
+        listenResponse(newVal.data)
     }
 })
 
@@ -83,9 +99,12 @@ async function start() {
         localpeerConnection.addTrack(track, localStream)
     })
 
-    sendOffer()
+    // sendOffer()
     sendIcecandidate()
     playRemote()
+
+    // 发送视频通话请求
+    props.socket.send(JSON.stringify(sendRequestConfig))
 }
 
 onMounted(() => {
@@ -132,7 +151,25 @@ async function listenIcecandidate(candidate) {
     
 }
 
+function listenResponse(data) {
+    if (data === 'ok') {
+        sendOffer()
+    } else {
+        console.log('对方拒绝视频通话')
+    }
+}
+
 </script>
 
 <!-- 样式部分 -->
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.de-container {
+    position: relative;
+}
+#remote-video {
+    width: 160px;
+    position: absolute;
+    right: 0;
+    border-radius: 4px;
+}
+</style>
