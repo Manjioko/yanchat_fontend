@@ -34,7 +34,7 @@ const props = defineProps({
 const width = ref(500)
 const height = ref(360)
 let localStream = null
-let localVideo = null
+// let localVideo = null
 let localpeerConnection = null
 const user_id = sessionStorage.getItem('user_id')
 const constraints = { 
@@ -76,11 +76,9 @@ watch(() => props.anwserData, (newVal) => {
 
 
 async function start() {
-    
-    localVideo = document.getElementById('local-video')
-    localStream = await navigator.mediaDevices.getUserMedia(constraints)
-    localVideo.srcObject = localStream
     localpeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
+    localStream = await navigator.mediaDevices.getUserMedia(constraints)
+    document.getElementById('local-video').srcObject = localStream
     localStream.getTracks().forEach((track) => {
         localpeerConnection.addTrack(track, localStream)
     })
@@ -107,7 +105,7 @@ async function sendIcecandidate() {
     localpeerConnection.onicecandidate = (event) => {
         if (event.candidate) {
             sendIcecandidateConfig.data = event.candidate
-            props.socket?.send(JSON.stringify(sendIcecandidateConfig))
+            props.socket.send(JSON.stringify(sendIcecandidateConfig))
         }
     }
 }

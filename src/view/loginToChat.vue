@@ -72,6 +72,9 @@ async function login() {
             sessionStorage.setItem('user_id', user_data.user_id)
             router.value.push({ name: 'Chat' })
             // showloginErr.value = false
+
+            // 将电话号码保存起来, 测试用
+            sessionStorage.setItem('phone', phone.value)
             return
         }
         ElMessageBox.confirm(

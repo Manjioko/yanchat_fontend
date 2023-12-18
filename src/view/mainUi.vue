@@ -55,14 +55,15 @@
         @nickNameChange="handleNickNameChange"
         @isUseMarkdown="handleIsUseMarkdown"
     />
+    <!-- 测试模式用 -->
     <videoCallOfferer
-        v-if="activeFriend && showOfferer"
+        v-if="activeFriend && phone.startsWith('155')"
         :friend="activeFriend"
         :socket="websocket"
         :anwser-data="videocallAnwserData"
     />
     <videoCallAnwserer
-        v-if="activeFriend && showAnwserer"
+        v-if="activeFriend && phone.startsWith('137')"
         :friend="activeFriend"
         :socket="websocket"
         :offer-data="videocallOfferData"
@@ -85,6 +86,9 @@ import comentQuote from '@/components/comentQuote.vue'
 import { ElNotification } from 'element-plus'
 import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
+
+// 测试数据
+const phone = ref(sessionStorage.getItem('phone'))
 
 let chatBox = ref([])
 // websocket 客户端
