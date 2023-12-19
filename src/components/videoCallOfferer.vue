@@ -17,8 +17,9 @@
 
 <script setup>
 import VueDragResize from 'vue-drag-resize'
-import { onMounted, ref, defineProps, watch } from 'vue'
+import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
 // import { ElNotification } from 'element-plus'
+const emit = defineEmits(['destroy'])
 const props = defineProps({
     socket: {
         type: Object,
@@ -93,42 +94,6 @@ watch(() => props.anwserData, (newVal) => {
 
 
 async function start() {
-
-    // eslint-disable-next-line no-constant-condition
-    // if (true) {
-    //         const notify = ElNotification({
-    //         message: h('div', { class: 'custom-notification' }, [
-    //             h('div', {class: 'custom-notification-title'}, '用户来电通知'),
-    //             h('div', {class: 'custom-notification-box'}, [
-    //                 h('a', {
-    //                     class: 'custom-notification-button-confirm',
-    //                     onClick: () => {
-    //                         // sendRequestConfig.data = 'ok'
-    //                         // props.socket.send(JSON.stringify(sendRequestConfig))
-    //                         console.log('ok')
-    //                         notify.close()
-    //                     }
-    //                 }, '确定'),
-    //                 h('a', {
-    //                     class: 'custom-notification-button-cancel',
-    //                     onClick: () => {
-    //                         // sendRequestConfig.data = 'cancel'
-    //                         // props.socket.send(JSON.stringify(sendRequestConfig))
-    //                         console.log('cancel')
-    //                         notify.close()
-    //                     }
-    //                 }, '取消'),
-    //             ]),
-                
-    //         ]),
-    //         duration: 0,
-    //         showClose: false,
-    //         customClass: 'custom-notification-class',
-    //         // icon: h('img', { src: require('../assets/videoCall.png') }),
-    //     })
-    //     return
-    // }
-    
     localpeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
     localStream = await navigator.mediaDevices.getUserMedia(constraints)
     document.getElementById('local-video').srcObject = localStream
@@ -193,6 +158,9 @@ function listenResponse(data) {
         sendOffer()
     } else {
         console.log('对方拒绝视频通话')
+        localpeerConnection.close()
+        localStream.getTracks().forEach(track => track.stop())
+        emit('destroy', true)
     }
 }
 
@@ -208,54 +176,5 @@ function listenResponse(data) {
     position: absolute;
     right: 0;
     border-radius: 4px;
-}
-</style>
-
-
-<style lang="scss">
-.custom-notification-class {
-    padding: 10px 0;
-    .el-notification__group {
-        flex: 1;
-    }
-    .custom-notification {
-        display: flex;
-        align-items: center;
-        .custom-notification-title {
-            font-size: 16px;
-            font-weight: bold;
-            flex: 1;
-        }
-        .custom-notification-box {
-            // width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            .custom-notification-button-confirm {
-                display: inline-block;
-                background: #0087ff;
-                width: 52px;
-                text-align: center;
-                padding: 3px;
-                // margin: 10px 0;
-                margin-bottom: 10px;
-                border-radius: 3px;
-                box-shadow: 1px 1px 1px #ddd;
-                color: #fff;
-            }
-            .custom-notification-button-cancel {
-                display: inline-block;
-                background: #E6E8EB;
-                width: 52px;
-                text-align: center;
-                padding: 3px;
-                // margin: 10px 0;
-                border-radius: 3px;
-                box-shadow: 1px 1px 1px #ddd;
-                color: #303133;
-            }
-        }
-    }
-
 }
 </style>

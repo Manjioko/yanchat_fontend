@@ -61,18 +61,20 @@
         :friend="activeFriend"
         :socket="websocket"
         :anwser-data="videocallAnwserData"
+        @destroy="destroyVideoCallOfferer"
     />
     <videoCallAnwserer
         v-if="activeFriend && showAnwserer"
         :friend="activeFriend"
         :socket="websocket"
         :offer-data="videocallOfferData"
+        @destroy="destroyVideoCallAnwserer"
     />
 </template>
 
 <script setup>
 
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h } from 'vue'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws.js'
 import friendsList from '@/components/friendsList.vue'
@@ -367,10 +369,58 @@ function centerVideoCallAnwser(chatData) {
     // showOfferer.value = true
 }
 
+function destroyVideoCallOfferer() {
+    showOfferer.value = false
+}
+
+function destroyVideoCallAnwserer() {
+    showAnwserer.value = false
+}
+
 function centerVideoCallRequest(chatData) {
-    videocallOfferData.value = chatData
-    showAnwserer.value = true
+    // videocallOfferData.value = chatData
+    // showAnwserer.value = true
     console.log('请求数据是 ->', chatData)
+    const notify = ElNotification({
+        message: h('div', { class: 'custom-notification' }, [
+            h('div', {class: 'custom-notification-title'}, '用户来电通知'),
+            h('div', {class: 'custom-notification-box'}, [
+                h('a', {
+                    class: 'custom-notification-button-confirm',
+                    onClick: () => {
+                        // sendRequestConfig.data = 'ok'
+                        // props.socket.send(JSON.stringify(sendRequestConfig))
+                        console.log('ok')
+                        videocallOfferData.value = chatData
+                        showAnwserer.value = true
+                        notify.close()
+                    }
+                }, '确定'),
+                h('a', {
+                    class: 'custom-notification-button-cancel',
+                    onClick: () => {
+                        videocallOfferData.value = {
+                            ...chatData,
+                            // 拒绝接通
+                            reject: true
+                        }
+                        showAnwserer.value = true
+                        
+                        notify.close()
+                    }
+                }, '取消'),
+            ]),
+            
+        ]),
+        duration: 0,
+        showClose: false,
+        customClass: 'custom-notification-class',
+        position: 'bottom-right',
+        icon: h('img', {
+            src: require('../assets/video_notify.png'),
+            class: 'notify-img'
+        }),
+    })
 }
 
 function centerVideoCallResponse(chatData) {
@@ -715,5 +765,62 @@ function handleQuoteClose() {
 :deep .el-textarea__inner {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     resize: none;
+}
+</style>
+
+<style lang="scss">
+.custom-notification-class {
+    padding: 10px 0;
+    align-items: center;
+    .el-icon {
+        width: 20%;
+        .notify-img {
+            width: 47px;
+        }
+    }
+    .el-notification__group {
+        flex: 1;
+    }
+    .custom-notification {
+        display: flex;
+        align-items: center;
+        .custom-notification-title {
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+        }
+        .custom-notification-box {
+            // width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            .custom-notification-button-confirm {
+                display: inline-block;
+                background: #0087ff;
+                width: 52px;
+                text-align: center;
+                padding: 3px;
+                // margin: 10px 0;
+                margin-bottom: 10px;
+                border-radius: 3px;
+                box-shadow: 1px 1px 1px #ddd;
+                color: #fff;
+                cursor: pointer;
+            }
+            .custom-notification-button-cancel {
+                display: inline-block;
+                background: #E6E8EB;
+                width: 52px;
+                text-align: center;
+                padding: 3px;
+                // margin: 10px 0;
+                border-radius: 3px;
+                box-shadow: 1px 1px 1px #ddd;
+                color: #303133;
+                cursor: pointer;
+            }
+        }
+    }
+
 }
 </style>

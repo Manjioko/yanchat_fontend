@@ -17,7 +17,8 @@
 
 <script setup>
 import VueDragResize from 'vue-drag-resize'
-import { onMounted, ref, defineProps, watch } from 'vue'
+import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
+const emit = defineEmits(['destroy'])
 const props = defineProps({
     socket: {
         type: Object,
@@ -87,7 +88,11 @@ watch(() => props.offerData, (newVal) => {
         listenIcecandidate(newVal.data)
     }
     if (newVal && newVal.type === 'request') {
-        ok.value = true
+        if (newVal.reject) {
+            ok.value = false
+        } else {
+            ok.value = true
+        }
     }
 }, {
     immediate: true
@@ -95,21 +100,30 @@ watch(() => props.offerData, (newVal) => {
 
 
 async function start() {
-    localpeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
-    localStream = await navigator.mediaDevices.getUserMedia(constraints)
-    document.getElementById('local-video').srcObject = localStream
-    
-    localStream.getTracks().forEach((track) => {
-        localpeerConnection.addTrack(track, localStream)
-    })
-    sendIcecandidate()
-    playRemote()
     if (ok.value) {
+        localpeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
+        localStream = await navigator.mediaDevices.getUserMedia(constraints)
+        document.getElementById('local-video').srcObject = localStream
+        
+        localStream.getTracks().forEach((track) => {
+            localpeerConnection.addTrack(track, localStream)
+        })
+        sendIcecandidate()
+        playRemote()
         props.socket.send(JSON.stringify({
             ...sendResponseConfig,
             data: 'ok'
         }))
-    } 
+        return
+    }
+
+    props.socket.send(JSON.stringify({
+        ...sendResponseConfig,
+        data: 'reject'
+    }))
+
+    emit('destroy', true)
+  
 }
 
 onMounted(() => {
