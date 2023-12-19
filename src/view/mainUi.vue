@@ -88,7 +88,7 @@ import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
 
 // 测试数据
-const phone = ref(sessionStorage.getItem('phone'))
+// const phone = ref(sessionStorage.getItem('phone'))
 
 let chatBox = ref([])
 // websocket 客户端
