@@ -40,6 +40,7 @@
             <section style="position: relative;">
                 <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" @close="handleQuoteClose" />
                 <SendFoot
+                v-if="activeFriend"
                 :upload-disable="!!activeFriend"
                 :quote="comment"
                 @center="Center"
@@ -64,7 +65,7 @@
         @destroy="destroyVideoCallOfferer"
     />
     <videoCallAnwserer
-        v-if="activeFriend && showAnwserer"
+        v-if="showAnwserer"
         :friend="activeFriend"
         :socket="websocket"
         :offer-data="videocallOfferData"
@@ -296,6 +297,7 @@ function Center(chatData, type) {
     // 结束视频通话
     if (type === 'videoCallLeave') {
         console.log('video call event3 -> ', type)
+        centerVideoCallLeave(chatData)
     }
 
     // 视频通话请求
@@ -381,9 +383,13 @@ function centerVideoCallRequest(chatData) {
     // videocallOfferData.value = chatData
     // showAnwserer.value = true
     console.log('请求数据是 ->', chatData)
+    const id = chatData.user_id
+    const friends = JSON.parse(sessionStorage.getItem('user_info'))?.friends ?? '[]'
+    console.log('好友是 -》 ', friends)
+    const userName = JSON.parse(friends).find(i => i.user_id === id)?.user ?? ''
     const notify = ElNotification({
         message: h('div', { class: 'custom-notification' }, [
-            h('div', {class: 'custom-notification-title'}, '用户来电通知'),
+            h('div', {class: 'custom-notification-title'}, `好友 ${userName} 请求与你视频通话`),
             h('div', {class: 'custom-notification-box'}, [
                 h('a', {
                     class: 'custom-notification-button-confirm',
@@ -424,6 +430,15 @@ function centerVideoCallRequest(chatData) {
 }
 
 function centerVideoCallResponse(chatData) {
+    videocallAnwserData.value = chatData
+}
+
+// 结束通话中转
+function centerVideoCallLeave(chatData) {
+    if (chatData.from === 'offerer') {
+        videocallOfferData.value = chatData
+        return
+    }
     videocallAnwserData.value = chatData
 }
 
@@ -788,6 +803,10 @@ function handleQuoteClose() {
             font-size: 16px;
             font-weight: bold;
             flex: 1;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            width: 40px;
         }
         .custom-notification-box {
             // width: 100%;

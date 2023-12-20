@@ -6,11 +6,16 @@
         :x="100"
         :y="100"
         :isResizable="false"
-        :z="99999"
+        :z="9"
     >
-        <div class="vide-container">
-            <video id="local-video" autoplay playsinline></video>
-            <video id="remote-video" autoplay playsinline></video>
+        <div class="video-box">
+            <div v-if="showStopIcon" style="z-index: 10;" class="stop-call" @click="stopToCall">
+                <img src="../assets/stop_call.png" class="stop-call-icon" alt="stop call">
+            </div>
+            <div class="vide-container">
+                <video id="local-video" autoplay playsinline></video>
+                <video id="remote-video" autoplay playsinline></video>
+            </div>
         </div>
     </VueDragResize>
 </template>
@@ -76,27 +81,43 @@ const sendRequestConfig = {
     data: null
 }
 
+const sendLeaveConfig = {
+    event: 'videoCallLeave',
+    type: 'leave',
+    user_id,
+    to_table: props.friend.to_table,
+    to_id: props.friend.id,
+    data: null
+}
+
 watch(() => props.anwserData, (newVal) => {
     if (newVal && newVal.type === 'anwser') {
         // localpeerConnection.setRemoteDescription(new RTCSessionDescription(newVal.data))
-        console.log('answer', newVal.data )
+        // console.log('answer', newVal.data )
         listenAnswer(newVal.data)
     }
     if (newVal && newVal.type === 'candidate') {
-        console.log('ice -> ', newVal.data)
+        // console.log('ice -> ', newVal.data)
         // localpeerConnection.addIceCandidate(new RTCIceCandidate(newVal.data))
         listenIcecandidate(newVal.data)
     }
     if (newVal && newVal.type === 'response') {
         listenResponse(newVal.data)
     }
+    if (newVal && newVal.type === 'leave') {
+        disconnectVideoCall()
+    }
 })
 
-
+const showStopIcon = ref(false)
 async function start() {
     localpeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
     localStream = await navigator.mediaDevices.getUserMedia(constraints)
-    document.getElementById('local-video').srcObject = localStream
+    const videoEl = document.getElementById('local-video')
+    videoEl.addEventListener('playing', () => {
+        showStopIcon.value = true
+    })
+    videoEl.srcObject = localStream
     localStream.getTracks().forEach((track) => {
         localpeerConnection.addTrack(track, localStream)
     })
@@ -157,11 +178,28 @@ function listenResponse(data) {
     if (data === 'ok') {
         sendOffer()
     } else {
-        console.log('对方拒绝视频通话')
+        // console.log('对方拒绝视频通话')
         localpeerConnection.close()
         localStream.getTracks().forEach(track => track.stop())
         emit('destroy', true)
     }
+}
+
+function disconnectVideoCall() {
+    localpeerConnection.close()
+    localStream.getTracks().forEach(track => track.stop())
+    emit('destroy', true)
+}
+
+// 点击结束通话按钮
+function stopToCall() {
+    console.log('结束通话 1')
+    props.socket.send(JSON.stringify({
+        ...sendLeaveConfig,
+        from: 'offerer',
+        to: 'anwserer'
+    }))
+    disconnectVideoCall()
 }
 
 </script>
@@ -176,5 +214,23 @@ function listenResponse(data) {
     position: absolute;
     right: 0;
     border-radius: 4px;
+}
+.video-box {
+    position: relative;
+    .stop-call {
+        width: 80px;
+        height: 80px;
+        background: #ff5151bf;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        bottom: 20px;
+        left: 43%;
+        img {
+            width: 50px;
+        }
+    }
 }
 </style>
