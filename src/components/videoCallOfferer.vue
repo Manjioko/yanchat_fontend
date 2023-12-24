@@ -23,8 +23,11 @@
 <script setup>
 import VueDragResize from 'vue-drag-resize'
 import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
+import { timeFormat, getUseTime } from '@/utils/timeFormat.js'
+import { v4 as uuidv4 } from 'uuid'
+
 // import { ElNotification } from 'element-plus'
-const emit = defineEmits(['destroy'])
+const emit = defineEmits(['destroy', 'center'])
 const props = defineProps({
     socket: {
         type: Object,
@@ -173,10 +176,12 @@ async function listenIcecandidate(candidate) {
     }
     
 }
-
+// 计时
+let startTime = null
 function listenResponse(data) {
     if (data === 'ok') {
         sendOffer()
+        startTime = new Date().getTime()
     } else {
         // console.log('对方拒绝视频通话')
         localpeerConnection.close()
@@ -189,6 +194,18 @@ function disconnectVideoCall() {
     localpeerConnection.close()
     localStream.getTracks().forEach(track => track.stop())
     emit('destroy', true)
+    // 处理通话时长显示
+    const uuid = uuidv4()
+    console.log('time -> ', new Date().getTime(), startTime)
+    const timeMsg = getUseTime(startTime, new Date().getTime()).toString()
+    const dataOb = {
+        type: 'text',
+        text: `通话时长为 ${timeMsg}`,
+        user: 1,
+        time: timeFormat(),
+        chat_id: uuid
+    }
+    emit('center', dataOb, 'sent')
 }
 
 // 点击结束通话按钮
@@ -199,7 +216,9 @@ function stopToCall() {
         from: 'offerer',
         to: 'anwserer'
     }))
+    
     disconnectVideoCall()
+
 }
 
 </script>

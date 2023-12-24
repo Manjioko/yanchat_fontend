@@ -63,6 +63,7 @@
         :socket="websocket"
         :anwser-data="videocallAnwserData"
         @destroy="destroyVideoCallOfferer"
+        @center="Center"
     />
     <videoCallAnwserer
         v-if="showAnwserer"
@@ -71,6 +72,14 @@
         :offer-data="videocallOfferData"
         @destroy="destroyVideoCallAnwserer"
     />
+    <!-- 铃声 -->
+    <!-- <audio class="audio"
+        src="../assets/audio/call.mp3"
+        controls
+        id="audioCall"
+        hidden="true"
+    >
+    </audio> -->
 </template>
 
 <script setup>
@@ -160,7 +169,7 @@ function Center(chatData, type) {
 
     // 发送消息
     if (type === 'sent') {
-        // console.log('发送信息 -> ', chatData, websocket.value)
+        console.log('发送信息 -> ', chatData, websocket.value)
         if (!websocket.value) {
             ElNotification({
                 type: 'error',
@@ -225,6 +234,12 @@ function Center(chatData, type) {
         // 等待 pong, 显示 loading 图标
         if (!('progress' in chatData)) {
             chatData.loading = true   
+        } else {
+            newChatData.value = {
+                // isUnread 为 1时标记为未读，0 时标记为已读需要展示
+                isUnread: 0,
+                chat: chatData
+            }
         }
         const stopLoading = watchEffect(() => {
             if (chatData.loading === false) {

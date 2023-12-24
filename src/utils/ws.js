@@ -1,4 +1,4 @@
-const MAX_RETRIES = 3
+const MAX_RETRIES = 10
 let retryCount = 0
 
 // 第一次再确认断开连接后,需要在 2 分钟后再重新尝试连接
@@ -107,7 +107,7 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             console.log('正在重连 websocket ...')
             retryCount++
             connectWebSocket(ws, url, appendMessage, signal)
-        }, 5000)
+        }, 500)
     }
 
     ws.value.onerror = function () {

@@ -14,3 +14,27 @@ export function timeFormat() {
     const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     return formattedDate
 }
+
+export function getUseTime(startTIme, endTime) {
+    const time = endTime - startTIme
+    if (typeof time !== 'number' || time < 0) {
+        return false
+    }
+    // 将毫秒转换为秒
+    var seconds = Math.floor(time / 1000);
+  
+    // 计算小时、分钟和剩余秒数
+    var hours = Math.floor(seconds / 3600);
+    var minutes = Math.floor((seconds % 3600) / 60);
+    var remainingSeconds = seconds % 60;
+
+    const pad = (number) => {
+        return (number < 10 ? '0' : '') + number;
+    }
+  
+    // 格式化字符串
+    var formattedTime = pad(hours) + ':' + pad(minutes) + ':' + pad(remainingSeconds);
+  
+    return formattedTime;
+}
+
