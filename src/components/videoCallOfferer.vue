@@ -183,28 +183,32 @@ function listenResponse(data) {
         sendOffer()
         startTime = new Date().getTime()
     } else {
-        // console.log('对方拒绝视频通话')
-        localpeerConnection.close()
-        localStream.getTracks().forEach(track => track.stop())
-        emit('destroy', true)
+       disconnectVideoCall('通话未连接') 
     }
 }
 
-function disconnectVideoCall() {
+function disconnectVideoCall(rejectMessage) {
     localpeerConnection.close()
     localStream.getTracks().forEach(track => track.stop())
     emit('destroy', true)
     // 处理通话时长显示
     const uuid = uuidv4()
-    console.log('time -> ', new Date().getTime(), startTime)
-    const timeMsg = getUseTime(startTime, new Date().getTime()).toString()
-    const dataOb = {
+    // 发送消息还有一种情况,就是发送给自己的和发送到对面的不是同一文本
+    let dataOb = {
         type: 'text',
-        text: `通话时长为 ${timeMsg}`,
+        text: '',
         user: 1,
         time: timeFormat(),
         chat_id: uuid
     }
+    
+    if (!startTime) {
+        dataOb.text = rejectMessage || '通话未接通'
+    } else {
+        const timeMsg = getUseTime(startTime, new Date().getTime()).toString()
+        dataOb.text = `通话时长为 ${timeMsg}`
+    }
+
     emit('center', dataOb, 'sent')
 }
 
