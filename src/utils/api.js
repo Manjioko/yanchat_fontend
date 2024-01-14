@@ -11,6 +11,7 @@ service.interceptors.request.use(config => {
     if (token) {
         // console.log('token 是 -> ', token)
         config.headers['Authorization'] = 'Bearer ' + token
+        console.log('headers -> ', config)
     } else {
         console.log('token 不存在')
     }
@@ -47,6 +48,7 @@ service.interceptors.response.use(res => {
 
 export function request (ob) {
     // const { url, params, data, method } = ob
+    console.log('ob是 -> ', ob)
     return service({
         ...ob
     })
@@ -62,10 +64,12 @@ export const api = {
     addFri: '/addFriend', // 新增好友
     unread: '/unread', // 获取未读信息
     file: '/uploadFile', // 上传文件
+    sliceFile: '/uploadSliceFile', // 上传切片文件
     chatData: '/chatData', // 获取聊天记录
     deleteChat: '/deleteChat', // 删除聊天记录
     refreshToken: '/refreshToken', // 更新refreshToken
     quote: '/quote', // 获取引用
     source: '/source', // 文件资源
-    verifyAuth: '/verifyAuth' // 用于更新 token
+    verifyAuth: '/verifyAuth', // 用于更新 token
+    joinFile: '/joinFile' // 确认合并文件
 }

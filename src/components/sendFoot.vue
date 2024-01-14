@@ -36,7 +36,11 @@ import { timeFormat } from '@/utils/timeFormat.js'
 import byteCovert from '@/utils/byteCovert.js'
 import { api } from '@/utils/api'
 // import router from '@/router/router'
-import { upload } from '@/utils/download'
+import { 
+    // upload,
+    // uploadSlice
+    uploadSlice
+} from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
@@ -88,6 +92,11 @@ function sendMessage(chatData) {
     // 清空聊天框
     chatText.value = ''
 }
+
+// 文件分段上传测试
+function uploadSliceFile(file, cb) {
+    uploadSlice.handleFile(file, cb)
+}
 // 文件上传
 function uploadFile(e) {
     const formData = new FormData()
@@ -110,10 +119,8 @@ function uploadFile(e) {
     })
     // 发送信息到文本框
     sendMessage(box)
-    // 清空 targt,不然上传同一个文件会没有反应
-    e.target.value = null
-
-    upload(api.file, formData, function(err, progress, response) {
+    console.log('e.target.files[0] -> ', e.target.files[0])
+    uploadSliceFile(e.target.files[0], function(err, progress, response) {
         if (err) {
             box.progress = 0
             box.response = ''
@@ -125,10 +132,30 @@ function uploadFile(e) {
         }
 
         if (response) {
-            box.response = response.data
+            box.response = response
             box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response.data}`
         }
+
     })
+
+    // 清空 targt,不然上传同一个文件会没有反应
+    e.target.value = null
+    // upload(api.file, formData, function(err, progress, response) {
+    //     if (err) {
+    //         box.progress = 0
+    //         box.response = ''
+    //         return
+    //     }
+
+    //     if (progress) {
+    //         box.progress = progress
+    //     }
+
+    //     if (response) {
+    //         box.response = response.data
+    //         box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response.data}`
+    //     }
+    // })
 }
 
 // 视频通话
