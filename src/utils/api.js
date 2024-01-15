@@ -48,7 +48,7 @@ service.interceptors.response.use(res => {
 
 export function request (ob) {
     // const { url, params, data, method } = ob
-    console.log('ob是 -> ', ob)
+    // console.log('ob是 -> ', ob)
     return service({
         ...ob
     })

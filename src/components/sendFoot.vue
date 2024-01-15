@@ -119,7 +119,7 @@ function uploadFile(e) {
     })
     // 发送信息到文本框
     sendMessage(box)
-    console.log('e.target.files[0] -> ', e.target.files[0])
+    // console.log('e.target.files[0] -> ', e.target.files[0])
     uploadSliceFile(e.target.files[0], function(err, progress, response) {
         if (err) {
             box.progress = 0
