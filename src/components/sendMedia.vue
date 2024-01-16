@@ -31,12 +31,13 @@
             </div>
             <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
             <img v-if="thumbnail" :src="thumbnail" class="video-style">
+            <div v-else>视频加载出现了一些问题</div>
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
             <el-image
                 class="img-style"
                 ref="image"
-                :src="mediaSrc"
+                :src="thumbnail"
                 :zoom-rate="1.2"
                 :preview-src-list="[mediaSrc]"
                 fit="cover"
@@ -346,8 +347,9 @@ function handleElImageErr() {
     }
     .video-style {
         max-width: 400px;
+        min-width: 150px;
         max-height: 300px;
-        border-radius: 10px;
+        // border-radius: 3px;
     }
     .stop-to-play {
         background-image: url('../assets/play.png');
@@ -363,8 +365,9 @@ function handleElImageErr() {
         // background-color: red;
     }
     .img-style {
-        max-width: 120px;
-        border-radius: 10px;
+        max-width: 400px;
+        min-width: 150px;
+        // border-radius: 3px;
     }
     .progress {
         position: absolute;
@@ -392,7 +395,7 @@ function handleElImageErr() {
         display: flex;
         justify-content: center;
         align-items: center;
-        border-radius: 10px;
+        // border-radius: 10px;
         background: black;
         opacity: 0.5;
         z-index: 1;

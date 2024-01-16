@@ -8,7 +8,10 @@
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
                         <div class="quote-and-box-style-remote">
                             <div class="chat-box-remote-message">
-                                <span class="chat-box-remote-message-text">
+                                <span
+                                    class="chat-box-remote-message-text"
+                                    :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image')}"
+                                >
                                     <div
                                         v-if="textObject.type === 'text'"
                                         v-html="textToMarkdown(textObject.text)"
@@ -63,7 +66,10 @@
                         </el-icon>
                         
                         <div class="quote-and-box-style-local">
-                            <span class="chat-box-local-message">
+                            <span
+                                class="chat-box-local-message"
+                                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image')}"
+                            >
                                 <div
                                     v-if="textObject.type === 'text'"
                                     v-html="textToMarkdown(textObject.text)"
@@ -406,6 +412,9 @@ function handleQuote(idx) {
         background: #EBF3FE;
         border-radius: 10px 10px 0px 10px;
         user-select: text;
+    }
+    .not-padding {
+        padding: 0;
     }
 }
 // hljs 代码块设置背景色
