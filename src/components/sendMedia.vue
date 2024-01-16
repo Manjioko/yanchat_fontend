@@ -18,7 +18,7 @@
             data-menu-video
         >
             <div :class="{'gray-background' : stopIconShow, 'not-allow': !options.length}">
-                <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"  @click="playVideo"></div>
+                <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"></div>
             </div>
             <div class="progress" v-if="progress < 100">
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
@@ -91,9 +91,9 @@ const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 const scrollBar = inject('scrollBar')
 
 // 视频播放示意 icon
-function handleIcon() {
-    stopIconShow.value = !stopIconShow.value
-}
+// function handleIcon() {
+//     stopIconShow.value = !stopIconShow.value
+// }
 
 
 // 视频处理
@@ -118,6 +118,15 @@ watch(() => props.src, (val) => {
     }
 }, {
     immediate: true
+})
+
+
+watch(() => showVideo.value, (val) => {
+    if (val) {
+        stopIconShow.value = false
+    } else {
+        stopIconShow.value = true
+    }
 })
 
 
@@ -147,26 +156,26 @@ function loadEmit() {
 // const isVideoLoad = ref(false)
 onMounted(() => {
     if (props.type.includes('video')) {
-        video.value.addEventListener('loadeddata',loadEmit)
+        video.value?.addEventListener('loadeddata', loadEmit)
     }
 })
 onUnmounted(() => {
-    video.value && video.value.removeEventListener('loadeddata', loadEmit)
+    video.value && video.value?.removeEventListener('loadeddata', loadEmit)
 })
 
 // 视频播放暂停锁
 const stopIconShow = ref(true)
 
 // 视频播放控制事件
-function playVideo() {
-    // showVideo.value = true
-    if (!options.value.length) return
-    if (props.progress < 100) return
-    video.value.play()
-    video.value.muted = false
-    stopIconShow.value = false
-    video.value.addEventListener('ended', handleIcon)
-}
+// function playVideo() {
+//     // showVideo.value = true
+//     if (!options.value.length) return
+//     if (props.progress < 100) return
+//     video.value.play()
+//     video.value.muted = false
+//     stopIconShow.value = false
+//     video.value.addEventListener('ended', handleIcon)
+// }
 
 // 视频暂停播放控制
 // function stopVideo() {

@@ -657,7 +657,10 @@ async function handleWithdraw (idx) {
         method: 'post',
         url: api.deleteChat,
         data: {
-            chat: chatBox.value[idx],
+            chat: {
+                ...chatBox.value[idx],
+                thumbnail: '', // 缩略图可能很大,撤回并不需要带那么大的东西会后台
+            },
         }
     }))
     if (err) {

@@ -80,6 +80,7 @@
                                     :src="handleSendMediaSrc(textObject)"
                                     :response="textObject.response"
                                     :fileName="textObject.fileName"
+                                    :thumbnail="textObject.thumbnail"
                                     :data-index="idx"
                                     :user="textObject.user"
                                     @withdraw="emitWithdraw"
