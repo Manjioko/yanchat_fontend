@@ -18,7 +18,7 @@
             data-menu-video
         >
             <div :class="{'gray-background' : stopIconShow, 'not-allow': !options.length}">
-                <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"  @click="playVideo"></div>
+                <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"></div>
             </div>
             <div class="progress" v-if="progress < 100">
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
@@ -29,13 +29,15 @@
                     </template>
                 </el-progress>
             </div>
-            <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" />
+            <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
+            <img v-if="thumbnail" :src="thumbnail" class="video-style">
+            <div v-else>视频加载出现了一些问题</div>
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
             <el-image
                 class="img-style"
                 ref="image"
-                :src="mediaSrc"
+                :src="thumbnail"
                 :zoom-rate="1.2"
                 :preview-src-list="[mediaSrc]"
                 fit="cover"
@@ -82,16 +84,17 @@ const props = defineProps({
     response: String,
     fileName: String,
     dataIndex: Number,
-    user: Number
+    user: Number,
+    thumbnail: String
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
 const scrollBar = inject('scrollBar')
 
 // 视频播放示意 icon
-function handleIcon() {
-    stopIconShow.value = !stopIconShow.value
-}
+// function handleIcon() {
+//     stopIconShow.value = !stopIconShow.value
+// }
 
 
 // 视频处理
@@ -116,6 +119,15 @@ watch(() => props.src, (val) => {
     }
 }, {
     immediate: true
+})
+
+
+watch(() => showVideo.value, (val) => {
+    if (val) {
+        stopIconShow.value = false
+    } else {
+        stopIconShow.value = true
+    }
 })
 
 
@@ -145,33 +157,33 @@ function loadEmit() {
 // const isVideoLoad = ref(false)
 onMounted(() => {
     if (props.type.includes('video')) {
-        video.value.addEventListener('loadeddata',loadEmit)
+        video.value?.addEventListener('loadeddata', loadEmit)
     }
 })
 onUnmounted(() => {
-    video.value && video.value.removeEventListener('loadeddata', loadEmit)
+    video.value && video.value?.removeEventListener('loadeddata', loadEmit)
 })
 
 // 视频播放暂停锁
 const stopIconShow = ref(true)
 
 // 视频播放控制事件
-function playVideo() {
-    // showVideo.value = true
-    if (!options.value.length) return
-    if (props.progress < 100) return
-    video.value.play()
-    video.value.muted = false
-    stopIconShow.value = false
-    video.value.addEventListener('ended', handleIcon)
-}
+// function playVideo() {
+//     // showVideo.value = true
+//     if (!options.value.length) return
+//     if (props.progress < 100) return
+//     video.value.play()
+//     video.value.muted = false
+//     stopIconShow.value = false
+//     video.value.addEventListener('ended', handleIcon)
+// }
 
 // 视频暂停播放控制
-function stopVideo() {
-    video.value.removeEventListener('ended', handleIcon)
-    video.value.pause()
-    stopIconShow.value = true
-}
+// function stopVideo() {
+//     video.value.removeEventListener('ended', handleIcon)
+//     video.value.pause()
+//     stopIconShow.value = true
+// }
 
 // 双击事件
 function doubleclick() {
@@ -335,8 +347,9 @@ function handleElImageErr() {
     }
     .video-style {
         max-width: 400px;
+        min-width: 150px;
         max-height: 300px;
-        border-radius: 10px;
+        // border-radius: 3px;
     }
     .stop-to-play {
         background-image: url('../assets/play.png');
@@ -352,8 +365,9 @@ function handleElImageErr() {
         // background-color: red;
     }
     .img-style {
-        max-width: 120px;
-        border-radius: 10px;
+        max-width: 400px;
+        min-width: 150px;
+        // border-radius: 3px;
     }
     .progress {
         position: absolute;
@@ -381,7 +395,7 @@ function handleElImageErr() {
         display: flex;
         justify-content: center;
         align-items: center;
-        border-radius: 10px;
+        // border-radius: 10px;
         background: black;
         opacity: 0.5;
         z-index: 1;

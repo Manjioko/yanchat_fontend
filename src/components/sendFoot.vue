@@ -42,6 +42,7 @@ import {
     uploadSlice
 } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
+import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail.js'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
@@ -98,7 +99,7 @@ function uploadSliceFile(file, cb) {
     uploadSlice.handleFile(file, cb)
 }
 // 文件上传
-function uploadFile(e) {
+async function uploadFile(e) {
     const formData = new FormData()
     formData.append("file", e.target.files[0])
     const size = byteCovert(e.target.files[0]?.size)
@@ -115,11 +116,25 @@ function uploadFile(e) {
         response: '',
         user: 1,
         src: '',
+        thumbnail: '',
         chat_id: uuid
     })
     // 发送信息到文本框
     sendMessage(box)
-    // console.log('e.target.files[0] -> ', e.target.files[0])
+    // console.log('e.target.files[0] -> ', box.type)
+    // 获取缩略图
+    if (box.type.includes('video')) {
+        // console.log('video -> ', 'video')
+        const getURL = window.URL.createObjectURL(e.target.files[0])
+        const thumbnail = await getVideoBase64(getURL)
+        box.thumbnail = thumbnail
+    }
+    if (box.type.includes('image')) {
+        const getURL = window.URL.createObjectURL(e.target.files[0])
+        const thumbnail = await getImageBase64(getURL)
+        box.thumbnail = thumbnail
+        console.log('image -> ', thumbnail)
+    }
     uploadSliceFile(e.target.files[0], function(err, progress, response) {
         if (err) {
             box.progress = 0
@@ -252,4 +267,4 @@ function videoCall() {
         width: 18px;
     }
 }
-</style>
+</style>@/utils/thumbnail.js
