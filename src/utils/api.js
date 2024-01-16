@@ -11,7 +11,7 @@ service.interceptors.request.use(config => {
     if (token) {
         // console.log('token 是 -> ', token)
         config.headers['Authorization'] = 'Bearer ' + token
-        console.log('headers -> ', config)
+        // console.log('headers -> ', config)
     } else {
         console.log('token 不存在')
     }
