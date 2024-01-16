@@ -13,7 +13,8 @@
         </div>
         <section class="pr-word">
             <div class="pr-message">{{ fileName }}</div>
-            <div class="pr-tip">{{ progress < 100 ? '正在上传' : size }}</div>
+            <div class="pr-tip" v-if="destroy">{{ '上传失败' }}</div>
+            <div class="pr-tip" v-else>{{ progress < 100 ? '正在上传' : size }}</div>
         </section>
         <section class="pr-container">
             <div v-if="type === 'application/x-zip-compressed'">
@@ -53,7 +54,8 @@ const props = defineProps({
     size: String,
     response: String,
     dataIndex: Number,
-    user: Number
+    user: Number,
+    destroy: String
 })
 const downloadProgress = ref(null)
 
