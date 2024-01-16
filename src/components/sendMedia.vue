@@ -29,7 +29,8 @@
                     </template>
                 </el-progress>
             </div>
-            <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" />
+            <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
+            <img v-if="thumbnail" :src="thumbnail" class="video-style">
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
             <el-image
@@ -82,7 +83,8 @@ const props = defineProps({
     response: String,
     fileName: String,
     dataIndex: Number,
-    user: Number
+    user: Number,
+    thumbnail: String
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
@@ -167,11 +169,11 @@ function playVideo() {
 }
 
 // 视频暂停播放控制
-function stopVideo() {
-    video.value.removeEventListener('ended', handleIcon)
-    video.value.pause()
-    stopIconShow.value = true
-}
+// function stopVideo() {
+//     video.value.removeEventListener('ended', handleIcon)
+//     video.value.pause()
+//     stopIconShow.value = true
+// }
 
 // 双击事件
 function doubleclick() {

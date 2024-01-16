@@ -42,6 +42,7 @@ import {
     uploadSlice
 } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
+import getThumbnail from '@/utils/getImageFromVideo.js'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
@@ -115,11 +116,19 @@ function uploadFile(e) {
         response: '',
         user: 1,
         src: '',
+        thumbnail: '',
         chat_id: uuid
     })
     // 发送信息到文本框
     sendMessage(box)
     // console.log('e.target.files[0] -> ', e.target.files[0])
+    // 获取缩略图
+    if (box.type.includes('video')) {
+        getThumbnail(e.target.files[0])
+        .then(res => {
+            box.thumbnail = res
+        })
+    }
     uploadSliceFile(e.target.files[0], function(err, progress, response) {
         if (err) {
             box.progress = 0
