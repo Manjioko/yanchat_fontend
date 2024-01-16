@@ -226,6 +226,10 @@ function Center(chatData, type) {
                     // }
                     stop()
                 }
+                if (chatData.destroy) {
+                    console.log('mainUI 上传失败提示!')
+                    websocket.value.send(JSON.stringify(chatData))
+                }
             })
         } else {
             websocket.value.send(JSON.stringify(chatData))

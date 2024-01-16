@@ -43,6 +43,7 @@ import {
 } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail.js'
+import { ElNotification } from 'element-plus'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
@@ -117,6 +118,7 @@ async function uploadFile(e) {
         user: 1,
         src: '',
         thumbnail: '',
+        destroy: false,
         chat_id: uuid
     })
     // 发送信息到文本框
@@ -139,6 +141,12 @@ async function uploadFile(e) {
         if (err) {
             box.progress = 0
             box.response = ''
+            box.destroy = true
+            ElNotification({
+                type: 'error',
+                title: '上传提示',
+                message: '上传失败!'
+            })
             return
         }
 

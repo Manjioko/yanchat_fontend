@@ -20,7 +20,7 @@
             <div :class="{'gray-background' : stopIconShow, 'not-allow': !options.length}">
                 <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"></div>
             </div>
-            <div class="progress" v-if="progress < 100">
+            <div class="progress" v-if="progress && progress < 100">
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
@@ -74,8 +74,11 @@ import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import download from '@/utils/download.js'
 import menu from '@/utils/contextMenu.js'
-import { request, api } from '@/utils/api'
-import { to } from 'await-to-js'
+import { 
+    // request,
+     api 
+    } from '@/utils/api'
+// import { to } from 'await-to-js'
 
 const props = defineProps({
     progress: Number,
@@ -107,6 +110,8 @@ const showVideo = ref(false)
 const mediaSrc = ref('')
 const downloadProgress = ref(null)
 
+const options = ref([])
+
 watch(() => downloadProgress.value, (val) => {
     if (val >= 100) {
         downloadProgress.value = null
@@ -116,6 +121,8 @@ watch(() => downloadProgress.value, (val) => {
 watch(() => props.src, (val) => {
     if (val) {
         getSource()
+    } else {
+        console.log('没有src')
     }
 }, {
     immediate: true
@@ -299,25 +306,33 @@ function onContextMenuImg(e) {
     menu(e, menuList)
 }
 
-const options = ref([])
 async function getSource() {
-    const [err, res] = await to(request({
-        method: 'get',
-        responseType: 'arraybuffer',
-        url: `${api.source}/${props.response}`,
-    }))
-    if (err) return 
-    if (res.status === 200) {
-        const blob = new Blob([res.data], { type: props.type })
-        const newUrl = URL.createObjectURL(blob)
-        // mediaSrc 如果不设置 type 的话,无法在 video-player 上正确识别
-        // 所以通过 options 这种方式实现
-        options.value = [{
-            type: props.type.includes('video') ? 'video/mp4' : props.type,
-            src: newUrl
-        }]
-        mediaSrc.value = newUrl
-    }
+    // const [err, res] = await to(request({
+    //     method: 'get',
+    //     responseType: 'arraybuffer',
+    //     url: `${api.source}/${props.response}`,
+    // }))
+    // console.log('err -> ', err)
+    // if (err) return
+    // if (res.status === 200) {
+    //     const blob = new Blob([res.data], { type: props.type })
+    //     const newUrl = URL.createObjectURL(blob)
+    //     // mediaSrc 如果不设置 type 的话,无法在 video-player 上正确识别
+    //     // 所以通过 options 这种方式实现
+    //     options.value = [{
+    //         type: props.type.includes('video') ? 'video/mp4' : props.type,
+    //         src: newUrl
+    //     }]
+    //     mediaSrc.value = newUrl
+    // }
+
+    const src =`${sessionStorage.getItem('baseUrl')}${api.source}/${props.response}`
+    console.log('src -> ', src)
+    options.value = [{
+        type: props.type.includes('video') ? 'video/mp4' : props.type,
+        src
+    }]
+    mediaSrc.value = src
 }
 
 function handleElImageErr() {
@@ -420,14 +435,14 @@ function handleElImageErr() {
         height: 70px;
         color: #ddd;
         cursor: not-allowed;
-        background-image: url('../assets/jingzhi.png');
+        background-image: url('../assets/err_load.svg');
         background-repeat: no-repeat;
         background-position: 50%;
         background-size: 70px;
     }
     .not-allow {
         cursor: not-allowed;
-        background-image: url('../assets/jingzhi.png');
+        background-image: url('../assets/err_load.svg');
         background-repeat: no-repeat;
         background-repeat: no-repeat;
         background-position: 50%;

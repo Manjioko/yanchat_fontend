@@ -224,6 +224,13 @@ class uploadSliceClass {
 
         // 尝试 5 次后, 如果还是失败, 则直接提示失败
         this.cb(new Error('文件上传失败'))
+        request({
+            url: api.clearDir,
+            method: 'post',
+            data: {
+                dirName: this.uid
+            }
+        })
     }
 
     // 处理文件,发送切片

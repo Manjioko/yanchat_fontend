@@ -71,5 +71,6 @@ export const api = {
     quote: '/quote', // 获取引用
     source: '/source', // 文件资源
     verifyAuth: '/verifyAuth', // 用于更新 token
-    joinFile: '/joinFile' // 确认合并文件
+    joinFile: '/joinFile', // 确认合并文件
+    clearDir: 'clearDir' // 清空文件夹
 }
