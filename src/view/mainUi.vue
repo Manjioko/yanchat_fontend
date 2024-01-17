@@ -98,6 +98,7 @@ import comentQuote from '@/components/comentQuote.vue'
 import { ElNotification } from 'element-plus'
 import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
+import localforage from 'localforage'
 
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
@@ -512,11 +513,21 @@ function notifyToWindow(textOb) {
 
 // 选择好友
 const activeFriend = ref(null)
-function handleActiveFriend(f) {
+async function handleActiveFriend(f) {
+    console.log('旧好友 -> ', activeFriend.value)
+    console.log('新好友 -> ', f)
+    localforage.setItem(activeFriend.value.user_id, JSON.stringify(chatBox.value))
+    const getSavededChatBox = await localforage.getItem(f.user_id)
+    // 设置好友信息
     activeFriend.value = f
-    // console.log('切换 -》 ')
-    isGetChatHistory = true
-    getChatFromServer(true)
+    if (getSavededChatBox) {
+        chatBox.value = JSON.parse(getSavededChatBox)
+        localforage.removeItem(f.user_id)
+    } else {
+        // console.log('切换 -》 ')
+        isGetChatHistory = true
+        getChatFromServer(true)
+    }
 }
 
 function handleChatData(data) {
