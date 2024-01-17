@@ -26,7 +26,7 @@
                 <img v-if="progress >= 100" src="../assets/uploadedFile.png" alt="uploadingZipFile" width="49">
             </div>
             <div class="progress" v-if="progress < 100">
-                <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="2" :width="22">
+                <el-progress v-if="progress" type="circle" :percentage="progress || 0" color="#fff" :stroke-width="2" :width="22">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
                             <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">

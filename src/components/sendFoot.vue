@@ -135,7 +135,6 @@ async function uploadFile(e) {
         const getURL = window.URL.createObjectURL(e.target.files[0])
         const thumbnail = await getImageBase64(getURL)
         box.thumbnail = thumbnail
-        console.log('image -> ', thumbnail)
     }
     uploadSliceFile(e.target.files[0], function(err, progress, response) {
         if (err) {

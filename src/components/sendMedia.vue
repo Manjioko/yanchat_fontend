@@ -34,10 +34,19 @@
             <div v-else>视频加载出现了一些问题</div>
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
+            <div class="progress" v-if="progress && progress < 100">
+                <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
+                    <template #default="{ percentage }">
+                        <div v-if="percentage" class="pr-text">
+                            <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
+                        </div>
+                    </template>
+                </el-progress>
+            </div>
             <el-image
                 class="img-style"
                 ref="image"
-                :src="thumbnail"
+                :src="thumbnail || mediaSrc"
                 :zoom-rate="1.2"
                 :preview-src-list="[mediaSrc]"
                 fit="cover"
@@ -121,8 +130,6 @@ watch(() => downloadProgress.value, (val) => {
 watch(() => props.src, (val) => {
     if (val) {
         getSource()
-    } else {
-        console.log('没有src')
     }
 }, {
     immediate: true
@@ -327,7 +334,7 @@ async function getSource() {
     // }
 
     const src =`${sessionStorage.getItem('baseUrl')}${api.source}/${props.response}`
-    console.log('src -> ', src)
+    // console.log('src -> ', src)
     options.value = [{
         type: props.type.includes('video') ? 'video/mp4' : props.type,
         src
