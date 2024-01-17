@@ -406,6 +406,16 @@ function centerVideoCallRequest(chatData) {
     const friends = JSON.parse(sessionStorage.getItem('user_info'))?.friends ?? '[]'
     console.log('好友是 -》 ', friends)
     const userName = JSON.parse(friends).find(i => i.user_id === id)?.user ?? ''
+    const rejectfn = (notify) => {
+        videocallOfferData.value = {
+            ...chatData,
+            // 拒绝接通
+            reject: true
+        }
+        showAnwserer.value = true
+        
+        notify?.close()
+    }
     const notify = ElNotification({
         message: h('div', { class: 'custom-notification' }, [
             h('div', {class: 'custom-notification-title'}, `好友 ${userName} 请求与你视频通话`),
@@ -424,14 +434,15 @@ function centerVideoCallRequest(chatData) {
                 h('a', {
                     class: 'custom-notification-button-cancel',
                     onClick: () => {
-                        videocallOfferData.value = {
-                            ...chatData,
-                            // 拒绝接通
-                            reject: true
-                        }
-                        showAnwserer.value = true
+                        // videocallOfferData.value = {
+                        //     ...chatData,
+                        //     // 拒绝接通
+                        //     reject: true
+                        // }
+                        // showAnwserer.value = true
                         
-                        notify.close()
+                        // notify.close()
+                        rejectfn(notify)
                     }
                 }, '取消'),
             ]),
@@ -446,6 +457,13 @@ function centerVideoCallRequest(chatData) {
             class: 'notify-img'
         }),
     })
+
+    // 1 分钟后自动拒绝
+    setTimeout(() => {
+        if (!videocallOfferData.value) {
+            rejectfn(notify)
+        }
+    }, 1000 * 60)
 }
 
 function centerVideoCallResponse(chatData) {
