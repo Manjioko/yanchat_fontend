@@ -387,7 +387,7 @@ function handleElImageErr() {
         // background-color: red;
     }
     .img-style {
-        max-width: 400px;
+        max-width: 250px;
         min-width: 150px;
         // border-radius: 3px;
     }

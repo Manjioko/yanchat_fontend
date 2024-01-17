@@ -24,7 +24,7 @@ function getVideoBase64(url, compressRatio = 0.19) {
             canvas.width = width
             canvas.height = height
             canvas.getContext("2d").drawImage(video,0,0,width,height)//绘制
-            dataURL = canvas.toDataURL("image/jpeg")//转换成base64
+            dataURL = canvas.toDataURL("image/jpeg", 0.1)//转换成base64
             // 清除video标签
             video = null
             //将拿到的dataURL地址传入这个resolve函数 很重要 通过这个resolve函数，实例出来的对象调用then方法可以拿到这个resolve的结果
@@ -34,7 +34,7 @@ function getVideoBase64(url, compressRatio = 0.19) {
 }
 
 
-function getImageBase64(url, compressRatio = 0.05) {
+function getImageBase64(url, compressRatio = 0.3) {
     return new Promise ((resolve) => {
         let dataURL = ""
         let image = new Image()
@@ -54,7 +54,7 @@ function getImageBase64(url, compressRatio = 0.05) {
             canvas.width = width
             canvas.height = height
             canvas.getContext("2d").drawImage(image,0,0,width,height)//绘制
-            dataURL = canvas.toDataURL("image/jpeg")//转换成base64
+            dataURL = canvas.toDataURL("image/jpeg", 0.1)//转换成base64
             // 清除image标签
             image = null
             //将拿到的dataURL地址传入这个resolve函数 很重要 通过这个resolve函数，实例出来的对象调用then方法可以拿到这个resolve的结果
