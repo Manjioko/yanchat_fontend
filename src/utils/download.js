@@ -13,6 +13,7 @@ export default function download(url, name, cb) {
         url,
         method: 'get',
         responseType: 'arraybuffer',
+        timeout: 10 * 60 * 1000, // 下载一些大文件,可能需要很长时间,这里设置 10 分钟
         onDownloadProgress: progressFn
     }).then(res => {
         const blob = new Blob([res.data])

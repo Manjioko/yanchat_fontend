@@ -7,11 +7,11 @@
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
                         <div class="quote-and-box-style-remote">
-                            <div class="chat-box-remote-message">
-                                <span
-                                    class="chat-box-remote-message-text"
-                                    :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image')}"
-                                >
+                            <div
+                                class="chat-box-remote-message"
+                                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image')}"
+                            >
+                                <span class="chat-box-remote-message-text">
                                     <div
                                         v-if="textObject.type === 'text'"
                                         v-html="textToMarkdown(textObject.text)"
@@ -30,6 +30,7 @@
                                         :fileName="textObject.fileName"
                                         :thumbnail="textObject.thumbnail"
                                         :data-index="idx"
+                                        :destroy="textObject.destroy"
                                         :user="textObject.user"
                                         @withdraw="emitWithdraw"
                                         @deleted="emitDeleted"
@@ -89,6 +90,7 @@
                                     :fileName="textObject.fileName"
                                     :thumbnail="textObject.thumbnail"
                                     :data-index="idx"
+                                    :destroy="textObject.destroy"
                                     :user="textObject.user"
                                     @withdraw="emitWithdraw"
                                     @deleted="emitDeleted"

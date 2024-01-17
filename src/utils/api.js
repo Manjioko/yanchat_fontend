@@ -47,10 +47,11 @@ service.interceptors.response.use(res => {
 })
 
 export function request (ob) {
-    // const { url, params, data, method } = ob
+    const { timeout:customTimeout, ...rest } = ob
     // console.log('ob是 -> ', ob)
     return service({
-        ...ob
+        timeout: customTimeout || service.defaults.timeout, // 超时时间
+        ...rest
     })
 }
 

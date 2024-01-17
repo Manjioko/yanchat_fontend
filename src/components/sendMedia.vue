@@ -17,7 +17,7 @@
             @contextmenu.prevent="onContextMenu"
             data-menu-video
         >
-            <div :class="{'gray-background' : stopIconShow, 'not-allow': !options.length}">
+            <div :class="{'gray-background' : stopIconShow, 'not-allow': destroy }">
                 <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"></div>
             </div>
             <div class="progress" v-if="progress && progress < 100">
@@ -46,7 +46,7 @@
             <el-image
                 class="img-style"
                 ref="image"
-                :src="thumbnail || mediaSrc"
+                :src="thumbnail"
                 :zoom-rate="1.2"
                 :preview-src-list="[mediaSrc]"
                 fit="cover"
@@ -54,9 +54,7 @@
                 @error="handleElImageErr"
             >
             <template #error>
-                <div class="image-slot">
-                    <!-- <icon-picture class="image-slot" /> -->
-                </div>
+                <div v-if="destroy" class="image-slot"></div>
             </template>
             </el-image>
         </div>
@@ -97,7 +95,8 @@ const props = defineProps({
     fileName: String,
     dataIndex: Number,
     user: Number,
-    thumbnail: String
+    thumbnail: String,
+    destroy: String,
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
