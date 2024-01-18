@@ -96,7 +96,7 @@ const props = defineProps({
     dataIndex: Number,
     user: Number,
     thumbnail: String,
-    destroy: String,
+    destroy: Boolean,
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 

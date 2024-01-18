@@ -55,7 +55,7 @@ const props = defineProps({
     response: String,
     dataIndex: Number,
     user: Number,
-    destroy: String
+    destroy: Boolean
 })
 const downloadProgress = ref(null)
 
