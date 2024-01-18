@@ -424,9 +424,6 @@ function handleLoaded(index) {
         border-radius: 10px 10px 0px 10px;
         user-select: text;
     }
-    .not-padding {
-        padding: 0;
-    }
 }
 // hljs 代码块设置背景色
 :deep .hljs {
@@ -458,5 +455,8 @@ function handleLoaded(index) {
     align-self: center;
     margin-right: 7px;
     width: 12px;
-} 
+}
+.not-padding {
+    padding: 0 !important;
+}
 </style>
