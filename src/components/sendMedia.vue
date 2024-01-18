@@ -30,7 +30,7 @@
                 </el-progress>
             </div>
             <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
-            <img v-if="thumbnail" :src="thumbnail" class="video-style">
+            <img v-if="thumbnail" :src="thumbnail" class="video-style" @load="loadEmit" @error="handleElImageErr">
             <div v-else>视频加载出现了一些问题</div>
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
@@ -76,7 +76,7 @@
 
 </template>
 <script setup>
-import { defineProps, ref, defineEmits, onMounted, onUnmounted, inject, watch, nextTick } from 'vue'
+import { defineProps, ref, defineEmits, inject, watch, nextTick } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import download from '@/utils/download.js'
@@ -110,7 +110,7 @@ const scrollBar = inject('scrollBar')
 
 // 视频处理
 // 视频 ref
-const video = ref()
+// const video = ref()
 // 图片 ref
 const image = ref()
 // 用于点击时弹出视频
@@ -153,29 +153,30 @@ function loadEmit() {
     // 使用 getBoundingClientRect 方法来获取元素的位置,然后与父元素的高度进行比较
     // 就可以确定元素是否在聊天框的可视范围之内,如果在可视范围指南,则需要将元素加载后的高度
     // 附加到父元素的 scrollTop 上，这样就可以解决定位错乱的问题
-    if (props.type.includes('video')) {
-        const videoRect = video.value.getBoundingClientRect()
-        if (videoRect.top > chatWindowRect.top) {
-            scrollBar.value.wrapRef.scrollTop += video.value.clientHeight
-        }
-    }
+    // if (props.type.includes('video')) {
+    //     const videoRect = video.value.getBoundingClientRect()
+    //     if (videoRect.top > chatWindowRect.top) {
+    //         scrollBar.value.wrapRef.scrollTop += video.value.clientHeight
+    //     }
+    // }
     if (props.type.includes('image'))  {
         const imageRect = image.value.$el.getBoundingClientRect()
         if (imageRect.top > chatWindowRect.top) {
             scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight
         }
     }
+    emit('loaded', props.dataIndex)
 }
 
 // const isVideoLoad = ref(false)
-onMounted(() => {
-    if (props.type.includes('video')) {
-        video.value?.addEventListener('loadeddata', loadEmit)
-    }
-})
-onUnmounted(() => {
-    video.value && video.value?.removeEventListener('loadeddata', loadEmit)
-})
+// onMounted(() => {
+//     if (props.type.includes('video')) {
+//         video.value?.addEventListener('loadeddata', loadEmit)
+//     }
+// })
+// onUnmounted(() => {
+//     video.value && video.value?.removeEventListener('loadeddata', loadEmit)
+// })
 
 // 视频播放暂停锁
 const stopIconShow = ref(true)
@@ -222,10 +223,10 @@ const videoMenu = [
     {
         label: '静音播放',
         onClick: () => {
-            if (!options.value.length) return
-            video.value.play()
-            video.value.muted = true
-            stopIconShow.value = false
+            // if (!options.value.length) return
+            // video.value.play()
+            // video.value.muted = true
+            // stopIconShow.value = false
         }
     },
     {

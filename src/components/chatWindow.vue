@@ -35,6 +35,7 @@
                                         @withdraw="emitWithdraw"
                                         @deleted="emitDeleted"
                                         @quote="handleQuote"
+                                        @loaded="handleLoaded"
                                     />
                                     <sendFile
                                         v-else
@@ -95,6 +96,7 @@
                                     @withdraw="emitWithdraw"
                                     @deleted="emitDeleted"
                                     @quote="handleQuote"
+                                    @loaded="handleLoaded"
                                 />
                                 <sendFile
                                     v-else
@@ -304,6 +306,11 @@ function handleSelfError() {
 function handleQuote(idx) {
     console.log('handleQuote')
     emit('quote', idx)
+}
+
+// 图片加载完成后处理
+function handleLoaded(index) {
+    emit('loaded', index)
 }
 </script>
 <style lang="scss" scoped>

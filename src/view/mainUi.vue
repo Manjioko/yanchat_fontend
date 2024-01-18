@@ -33,6 +33,7 @@
                 @deleted="handleDeleted"
                 @withdraw="handleWithdraw"
                 @quote="handleQuote"
+                @loaded="handleLoaded"
             />
             <section class="zero-friend" v-else>
                 还未选择聊天好友
@@ -104,6 +105,8 @@ import localforage from 'localforage'
 // const phone = ref(sessionStorage.getItem('phone'))
 
 let chatBox = ref([])
+// 当前聊天框滚动的 scrollTop 值
+let boxScrolltop = 0
 // websocket 客户端
 let websocket = ref({})
 const userInfo = ref({
@@ -155,7 +158,7 @@ function getRefreshToken() {
             }
         }))
         if (!err) {
-            console.log('新 refreshToken -> ', res.data)
+            // console.log('新 refreshToken -> ', res.data)
             sessionStorage.setItem('RefreshToken', res.data.refreshToken)
         }
     }, 1000 * 60 * 60)
@@ -170,7 +173,7 @@ function Center(chatData, type) {
 
     // 发送消息
     if (type === 'sent') {
-        console.log('发送信息 -> ', chatData, websocket.value)
+        // console.log('发送信息 -> ', chatData, websocket.value)
         if (!websocket.value) {
             ElNotification({
                 type: 'error',
@@ -228,7 +231,7 @@ function Center(chatData, type) {
                     stop()
                 }
                 if (chatData.destroy) {
-                    console.log('mainUI 上传失败提示!')
+                    // console.log('mainUI 上传失败提示!')
                     websocket.value.send(JSON.stringify(chatData))
                 }
             })
@@ -270,7 +273,7 @@ function Center(chatData, type) {
             }
             console.log('activeFriend.value -> ', activeFriend.value)
             if (chatData.user_id === activeFriend?.value?.id) {
-                console.log('发到自己的信息 -> ', chatData.type)
+                // console.log('发到自己的信息 -> ', chatData.type)
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
                 chatBox.value.push(chatData)
@@ -279,7 +282,7 @@ function Center(chatData, type) {
                     chat: chatData,
                 }
             } else {
-                console.log('发到别处的信息 -> ', chatData)
+                // console.log('发到别处的信息 -> ', chatData)
                 // 撤回信息不推送到好友栏
                 newChatData.value = {
                     isUnread: 1,
@@ -513,6 +516,8 @@ function notifyToWindow(textOb) {
 
 // 选择好友
 const activeFriend = ref(null)
+const imgLoadList = ref([])
+// const boxSavedOffset = 0
 async function handleActiveFriend(f) {
 
     // 切到新好友时,获取之前保存的聊天信息
@@ -520,23 +525,44 @@ async function handleActiveFriend(f) {
 
     // 切走之前,把数据保存到本地
     if (activeFriend.value) {
-        console.log('将数据保存到磁盘 -> ', activeFriend.value.name)
-        await localforage.setItem(activeFriend.value.id, JSON.stringify(chatBox.value))
+        // console.log('将数据保存到磁盘 -> ', activeFriend.value.name)
+        await localforage.setItem(activeFriend.value.id, JSON.stringify({ data: chatBox.value, offset: boxScrolltop }))
     }
 
     // 设置好友信息
     activeFriend.value = f
+    // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
+    isGetChatHistory = true
 
     // 将保存信息加载到聊天框
     if (getSavededChatBox) {
         console.log('内存保存了 -> ', f.name)
+        const { data, offset } = JSON.parse(getSavededChatBox)
         chatBox.value = []
-        chatBox.value = JSON.parse(getSavededChatBox)
-        // localforage.removeItem(f.id)
+        chatBox.value = data || []
+        nextTick(() => {
+            data.forEach((d, i) => {
+                if (d.type.includes('video') || d.type.includes('image')) {
+                    imgLoadList.value.push(i)
+                }
+            })
+            
+            // console.log('offset 设置 -> ', offset, imgLoadList)
+            if (imgLoadList.value.length) {
+                const isAllLoadedStop = watchEffect(() => {
+                if (imgLoadList.value.length === 0) {
+                        // console.log('所有图片加载完成 -> ', imgLoadList.value)
+                        chatWindow.value.scrollBar.setScrollTop(offset)
+                        isAllLoadedStop()
+                    }
+                })
+            } else {
+                chatWindow.value.scrollBar.setScrollTop(offset)
+            }
+        })
     } else {
         // 没有就加载聊天信息
-        console.log('内存没有保存 -> ', f.name)
-        isGetChatHistory = true
+        // console.log('内存没有保存 -> ', f.name)
         getChatFromServer(true)
     }
 }
@@ -608,19 +634,16 @@ async function getChatFromServer(isSwitchFriend) {
     const { data, offset } = res.data
     // offsetOb[activeFriend.value.to_table] = offset
     offsetData[activeFriend.value.to_table] = offset
+    // console.log('offsetData[activeFriend.value.to_table] -> ', offset)
     await localforage.setItem('offsetOb', JSON.stringify(offsetData))
     // console.log('聊天记录 -> ', res.data)
     if (Array.isArray(data)) {
         const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
         const chatData = handleChatData(data)
-        // chatBox.value = [...chatData, ...chatBox.value]
         chatBox.value.unshift(...chatData)
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-            // console.log('end_sp -> ', end_sp - start_sp, chatWindow.value.scrollBar.wrapRef)
             chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
-            // eslint-disable-next-line no-debugger
-            // debugger
         })
     }
 
@@ -637,7 +660,8 @@ async function getChatFromServer(isSwitchFriend) {
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val) {
-    // console.log('handleScroll', val)
+    // console.log('handleScroll isGetChatHistory -> ', isGetChatHistory)
+    boxScrolltop = val.scrollTop
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
         scrollAntiShakeFn()
     }
@@ -663,7 +687,7 @@ function handleAvatarChange(url) {
 
 // 更新好友信息
 function handleNickNameChange(fri) {
-    console.log('好友信息 -> ', fri)
+    // console.log('好友信息 -> ', fri)
     userInfo.value = fri
     sessionStorage.setItem('user_info', JSON.stringify(fri))
     userFriends = JSON.parse(fri.friends)
@@ -742,6 +766,18 @@ async function handleQuote (idx) {
 function handleQuoteClose() {
     comment.value = ''
     showQuote.value = false
+}
+
+// 处理图片加载完成事件
+function handleLoaded(boxindex) {
+    // console.log('加载完成 -> ', boxindex)
+    if (imgLoadList.value.length) {
+        const fdidx = imgLoadList.value.findIndex(f => f === boxindex)
+        if (fdidx !== -1) {
+            imgLoadList.value.splice(fdidx, 1)
+        }
+    }
+    // chatBox.value[index].loaded = true
 }
 </script>
 
