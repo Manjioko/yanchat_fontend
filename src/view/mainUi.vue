@@ -514,17 +514,28 @@ function notifyToWindow(textOb) {
 // 选择好友
 const activeFriend = ref(null)
 async function handleActiveFriend(f) {
-    console.log('旧好友 -> ', activeFriend.value)
-    console.log('新好友 -> ', f)
-    localforage.setItem(activeFriend.value.user_id, JSON.stringify(chatBox.value))
-    const getSavededChatBox = await localforage.getItem(f.user_id)
+
+    // 切到新好友时,获取之前保存的聊天信息
+    const getSavededChatBox = await localforage.getItem(f.id)
+
+    // 切走之前,把数据保存到本地
+    if (activeFriend.value) {
+        console.log('将数据保存到磁盘 -> ', activeFriend.value.name)
+        await localforage.setItem(activeFriend.value.id, JSON.stringify(chatBox.value))
+    }
+
     // 设置好友信息
     activeFriend.value = f
+
+    // 将保存信息加载到聊天框
     if (getSavededChatBox) {
+        console.log('内存保存了 -> ', f.name)
+        chatBox.value = []
         chatBox.value = JSON.parse(getSavededChatBox)
-        localforage.removeItem(f.user_id)
+        // localforage.removeItem(f.id)
     } else {
-        // console.log('切换 -》 ')
+        // 没有就加载聊天信息
+        console.log('内存没有保存 -> ', f.name)
         isGetChatHistory = true
         getChatFromServer(true)
     }
@@ -554,7 +565,7 @@ const chatWindow = ref()
 let isGetChatHistory = true
 
 // 从服务器获取聊天记录
-const offsetOb = {}
+// const offsetOb = {}
 async function getChatFromServer(isSwitchFriend) {
     // console.log('get -> ', isSwitchFriend, isGetChatHistory)
     if (!isGetChatHistory) return
@@ -574,12 +585,16 @@ async function getChatFromServer(isSwitchFriend) {
 
     // let chatBoxLen = chatBox.value.length
 
+    const offsetDataStr = await localforage.getItem('offsetOb')
+    const offsetData = JSON.parse(offsetDataStr) || {}
+    // 从服务器拉取聊天记录
     const [err, res] = await to(request({
         method: 'post',
         url: api.chatData,
         data: {
             chat_table: activeFriend.value.to_table,
-            offset: offsetOb[activeFriend.value.to_table] || 0,
+            // offset: offsetOb[activeFriend.value.to_table] || 0,
+            offset: offsetData[activeFriend.value.to_table] || 0,
             user_id: sessionStorage.getItem('user_id')
         }
     }))
@@ -591,7 +606,9 @@ async function getChatFromServer(isSwitchFriend) {
 
     if (res.status !== 200) return
     const { data, offset } = res.data
-    offsetOb[activeFriend.value.to_table] = offset
+    // offsetOb[activeFriend.value.to_table] = offset
+    offsetData[activeFriend.value.to_table] = offset
+    await localforage.setItem('offsetOb', JSON.stringify(offsetData))
     // console.log('聊天记录 -> ', res.data)
     if (Array.isArray(data)) {
         const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
