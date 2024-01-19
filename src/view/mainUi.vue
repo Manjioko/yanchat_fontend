@@ -522,30 +522,31 @@ async function handleActiveFriend(f) {
 
     const user_id = sessionStorage.getItem('user_id')
 
+    // 如果 localstorage 存在值,证明之前刷新的时候保存下来的,取值优先用刷新时留下的
+    // 为什么不统一使用 localforage, 是因为 localforage 是异步操作, unload 时
+    // 可能异步操作还没做完,页面已经关闭,所以只能通过 localstorage 去替代操作
+    let boxData = localStorage.getItem(user_id + f.id)
+    let offsetData = localStorage.getItem(user_id + 'offsetOb')
 
-    // 切到新好友时,获取之前保存的聊天信息
-    let getSavededChatBox = await localforage.getItem(user_id + f.id)
-    let offsetDataStr = await localforage.getItem(user_id + 'offsetOb')
-    offsetOb = JSON.parse(offsetDataStr) || offsetOb
+    if (boxData && offsetData) {
+        offsetOb = JSON.parse(offsetData) || offsetOb
+
+        // 取出来值后需要销毁
+        localStorage.removeItem(user_id + f.id)
+        localStorage.removeItem(user_id + 'offsetOb')
+    } else {
+        // 切到新好友时,获取之前保存的聊天信息
+        boxData = await localforage.getItem(user_id + f.id)
+        offsetData = await localforage.getItem(user_id + 'offsetOb')
+        offsetOb = JSON.parse(offsetData) || offsetOb
+    }
+    
 
     // 切走之前,把数据保存到本地
     if (activeFriend.value) {
         // console.log('将数据保存到磁盘 -> ', activeFriend.value.name)
         await localforage.setItem(user_id + activeFriend.value.id, JSON.stringify({ data: chatBox.value, offset: boxScrolltop }))
         await localforage.setItem(user_id + 'offsetOb', JSON.stringify(offsetOb))
-    } else {
-        // 如果 activeFriend 值为空,可以简单判断为,用户刚进入聊天页面,还没点击好友栏
-        // 如果 localstorage 存在值,证明之前刷新的时候保存下来的,取值优先用刷新时留下的
-        // 为什么不统一使用 localforage, 是因为 localforage 是异步操作, nload 时
-        // 可能异步操作还没做完,页面已经关闭,所以只能通过 localstorage 去替代操作
-        const boxData = localStorage.getItem(user_id + f.id)
-        const offsetData = localStorage.getItem(user_id + 'offsetOb')
-
-        if (boxData && offsetData) {
-            getSavededChatBox = boxData
-            offsetDataStr = offsetData
-            offsetOb = JSON.parse(offsetDataStr) || offsetOb
-        }
     }
 
     // 设置好友信息
@@ -554,9 +555,9 @@ async function handleActiveFriend(f) {
     isGetChatHistory = true
 
     // 将保存信息加载到聊天框
-    if (getSavededChatBox) {
-        console.log('内存保存了 -> ', f.name)
-        const { data, offset } = JSON.parse(getSavededChatBox)
+    if (boxData) {
+        console.log('磁盘存在记录 -> ', f.name)
+        const { data, offset } = JSON.parse(boxData)
         chatBox.value = []
         chatBox.value = data || []
         nextTick(() => {
@@ -795,10 +796,7 @@ function handleLoaded(boxindex) {
 function saveChatData() {
     // 切走之前,把数据保存到本地
     if (activeFriend.value) {
-        // 清空 localStorage
-        localStorage.clear()
         const user_id = sessionStorage.getItem('user_id')
-        // console.log('将数据保存到磁盘 -> ', activeFriend.value.name)
         localStorage.setItem(user_id + activeFriend.value.id, JSON.stringify({ data: chatBox.value, offset: boxScrolltop }))
         localStorage.setItem(user_id + 'offsetOb', JSON.stringify(offsetOb))
     }
