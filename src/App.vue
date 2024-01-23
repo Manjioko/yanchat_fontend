@@ -8,6 +8,7 @@
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
 // import cmain from './view/mainUi.vue'
+import '@/utils/indexDB.js'
 
 export default {
   name: 'App',
