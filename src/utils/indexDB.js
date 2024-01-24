@@ -1,4 +1,4 @@
-export function openDB(options) {
+export function dbOpen(options) {
     const { dbName = 'yanchat', version = 1, indexList = [], tableNameList = [], oldDb = null } = options
     return new Promise((resolve, reject) => {
         let newVersion
@@ -36,15 +36,35 @@ export function openDB(options) {
 export function dbAdd(db, tableName, data) {
     return new Promise((resolve, reject) => {
         if (!db || !data) return
-        const request = db
-        .transaction([tableName], 'readwrite')
-        .objectStore(tableName)
-        .add(data)
-        request.onsuccess = function(res) {
-            resolve(res.type)
-        }
-        request.onerror = err => {
-            reject(err.type)
+        if (Array.isArray(data)) {
+            const tran = db.transaction([tableName], 'readwrite')
+            const store = tran.objectStore(tableName)
+            
+            data.forEach(item => {
+                store.add(item)
+            })
+
+            // 事务完成
+            tran.oncomplete = res => {
+                resolve(res.type)
+            };
+
+            // 事务失败
+            tran.onerror = err => {
+                reject(err.type)
+            }
+            
+        } else {
+            const request = db
+            .transaction([tableName], 'readwrite')
+            .objectStore(tableName)
+            .add(data)
+            request.onsuccess = function(res) {
+                resolve(res.type)
+            }
+            request.onerror = err => {
+                reject(err.type)
+            }
         }
     })
 }
@@ -85,6 +105,7 @@ export function dbRead(db, tableName, field, searchStr) {
     })
 }
 
+// 精准搜索
 export function dbReadByIndex(db, tableName, indexName, searchStr) {
     return new Promise((resolve, reject) => {
         const transaction = db.transaction([tableName], 'readonly')
@@ -105,7 +126,47 @@ export function dbReadByIndex(db, tableName, indexName, searchStr) {
     })
 }
 
-openDB({
+// 删除数据库字段
+export function dbDelete(db, tableName, key) {
+    return new Promise((resolve, reject) => {
+        if (!db || !key) return
+        const request = db
+        .transaction([tableName], 'readwrite')
+        .objectStore(tableName)
+        .delete(key)
+        request.onsuccess = function(res) {
+            resolve(res.type)
+        }
+        request.onerror = err => {
+            reject(err.type)
+        }
+    })
+}
+
+// 更新数据库字段
+export function dbUpdate(db, tableName, data) {
+    return new Promise((resolve, reject) => {
+        if (!db || !data) return;
+        
+        const transaction = db.transaction([tableName], 'readwrite');
+        const objectStore = transaction.objectStore(tableName);
+
+        // 使用 key 参数来指定键
+        const request = objectStore.put(data);
+
+        request.onsuccess = function (event) {
+            console.log('更新成功 -> ', event);
+            resolve(event.type);
+        };
+
+        request.onerror = function (error) {
+            console.log('更新失败 -> ', error);
+            reject(error.type);
+        };
+    });
+}
+
+dbOpen({
     dbName: 'yanchat',
     version: 1,
     indexList: [
@@ -120,34 +181,5 @@ openDB({
     ],
     oldDb: null
 }).then(db => {
-    // dbAdd(db, 'yanchat_table1', {id: 2, name: 'fuckworld', type: 'video'})
-    // .then(res => {
-    //     console.log('success -> ', res)
-    // }).catch(err => {
-    //     console.log('err -> ', err)
-    // })
     console.log('db -> ', db)
-    // dbRead(db, 'yanchat_table1', 'id', 1).then(res => {
-    //     console.log('res -> ', res)
-    // })
-    // dbReadByIndex(db, 'yanchat_table1', 'id', 1).then(res => {
-    //     console.log('返回值 -> ', res)
-    // })
-    // if (db) {
-    //     openDB({
-    //         dbName: 'yanchat',
-    //         version: 2,
-    //         indexList: [
-    //             {
-    //                 name: 'id2',
-    //                 unique: true
-    //             }
-    //         ],
-    //         tableNameList: [
-    //             'yanchat_table3',
-    //             'yanchat_table4'
-    //         ],
-    //         oldDb: db
-    //     })
-    // }
 })
