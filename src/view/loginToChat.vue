@@ -5,6 +5,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
+// import { dbOpen } from '@/utils/indexDB'
+// dbOpen({})
 let router = ref('')
 // 用户输入的电话号码
 let phone = ref('')

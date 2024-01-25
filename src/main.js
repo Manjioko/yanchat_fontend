@@ -1,10 +1,12 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router/router.js'
+import store from '@/store'
 import 'element-plus/theme-chalk/index.css'
 import 'highlight.js/styles/github-dark.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import VueDragResize from 'vue-drag-resize'
+
 
 // sessionStorage.setItem('wsBaseUrl', 'wss://192.168.9.99')
 // sessionStorage.setItem('baseUrl', 'https://192.168.9.99')
@@ -16,6 +18,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 const app = createApp(App)
 app.component('vue-drag-resize', VueDragResize)
+app.use(store)
 app.use(router)
 // app.use(ContextMenu)
 app.mount('#app')
