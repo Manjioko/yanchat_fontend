@@ -42,7 +42,7 @@
 // import { InfoFilled } from '@element-plus/icons-vue'
 import download from '@/utils/download.js'
 // import ContextMenu from '@imengyu/vue3-context-menu'
-import menu from '@/utils/contextMenu.js'
+import menu from '@/utils/contextMenu'
 import { defineEmits, ref, watch } from 'vue'
 import { api } from '@/utils/api'
 // import { ElNotification } from 'element-plus'

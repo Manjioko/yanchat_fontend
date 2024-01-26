@@ -128,10 +128,10 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
-import menu from '@/utils/contextMenu.js'
+import menu from '@/utils/contextMenu'
 import comentQuote from './comentQuote.vue'
 import { WarningFilled } from '@element-plus/icons-vue'
-// import menu from '@/utils/contextMenu.js'
+// import menu from '@/utils/contextMenu'
 // import ContextMenu from '@imengyu/vue3-context-menu'
 
 const props = defineProps({

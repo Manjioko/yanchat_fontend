@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -6,8 +6,10 @@ import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 // import { dbOpen } from '@/utils/indexDB'
+// const op = {dbName: 'dddd', version: 1}
+// dbOpen(op)
 // dbOpen({})
-let router = ref('')
+let router = ref()
 // 用户输入的电话号码
 let phone = ref('')
 // 用户输入的密码
@@ -89,7 +91,7 @@ async function login() {
                 center: true,
             }
         ).then(() => {
-            register(user_data)
+            register()
         }).catch(err => {
             console.log(err)
         })
