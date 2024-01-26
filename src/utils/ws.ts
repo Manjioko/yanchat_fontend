@@ -1,3 +1,4 @@
+import { Ref } from "vue";
 const MAX_RETRIES = 10
 let retryCount = 0
 
@@ -9,12 +10,13 @@ const maxRefreshCount = 15
 // 每次 refresh 时间都是上次的 1.5 倍
 const perTime = 1.5
 
-function refreshConnectSocket() {
+function refreshConnectSocket(ws:Ref<WebSocket>, url:string, appendMessage:Function, signal:Ref<number>) {
     if (refreshCount < maxRefreshCount) {
         refreshCount++
         setTimeout(() => {
             console.log('重连机制刷新 -> ', refreshCount)
-            connectWebSocket(...arguments)
+            // eslint-disable-next-line prefer-rest-params
+            connectWebSocket(ws, url, appendMessage, signal)
             refreshTime = refreshTime * perTime
         }, refreshTime * 1000 * 60)
 
@@ -24,7 +26,7 @@ function refreshConnectSocket() {
     // connectWebSocket(...arguments)
 }
 
-function connectWebSocket(ws, url, appendMessage, signal) {
+function connectWebSocket(ws:Ref<WebSocket>, url:string, appendMessage:Function, signal:Ref<number>) {
     console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
         console.log('超过重连次数...')
@@ -34,7 +36,7 @@ function connectWebSocket(ws, url, appendMessage, signal) {
             retryCount = 0
             return
         } else {
-            ws.value = null
+            // ws.value = null
             signal.value = 2
             return
         }
@@ -52,9 +54,9 @@ function connectWebSocket(ws, url, appendMessage, signal) {
         refreshCount = 0
     }
 
-    ws.value.onmessage = function (event) {
+    ws.value.onmessage = function (event:any) {
         // console.log('message -> ', event.data)
-        let chatData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+        const chatData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
 
         switch (chatData.receivedType) {
             case 'deleted':
@@ -90,13 +92,13 @@ function connectWebSocket(ws, url, appendMessage, signal) {
                         chat_id: chatData.chat_id,
                         pingpong: 'pong'
                     }
-                    ws.value.send(JSON.stringify(pong))
+                    ws.value?.send(JSON.stringify(pong))
                 }
                 break;
         }
     }
 
-    ws.value.onclose = function (res) {
+    ws.value.onclose = function (res:any) {
         appendMessage('与WebSocket服务端的连接已关闭', 'received')
         signal.value = 0
         if (res.code && res.code == 4001) {
