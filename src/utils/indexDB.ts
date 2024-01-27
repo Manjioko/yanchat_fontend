@@ -4,9 +4,9 @@ import { DbOpenOptions } from '@/interface/indexDB'
 export function dbOpen(options: DbOpenOptions) {
    
     // const store = useStore()
-    const { dbName, version, indexList = [], tableNameList = [], oldDb = null } = options
+    const { dbName, version = 1, indexList = [], tableNameList = [], oldDb = null } = options
     return new Promise((resolve, reject) => {
-        let newVersion
+        let newVersion: number | null = null
         if (oldDb) {
             try {
                 newVersion = oldDb.version + 1
@@ -24,11 +24,12 @@ export function dbOpen(options: DbOpenOptions) {
             const result = (event.target as IDBOpenDBRequest).result
             console.log('成功 -> ', result)
             resolve(result)
-            // store.commit('namespeced/setDb', {
-            //     db: event.target.result,
-            //     dbName: dbName,
-            //     dbVersion: newVersion || version,
-            // })
+            vstore.commit('dataBase/setDb', {
+                db: result,
+                dbName: dbName,
+                dbVersion: newVersion || version,
+            })
+            console.log('vstore -> ',vstore)
         }
         request.onupgradeneeded = event => {
             

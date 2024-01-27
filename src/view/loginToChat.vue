@@ -79,6 +79,9 @@ async function login() {
 
             // 将电话号码保存起来, 测试用
             sessionStorage.setItem('phone', phone.value)
+            return
+
+        }
         ElMessageBox.confirm(
             '当前用户尚未注册，是否自动注册并登录？',
             'Warning',
@@ -94,62 +97,62 @@ async function login() {
             console.log(err)
         })
     }
-}
 
-async function register() {
-    // 校验手机号码
-    if(!(/^1[345678]\d{9}$/.test(phone.value))){
-        ElMessage({
-            message: `${phone.value}: 电话号格式有误`,
-            type: 'error',
-        })
-        return
-    }
-
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.register,
-        data: {
-            phone_number: phone.value,
-            password: pw.value
-        }
-    }))
-
-    if (err) {
-        console.log('注册错误：', err)
-        return
-    }
-
-    const { status, data } = res
-    const { user_data, auth } = data
-    // console.log(status, data)
-    if (status === 200) {
-        if (user_data === 'exist') {
+    async function register() {
+        // 校验手机号码
+        if (!(/^1[345678]\d{9}$/.test(phone.value))) {
             ElMessage({
-                message: `${phone.value} 已经注册过了！`,
+                message: `${phone.value}: 电话号格式有误`,
                 type: 'error',
             })
             return
         }
-        if (user_data === 'err') {
-            ElMessage({
-                message: `${phone.value} 注册失败！`,
-                type: 'error',
-            })
+
+        const [err, res] = await to(request({
+            method: 'post',
+            url: api.register,
+            data: {
+                phone_number: phone.value,
+                password: pw.value
+            }
+        }))
+
+        if (err) {
+            console.log('注册错误：', err)
             return
         }
-        sessionStorage.setItem('Token', auth?.token ?? '')
-        sessionStorage.setItem('RefreshToken', auth?.refreshToken ?? '')
-        sessionStorage.setItem('user_info', JSON.stringify(user_data))
-        // 保存 user_id 到 sessionStorage
-        sessionStorage.setItem('user_id', user_data.user_id)
 
-        ElMessage({
-            message: `${phone.value} 已经成功注册！`,
-            type: 'success',
-        })
+        const { status, data } = res
+        const { user_data, auth } = data
+        // console.log(status, data)
+        if (status === 200) {
+            if (user_data === 'exist') {
+                ElMessage({
+                    message: `${phone.value} 已经注册过了！`,
+                    type: 'error',
+                })
+                return
+            }
+            if (user_data === 'err') {
+                ElMessage({
+                    message: `${phone.value} 注册失败！`,
+                    type: 'error',
+                })
+                return
+            }
+            sessionStorage.setItem('Token', auth?.token ?? '')
+            sessionStorage.setItem('RefreshToken', auth?.refreshToken ?? '')
+            sessionStorage.setItem('user_info', JSON.stringify(user_data))
+            // 保存 user_id 到 sessionStorage
+            sessionStorage.setItem('user_id', user_data.user_id)
 
-        router.value.push({ name: 'Chat' })
+            ElMessage({
+                message: `${phone.value} 已经成功注册！`,
+                type: 'success',
+            })
+
+            router.value.push({ name: 'Chat' })
+        }
     }
 }
 
@@ -289,6 +292,7 @@ async function register() {
     font-weight: 500;
     padding: 20px 0;
 }
+
 .pw-err {
     text-align: end;
     font-size: 12px;

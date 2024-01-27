@@ -1,6 +1,6 @@
 export interface DbOpenOptions {
     dbName: string
-    version: number
+    version?: number
     indexList?: any[]
     tableNameList?: string[]
     oldDb?: IDBDatabase | null

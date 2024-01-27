@@ -80,6 +80,11 @@ import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
+import { dbOpen } from '@/utils/indexDB'
+// // 打开数据库
+// dbOpen({
+    
+// })
 const props = defineProps({
     friends: String,
     refreshChatDataOb: Object,
@@ -102,6 +107,8 @@ const friendsList = ref([
 
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+handleDdOperate(user_info)
+// console.log('user_info -> ', friends)
 const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
@@ -127,6 +134,24 @@ onMounted(() => {
         })
     })
 })
+
+// 数据库操作
+function handleDdOperate(userInfo) {
+    const friends = JSON.parse(userInfo.friends)
+    const indexList = [
+        { name: 'user_id', unique: true },
+        { name: 'table_id', unique: true },
+        { name: 'user', unique: false },
+        { name: 'phone_number', unique: true },
+        { name: 'chat', unique: false }
+    ]
+    const tableNameList = friends.map(item => item.user_id)
+    dbOpen({
+        dbName: user_info.user_id,
+        tableNameList,
+        indexList
+    })
+}
 
 let dShow = ref(false)
 const oldIdx = ref(null)
