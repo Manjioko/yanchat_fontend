@@ -1,5 +1,5 @@
 import ContextMenu from '@imengyu/vue3-context-menu'
-export default function onContextMenu(e, items, theme = 'flat') {
+export default function onContextMenu(e: MouseEvent, items:any, theme = 'flat') {
     //prevent the browser's default menu
     e.preventDefault()
     ContextMenu.showContextMenu({
@@ -12,6 +12,6 @@ export default function onContextMenu(e, items, theme = 'flat') {
     document.getElementsByClassName('mx-context-menu')[0].addEventListener('contextmenu', ptDefault)
   }
 
-  function ptDefault(e) {
+function ptDefault(e: any) {
     e.preventDefault()
 }

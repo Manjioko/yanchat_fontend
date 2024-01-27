@@ -79,8 +79,8 @@
 import { defineProps, ref, defineEmits, inject, watch, nextTick } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
-import download from '@/utils/download.js'
-import menu from '@/utils/contextMenu.js'
+import download from '@/utils/download'
+import menu from '@/utils/contextMenu'
 import { 
     // request,
      api 

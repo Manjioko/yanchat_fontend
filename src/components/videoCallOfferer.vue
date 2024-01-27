@@ -23,7 +23,7 @@
 <script setup>
 import VueDragResize from 'vue-drag-resize'
 import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
-import { timeFormat, getUseTime } from '@/utils/timeFormat.js'
+import { timeFormat, getUseTime } from '@/utils/timeFormat'
 import { v4 as uuidv4 } from 'uuid'
 
 // import { ElNotification } from 'element-plus'

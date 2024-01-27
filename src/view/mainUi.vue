@@ -87,9 +87,9 @@
 
 import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h } from 'vue'
 import ChatWindow from '@/components/chatWindow.vue'
-import ws from '@/utils/ws.js'
+import ws from '@/utils/ws'
 import friendsList from '@/components/friendsList.vue'
-import antiShake from '@/utils/antiShake.js'
+import antiShake from '@/utils/antiShake'
 import AppSetting from '@/components/appSetting.vue'
 import SendFoot from '@/components/sendFoot.vue'
 import router from '@/router/router'

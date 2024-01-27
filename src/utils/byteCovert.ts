@@ -1,7 +1,5 @@
 // 输入一个文件大小，转换成 KB MB GB 等更加直观的方式
-export default function byteCovert(size) {
-    if (typeof size !== 'number') return null
-    if (!size) return 0
+export default function byteCovert(size: number) :string {
     const m_size = size / (1024 * 1024)
     if (m_size < 1) {
         return (m_size * 1024).toFixed(2) + ' K'

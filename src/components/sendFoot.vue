@@ -32,8 +32,8 @@
 </template>
 <script setup>
 import {ref, defineProps, defineEmits, reactive} from 'vue'
-import { timeFormat } from '@/utils/timeFormat.js'
-import byteCovert from '@/utils/byteCovert.js'
+import { timeFormat } from '@/utils/timeFormat'
+import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
 // import router from '@/router/router'
 import { 
@@ -42,7 +42,7 @@ import {
     uploadSlice
 } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
-import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail.js'
+import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
@@ -274,4 +274,4 @@ function videoCall() {
         width: 18px;
     }
 }
-</style>@/utils/thumbnail.js
+</style>

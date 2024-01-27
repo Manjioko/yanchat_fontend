@@ -1,8 +1,8 @@
-import axios from "axios"
+import axios, { AxiosRequestConfig } from "axios"
 import router from "@/router/router"
 
 const service = axios.create({
-    baseURL: sessionStorage.getItem('baseUrl'),
+    baseURL: sessionStorage.getItem('baseUrl') || '',
     timeout: 50000
 })
 
@@ -46,7 +46,7 @@ service.interceptors.response.use(res => {
     return Promise.reject(error)
 })
 
-export function request (ob) {
+export function request (ob:AxiosRequestConfig) {
     const { timeout:customTimeout, ...rest } = ob
     // console.log('ob是 -> ', ob)
     return service({
