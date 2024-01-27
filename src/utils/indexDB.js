@@ -23,11 +23,11 @@ export function dbOpen(options) {
         request.onsuccess = event => {
             console.log('成功 -> ', event.target.result)
             resolve(event.target.result)
-            // store.commit('namespeced/setDb', {
-            //     db: event.target.result,
-            //     dbName: dbName,
-            //     dbVersion: newVersion || version,
-            // })
+            $store.commit('dataBase/setDb', {
+                db: event.target.result,
+                dbName: dbName,
+                dbVersion: newVersion || version,
+            })
         }
         request.onupgradeneeded = event => {
             console.log('成功2 ->', event.target.result)
@@ -66,7 +66,7 @@ export function dbAdd(tableName, data) {
             }
             
         } else {
-            const request = store.state.test.db
+            const request = $store.state.dataBase.db
             .transaction([tableName], 'readwrite')
             .objectStore(tableName)
             .add(data)
@@ -83,8 +83,9 @@ export function dbAdd(tableName, data) {
 // 默认搜索是模糊搜索
 export function dbRead(tableName, field, searchStr) {
     return new Promise((resolve, reject) => {
-        if (!store.state.test.db || !tableName) return
-        const store = store.state.test.db
+        // const $store = useStore()
+        if (!$store.state.dataBase.db || !tableName) return
+        const store = $store.state.dataBase.db
         .transaction([tableName], 'readonly')
         .objectStore(tableName)
 
@@ -119,7 +120,8 @@ export function dbRead(tableName, field, searchStr) {
 // 精准搜索
 export function dbReadByIndex(tableName, indexName, searchStr) {
     return new Promise((resolve, reject) => {
-        const transaction = store.state.test.db.transaction([tableName], 'readonly')
+        // const $store = useStore()
+        const transaction = $store.state.dataBase.db.transaction([tableName], 'readonly')
         const store = transaction.objectStore(tableName)
         const index = store.index(indexName)
         const request = index.get(searchStr)

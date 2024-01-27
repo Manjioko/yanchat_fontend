@@ -5,7 +5,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-// import { dbOpen } from '@/utils/indexDB'
 // dbOpen({})
 let router = ref('')
 // 用户输入的电话号码
@@ -77,8 +76,6 @@ async function login() {
 
             // 将电话号码保存起来, 测试用
             sessionStorage.setItem('phone', phone.value)
-            return
-        }
         ElMessageBox.confirm(
             '当前用户尚未注册，是否自动注册并登录？',
             'Warning',
