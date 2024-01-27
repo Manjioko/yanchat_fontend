@@ -100,6 +100,7 @@ import { ElNotification } from 'element-plus'
 import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
 import localforage from 'localforage'
+import { dbAdd } from '@/utils/indexDB'
 
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
@@ -371,6 +372,12 @@ function centerPong(chatData) {
             const chat = chatBox.value[i]
             if (chat.chat_id === chatData.chat_id) {
                 if (chat.loading) chat.loading = false
+                dbAdd(chat.to_table, [{...chat, id: chatData.dbId}])
+                .then(res => {
+                    console.log('存入数据库成功了 -> ', res)
+                }).catch(err => {
+                    console.log('存入数据库失败了 -> ', err)
+                })
                 return
             }
         }

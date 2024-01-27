@@ -139,13 +139,13 @@ onMounted(() => {
 function handleDdOperate(userInfo) {
     const friends = JSON.parse(userInfo.friends)
     const indexList = [
-        { name: 'user_id', unique: true },
-        { name: 'table_id', unique: true },
+        { name: 'user_id', unique: false },
+        { name: 'table_id', unique: false },
         { name: 'user', unique: false },
-        { name: 'phone_number', unique: true },
+        { name: 'phone_number', unique: false },
         { name: 'chat', unique: false }
     ]
-    const tableNameList = friends.map(item => item.user_id)
+    const tableNameList = friends.map(item => item.chat_table)
     dbOpen({
         dbName: user_info.user_id,
         tableNameList,

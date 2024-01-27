@@ -50,12 +50,14 @@ export function dbOpen(options: DbOpenOptions) {
 
 export function dbAdd(tableName:String, data:any[]) {
     return new Promise((resolve, reject) => {
-        if (!vstore.state.test.db || !data) return
+        if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
-            const tran = vstore.state.dbbase.db.transaction([tableName], 'readwrite')
+            console.log('tablename -> ', tableName)
+            const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
             const store = tran.objectStore(tableName)
             
             data.forEach(item => {
+                // console.log('data is -> ', item)
                 store.add(item)
             })
 
@@ -66,7 +68,9 @@ export function dbAdd(tableName:String, data:any[]) {
 
             // 事务失败
             tran.onerror = (err: Event) => {
-                reject(err.type)
+
+                const target = err.target as IDBRequest
+                reject(target.error?.message)
             }
             
         } else {
