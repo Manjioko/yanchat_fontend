@@ -83,9 +83,9 @@
     </audio> -->
 </template>
 
-<script setup>
+<script setup lang="ts">
 
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref } from 'vue'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws'
 import friendsList from '@/components/friendsList.vue'
@@ -96,33 +96,42 @@ import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote.vue'
-import { ElNotification } from 'element-plus'
+import { ElNotification, NotificationHandle } from 'element-plus'
 import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
-import localforage from 'localforage'
-import { dbAdd } from '@/utils/indexDB'
+// import localforage from 'localforage'
+import {
+    dbAdd,
+    // dbReadAll,
+    dbReadSome
+} from '@/utils/indexDB'
+
+import { Box, Friend } from '@/interface/global'
+import { offsetType } from '@/types/global'
 
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
 
-let chatBox = ref([])
+let chatBox:Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
 let boxScrolltop = 0
 // websocket 客户端
-let websocket = ref({})
+let websocket:Ref<WebSocket | undefined> = ref(undefined)
 const userInfo = ref({
-    friends: ''
+    friends: '',
+    phone_number: '',
+    user_id: ''
 })
 // 连接信号
 let signal = ref(0)
 
 // 用户信息
-userInfo.value = JSON.parse(sessionStorage.getItem('user_info'))
+userInfo.value = JSON.parse(sessionStorage.getItem('user_info') || '')
 // 好友信息
 let userFriends = JSON.parse(userInfo.value.friends)
 
 // 计时器
-let refreshTokenTime = null
+let refreshTokenTime: number | null | undefined = null
 
 // const route = useRoute()
 onMounted(async () => {
@@ -138,11 +147,15 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     // 卸载 websocket
     try {
-        websocket.value.close()
+        if (websocket.value) {
+            (websocket.value as WebSocket).close()
+        }
     } catch(err) {
         console.log('卸载 websocket 出错 -> ', err)
     }
-    refreshTokenTime && clearInterval(refreshTokenTime)
+    if (refreshTokenTime) {
+        clearInterval(refreshTokenTime)
+    }
 })
 
 // 刷新 refreshToken
@@ -167,14 +180,11 @@ function getRefreshToken() {
 
 let newChatData = ref({})
 let trytoRfChat = ref({})
-function Center(chatData, type) {
-    // if (signal.value !== 1) {
-    //     return
-    // }
+function Center(chatData: Box, type: string) {
 
     // 发送消息
     if (type === 'sent') {
-        // console.log('发送信息 -> ', chatData, websocket.value)
+        console.log('发送信息 -> ', chatData)
         if (!websocket.value) {
             ElNotification({
                 type: 'error',
@@ -202,8 +212,8 @@ function Center(chatData, type) {
         // 第三个 user_id 代表 自己的 id
         // 第四个 receivedType 代表 信息被接收时类型
         Object.assign(chatData, {
-            to_table: activeFriend.value.to_table,
-            to_id: activeFriend.value.id,
+            to_table: activeFriend.value.chat_table,
+            to_id: activeFriend.value.user_id,
             user_id: userInfo.value.user_id
         })
 
@@ -221,8 +231,12 @@ function Center(chatData, type) {
             //     })
             // }
             const stop = watchEffect(() => {
-                if (chatData.progress >= 100 && chatData.response) {
-                    websocket.value.send(JSON.stringify(chatData))
+                if ((chatData.progress || 0) >= 100 && chatData.response) {
+                    if (websocket.value) {
+                        const ws = websocket.value as WebSocket
+                        ws.send(JSON.stringify(chatData))
+                    }
+                    
                     // if (chatData.type.includes('video') || chatData.type.includes('image')) {
                     //     nextTick(() => {
                     //         const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
@@ -233,11 +247,18 @@ function Center(chatData, type) {
                 }
                 if (chatData.destroy) {
                     // console.log('mainUI 上传失败提示!')
-                    websocket.value.send(JSON.stringify(chatData))
+                    if (websocket.value) {
+                        const ws = websocket.value as WebSocket
+                        ws.send(JSON.stringify(chatData))
+                    }
                 }
             })
         } else {
-            websocket.value.send(JSON.stringify(chatData))
+            if (websocket.value) {
+                const ws = websocket.value as WebSocket
+                ws.send(JSON.stringify(chatData))
+                // console.log('mainUI 发送消息!', chatData)
+            }
         }
 
         // 等待 pong, 显示 loading 图标
@@ -264,6 +285,7 @@ function Center(chatData, type) {
 
     // 接收信息
     if (type === 'received') {
+        // console.log('mainUI 接收信息!', chatData)
         try {
             // const chatData = JSON.parse(chatData)
             // console.log('id 比较 -> ', chatData.user_id, userInfo.value.user_id)
@@ -273,7 +295,7 @@ function Center(chatData, type) {
                 chatData.user = 0
             }
             console.log('activeFriend.value -> ', activeFriend.value)
-            if (chatData.user_id === activeFriend?.value?.id) {
+            if (chatData.user_id === activeFriend?.value?.user_id) {
                 // console.log('发到自己的信息 -> ', chatData.type)
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
@@ -346,8 +368,8 @@ function Center(chatData, type) {
 }
 
 // 接收信息撤回处理
-function centerDeleted(chat) {
-    const isActive = activeFriend.value?.to_table === chat.to_table
+function centerDeleted(chat: Box) {
+    const isActive = activeFriend.value?.chat_table === chat.to_table
     if (isActive) {
         // console.log('撤回 -> 0')
         const idx = chatBox.value.findIndex(i => i.chat_id === chat.chat_id)
@@ -364,15 +386,14 @@ function centerDeleted(chat) {
 }
 
 // 接收消息引用
-function centerPong(chatData) {
-    // console.log('Pong -> ', chatData)
-    if (activeFriend.value.to_table === chatData.table_id) {
+function centerPong(chatData: Box) {
+    if (activeFriend.value.chat_table === chatData.to_table) {
         const len =  chatBox.value.length - 1
         for (let i = len; i >= 0; i--) {
             const chat = chatBox.value[i]
             if (chat.chat_id === chatData.chat_id) {
                 if (chat.loading) chat.loading = false
-                dbAdd(chat.to_table, [{...chat, id: chatData.dbId}])
+                dbAdd(chat.to_table, [{...chat, id: chatData.id}])
                 .then(res => {
                     console.log('存入数据库成功了 -> ', res)
                 }).catch(err => {
@@ -384,18 +405,19 @@ function centerPong(chatData) {
     }
 }
 
+
 // 开启视频通话
-const showAnwserer = ref(false)
-const videocallOfferData = ref(null)
-function centerVideoCallOffer(chatData) {
+const showAnwserer:Ref<boolean> = ref(false)
+const videocallOfferData:Ref<any> = ref(null)
+function centerVideoCallOffer(chatData: Box) {
     // console.log('视频通话开始了 -> ', chatData)
     videocallOfferData.value = chatData
     showAnwserer.value = true
 }
 
 const showOfferer = ref(false)
-const videocallAnwserData = ref(null)
-function centerVideoCallAnwser(chatData) {
+const videocallAnwserData:Ref<any> = ref(null)
+function centerVideoCallAnwser(chatData:Box) {
     // console.log('视频通话开始了 -> ', chatData)
     videocallAnwserData.value = chatData
     // showOfferer.value = true
@@ -409,15 +431,15 @@ function destroyVideoCallAnwserer() {
     showAnwserer.value = false
 }
 
-function centerVideoCallRequest(chatData) {
+function centerVideoCallRequest(chatData:Box) {
     // videocallOfferData.value = chatData
     // showAnwserer.value = true
     console.log('请求数据是 ->', chatData)
     const id = chatData.user_id
-    const friends = JSON.parse(sessionStorage.getItem('user_info'))?.friends ?? '[]'
+    const friends = JSON.parse(sessionStorage.getItem('user_info')|| '')?.friends ?? '[]'
     console.log('好友是 -》 ', friends)
-    const userName = JSON.parse(friends).find(i => i.user_id === id)?.user ?? ''
-    const rejectfn = (notify) => {
+    const userName = JSON.parse(friends).find((i: { user_id: any }) => i.user_id === id)?.user ?? ''
+    const rejectfn = (notify: NotificationHandle) => {
         videocallOfferData.value = {
             ...chatData,
             // 拒绝接通
@@ -477,12 +499,12 @@ function centerVideoCallRequest(chatData) {
     }, 1000 * 60)
 }
 
-function centerVideoCallResponse(chatData) {
+function centerVideoCallResponse(chatData:Box) {
     videocallAnwserData.value = chatData
 }
 
 // 结束通话中转
-function centerVideoCallLeave(chatData) {
+function centerVideoCallLeave(chatData:Box) {
     if (chatData.from === 'offerer') {
         videocallOfferData.value = chatData
         return
@@ -498,7 +520,7 @@ function handleVideoCallStart() {
 }
 
 // 推送到 window 桌面
-function notifyToWindow(textOb) {
+function notifyToWindow(textOb: { text: any; user_id: any }) {
     // console.log('text ', textOb,document.hidden)
     if (!textOb || !textOb.text) return
     // 在当前页面时，不弹出通知栏
@@ -506,7 +528,7 @@ function notifyToWindow(textOb) {
 
     if (Notification.permission === 'granted') {
         // console.log('新消息 -> ', userFriends)
-        const fr = userFriends?.find(f => f.user_id === textOb.user_id)
+        const fr = userFriends?.find((f: { user_id: any }) => f.user_id === textOb.user_id)
         // console.log('fr', fr)
         const notification = new Notification(fr?.user || '新消息', {
             body: textOb.text || '',
@@ -522,38 +544,24 @@ function notifyToWindow(textOb) {
 }
 
 // 选择好友
-const activeFriend = ref(null)
-const imgLoadList = ref([])
-// const boxSavedOffset = 0
-async function handleActiveFriend(f) {
+const activeFriend:Ref<Friend> = ref({
+    name: '',
+    user_id: '',
+    phone_number: '',
+    chat_table: '',
+    active: false,
+    searchActive: false
+})
+const imgLoadList:Ref<number[]> = ref([])
 
-    const user_id = sessionStorage.getItem('user_id')
+// 点击好友
+async function handleActiveFriend(f: Friend) {
 
-    // 如果 localstorage 存在值,证明之前刷新的时候保存下来的,取值优先用刷新时留下的
-    // 为什么不统一使用 localforage, 是因为 localforage 是异步操作, unload 时
-    // 可能异步操作还没做完,页面已经关闭,所以只能通过 localstorage 去替代操作
-    let boxData = localStorage.getItem(user_id + f.id)
-    let offsetData = localStorage.getItem(user_id + 'offsetOb')
-
-    if (boxData && offsetData) {
-        offsetOb = JSON.parse(offsetData) || offsetOb
-
-        // 取出来值后需要销毁
-        localStorage.removeItem(user_id + f.id)
-        localStorage.removeItem(user_id + 'offsetOb')
-    } else {
-        // 切到新好友时,获取之前保存的聊天信息
-        boxData = await localforage.getItem(user_id + f.id)
-        offsetData = await localforage.getItem(user_id + 'offsetOb')
-        offsetOb = JSON.parse(offsetData) || offsetOb
-    }
-    
+    const boxData:Box[] = await getChatFromLocal(0,0,f)
 
     // 切走之前,把数据保存到本地
     if (activeFriend.value) {
-        // console.log('将数据保存到磁盘 -> ', activeFriend.value.name)
-        await localforage.setItem(user_id + activeFriend.value.id, JSON.stringify({ data: chatBox.value, offset: boxScrolltop }))
-        await localforage.setItem(user_id + 'offsetOb', JSON.stringify(offsetOb))
+        saveOffsetOb()
     }
 
     // 设置好友信息
@@ -562,49 +570,79 @@ async function handleActiveFriend(f) {
     isGetChatHistory = true
 
     // 将保存信息加载到聊天框
-    if (boxData) {
-        console.log('磁盘存在记录 -> ', f.name)
-        const { data, offset } = JSON.parse(boxData)
-        chatBox.value = []
-        chatBox.value = data || []
-        nextTick(() => {
-            data.forEach((d, i) => {
-                if (d.type.includes('video') || d.type.includes('image')) {
-                    imgLoadList.value.push(i)
-                }
-            })
-            
-            // console.log('offset 设置 -> ', offset, imgLoadList)
-            if (imgLoadList.value.length) {
-                const isAllLoadedStop = watchEffect(() => {
-                if (imgLoadList.value.length === 0) {
-                        // console.log('所有图片加载完成 -> ', imgLoadList.value)
-                        chatWindow.value.scrollBar.setScrollTop(offset)
-                        isAllLoadedStop()
-                    }
-                })
-            } else {
-                chatWindow.value.scrollBar.setScrollTop(offset)
-            }
-        })
+    if (boxData.length > 0) {
+        handleChatDataFromLocal(boxData, f)
     } else {
         // 没有就加载聊天信息
         getChatFromServer(true)
     }
 }
 
-function handleChatData(data) {
-    return data.filter(i => !i.chat.type)?.map(i => {
-        const chatOb = JSON.parse(i.chat)
-        if (userInfo.value.user_id === chatOb.user_id) {
-            chatOb.user = 1
+// 从本地获取聊天记录
+async function getChatFromLocal(offset: number, oldOffset: number, f: Friend): Promise<Box[]> {
+    const user_id = sessionStorage.getItem('user_id') || ''
+    // 将上次保存的offset信息释放到内存中
+    offsetOb = JSON.parse(localStorage.getItem(user_id + 'offsetOb') || '{}')
+    // const oldDataOffset = offsetOb[f.chat_table]?.dataOffset || 0
+    
+
+    // const boxData: Box[] = await dbReadAll(f.chat_table) as Box[]
+    const boxData: Box[] = await dbReadSome(f.chat_table, offset, oldOffset) as Box[]
+    // console.log('测试数据 -> ', ohterData)
+    console.log('boxData -> ', boxData)
+    
+    // 如果boxData的长度大于0,说明有数据,需要保存offset信息
+    if (boxData.length > 0) {
+        const dataOffset = boxData[0].id
+        if (!offsetOb[f.chat_table]) {
+            offsetOb[f.chat_table] = {}
+        }
+        offsetOb[f.chat_table].dataOffset = dataOffset
+        console.log('保存 dataOffset 信息 -> ', dataOffset)
+    }
+
+    return boxData
+
+}
+
+// 处理本地聊天记录
+function handleChatDataFromLocal(boxData: Box[], f: Friend) {
+    const scrollOffset = offsetOb[f.chat_table]?.scrollOffset || 0
+    chatBox.value = []
+    chatBox.value = boxData || []
+    nextTick(() => {
+        boxData.forEach((d: { type: string | string[] }, i: number) => {
+            if (d.type.includes('video') || d.type.includes('image')) {
+                imgLoadList.value.push(i)
+            }
+        })
+        
+        if (imgLoadList.value.length) {
+            const isAllLoadedStop = watchEffect(() => {
+            if (imgLoadList.value.length === 0) {
+                    // console.log('所有图片加载完成 -> ', imgLoadList.value)
+                    chatWindow.value.scrollBar.setScrollTop(scrollOffset)
+                    isAllLoadedStop()
+                }
+            })
         } else {
-            chatOb.user = 0
+            chatWindow.value.scrollBar.setScrollTop(scrollOffset)
+        }
+    })
+}
+
+function handleChatData(data: Box[]): Box[] {
+    return data.map((i:Box) => {
+        // const chatOb = JSON.parse(i.chat)
+        if (userInfo.value.user_id === i.user_id) {
+            i.user = 1
+        } else {
+            i.user = 0
         }
 
         return {
             // ...i,
-            ...chatOb
+            ...i
         }
     }) ?? []
 }
@@ -617,8 +655,10 @@ const chatWindow = ref()
 let isGetChatHistory = true
 
 // 从服务器获取聊天记录
-let offsetOb = {}
-async function getChatFromServer(isSwitchFriend) {
+// offsetOb 可以放置不同的 offset, 比如数据库的 offset, 和滚动距离的 offset
+
+let offsetOb:{ [key: string]: offsetType  } = {}
+async function getChatFromServer(isSwitchFriend: boolean = false) {
     // console.log('get -> ', isSwitchFriend, isGetChatHistory)
     if (!isGetChatHistory) return
 
@@ -635,53 +675,82 @@ async function getChatFromServer(isSwitchFriend) {
         chatBox.value = []
     }
 
-    // let chatBoxLen = chatBox.value.length
-    // 从服务器拉取聊天记录
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.chatData,
-        data: {
-            chat_table: activeFriend.value.to_table,
-            // offset: offsetOb[activeFriend.value.to_table] || 0,
-            offset: offsetOb[activeFriend.value.to_table] || 0,
-            user_id: sessionStorage.getItem('user_id')
+
+    // 获取本地聊天记录
+    let chatData: Box[] | null = null
+    if (offsetOb[activeFriend.value.chat_table].dataOffset) {
+        console.log('要从本地那数据 -> ', offsetOb[activeFriend.value.chat_table].dataOffset)
+        const offset = offsetOb[activeFriend.value.chat_table].dataOffset || 0
+        chatData = await getChatFromLocal(offset,0,activeFriend.value)
+    }
+    if (chatData && chatData.length === 0) {
+
+        // 从服务器拉取聊天记录
+        const [err, res] = await to(request({
+            method: 'post',
+            url: api.chatData,
+            data: {
+                chat_table: activeFriend.value.chat_table,
+                // offset: offsetOb[activeFriend.value.to_table] || 0,
+                offset: offsetOb[activeFriend.value.chat_table].dataOffset || 0,
+                user_id: sessionStorage.getItem('user_id')
+            }
+        }))
+
+        if (err) {
+            console.log('获取聊天记录错误：', err)
+            return
         }
-    }))
 
-    if (err) {
-        console.log('获取聊天记录错误：', err)
-        return
+        if (res.status !== 200) return
+        const { data, offset } = res.data
+        offsetOb[activeFriend.value.chat_table].dataOffset = offset
+        chatData = data.map((d: { chat: string }) => JSON.parse(d.chat))
+
     }
+    // let chatBoxLen = chatBox.value.length
 
-    if (res.status !== 200) return
-    const { data, offset } = res.data
-    offsetOb[activeFriend.value.to_table] = offset
     // console.log('聊天记录 -> ', res.data)
-    if (Array.isArray(data)) {
-        const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-        const chatData = handleChatData(data)
-        chatBox.value.unshift(...chatData)
-        nextTick(() => {
-            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-            chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
-        })
-    }
+    const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+    const resChatData = handleChatData(chatData || [])
+    chatBox.value.unshift(...resChatData)
+    nextTick(() => {
+        const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+        chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
+    })
 
     // 释放锁
     isGetChatHistory = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (data?.length === 0) isGetChatHistory = false
+    if (chatData?.length === 0) isGetChatHistory = false
 
-    // console.log('查询聊天记录回来了 -> ', res.data)
+    // console.log('查询聊天记录回来了 -> ', res.chatData)
 }
-
+// 保存 scrollOffset 到数据库
+function saveOffsetOb() {
+    if (activeFriend.value.chat_table) {
+        const user_id = sessionStorage.getItem('user_id')
+        // console.log('保存到本地了 ->', boxScrolxltop, offsetOb)
+        if (!offsetOb[activeFriend.value.chat_table]) {
+            offsetOb[activeFriend.value.chat_table] = {
+                scrollOffset: 0,
+                dataOffset: 0
+            }
+        }
+        offsetOb[activeFriend.value.chat_table].scrollOffset = boxScrolltop
+        // offsetOb[activeFriend.value.chat_table].dataOffset = offsetOb[activeFriend.value.chat_table].dataOffset || 0
+        localStorage.setItem(user_id + 'offsetOb', JSON.stringify(offsetOb))
+    }
+}
+const scrollOffsetAntiShakeFn = antiShake(saveOffsetOb, 1000)
 // 滚动条事件处理
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
-async function handleScroll(val) {
+async function handleScroll(val: { scrollTop: number }) {
     // console.log('handleScroll isGetChatHistory -> ', isGetChatHistory)
     boxScrolltop = val.scrollTop
+    scrollOffsetAntiShakeFn()
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
         scrollAntiShakeFn()
     }
@@ -694,19 +763,23 @@ function showSettingDialog() {
 }
 
 function handleExit() {
-    websocket?.value?.close(4001,'客户端关闭链接')
+    if (websocket.value) {
+        const ws = websocket.value as WebSocket
+        ws.close(4001,'客户端关闭链接')
+    }
+    // websocket?.value?.close(4001,'客户端关闭链接')
     sessionStorage.setItem('user_info', '')
     router.go(-1)
 }
 
 // 头像更新
 const avatarRefresh = ref('')
-function handleAvatarChange(url) {
+function handleAvatarChange(url: string) {
     avatarRefresh.value = url
 }
 
 // 更新好友信息
-function handleNickNameChange(fri) {
+function handleNickNameChange(fri:any) {
     // console.log('好友信息 -> ', fri)
     userInfo.value = fri
     sessionStorage.setItem('user_info', JSON.stringify(fri))
@@ -715,12 +788,12 @@ function handleNickNameChange(fri) {
 
 // 是否使用markdown
 const isUseMd = ref(false)
-function handleIsUseMarkdown(val) {
+function handleIsUseMarkdown(val: boolean) {
     isUseMd.value = val
 }
 
 // 删除处理
-async function handleDeleted (idx) {
+async function handleDeleted (idx: number) {
     const user_id = sessionStorage.getItem('user_id')
     // console.log('删除 -> ', chatBox.value[idx].user_id === user_id)
     const chat = chatBox.value[idx]
@@ -735,7 +808,7 @@ async function handleDeleted (idx) {
     if (err) {
         console.log('删除失败 -> ', err)
     }
-    if (res.data !== 'err') {
+    if (res?.data !== 'err') {
         console.log('删除成功 -> ', res)
         chatBox.value.splice(idx, 1)
         chat.text = '[已删除一条信息]'
@@ -746,7 +819,7 @@ async function handleDeleted (idx) {
 }
 
 // windowChat 撤回回调
-async function handleWithdraw (idx) {
+async function handleWithdraw (idx: number) {
     const [err, res] = await to(request({
         method: 'post',
         url: api.deleteChat,
@@ -773,7 +846,7 @@ async function handleWithdraw (idx) {
 // windowChat 引用回调
 const showQuote = ref(false)
 const comment = ref('')
-async function handleQuote (idx) {
+async function handleQuote (idx: number) {
     showQuote.value = true
     if (chatBox.value[idx].type !== 'text') {
         comment.value = '[文件] ' + chatBox.value[idx].fileName
@@ -789,7 +862,7 @@ function handleQuoteClose() {
 }
 
 // 处理图片加载完成事件
-function handleLoaded(boxindex) {
+function handleLoaded(boxindex: any) {
     // console.log('加载完成 -> ', boxindex)
     if (imgLoadList.value.length) {
         const fdidx = imgLoadList.value.findIndex(f => f === boxindex)
@@ -800,22 +873,6 @@ function handleLoaded(boxindex) {
     // chatBox.value[index].loaded = true
 }
 
-function saveChatData() {
-    // 切走之前,把数据保存到本地
-    if (activeFriend.value) {
-        const user_id = sessionStorage.getItem('user_id')
-        localStorage.setItem(user_id + activeFriend.value.id, JSON.stringify({ data: chatBox.value, offset: boxScrolltop }))
-        localStorage.setItem(user_id + 'offsetOb', JSON.stringify(offsetOb))
-    }
-}
-
-// 监听页面卸载刷新
-onMounted(() => {
-    window.addEventListener('unload', saveChatData)
-})
-onBeforeUnmount(() => {
-    window.removeEventListener('unload', saveChatData)
-})
 </script>
 
 <style lang="scss" scoped>

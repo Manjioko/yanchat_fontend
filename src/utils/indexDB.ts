@@ -1,8 +1,9 @@
 import vstore from '@/store'
 import { DbOpenOptions } from '@/interface/indexDB'
+import { Box } from '@/interface/global'
 
 export function dbOpen(options: DbOpenOptions) {
-   
+
     // const store = useStore()
     const { dbName, version = 1, indexList = [], tableNameList = [], oldDb = null } = options
     return new Promise((resolve, reject) => {
@@ -20,42 +21,42 @@ export function dbOpen(options: DbOpenOptions) {
             console.log('错误 -> ', event)
             reject(event)
         }
-        request.onsuccess = event  => {
+        request.onsuccess = event => {
             const result = (event.target as IDBOpenDBRequest).result
-            console.log('成功 -> ', result)
-            resolve(result)
+            console.log('数据库打开成功', result)
             vstore.commit('dataBase/setDb', {
                 db: result,
                 dbName: dbName,
                 dbVersion: newVersion || version,
             })
-            console.log('vstore -> ',vstore)
+            resolve(result)
+            // console.log('vstore -> ',vstore)
         }
         request.onupgradeneeded = event => {
-            
+
             const result = (event.target as IDBOpenDBRequest).result
-            console.log('成功2 ->', result)
+            // console.log('成功2 ->', result)
             const db = result
             tableNameList.forEach((table: string) => {
-                const store = db.createObjectStore(table,{ keyPath: 'id' })
-                indexList.forEach((item: {name: string, unique: boolean}) => {
+                const store = db.createObjectStore(table, { keyPath: 'id' })
+                indexList.forEach((item: { name: string, unique: boolean }) => {
                     store.createIndex(item.name, item.name, { unique: item.unique })
                 })
             })
-            
+
             // resolve(event.target.result)
         }
     })
 }
 
-export function dbAdd(tableName:String, data:any[]) {
+export function dbAdd(tableName: String, data: any[]) {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
             console.log('tablename -> ', tableName)
             const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
             const store = tran.objectStore(tableName)
-            
+
             data.forEach(item => {
                 // console.log('data is -> ', item)
                 store.add(item)
@@ -72,13 +73,13 @@ export function dbAdd(tableName:String, data:any[]) {
                 const target = err.target as IDBRequest
                 reject(target.error?.message)
             }
-            
+
         } else {
             const request = vstore.state.dbbase.db
-            .transaction([tableName], 'readwrite')
-            .objectStore(tableName)
-            .add(data)
-            request.onsuccess = function(res: Event) {
+                .transaction([tableName], 'readwrite')
+                .objectStore(tableName)
+                .add(data)
+            request.onsuccess = function (res: Event) {
                 resolve(res.type)
             }
             request.onerror = (err: Event) => {
@@ -89,16 +90,16 @@ export function dbAdd(tableName:String, data:any[]) {
 }
 
 // 默认搜索是模糊搜索
-export function dbRead(tableName: String, field: string, searchStr: string|number) {
+export function dbRead(tableName: String, field: string, searchStr: string | number) {
     return new Promise((resolve, reject) => {
-        if (!vstore.state.dbbase.db || !tableName) return
+        if (!vstore.state.dataBase.db || !tableName) return
         const store = vstore.state.dbbase.db
-        .transaction([tableName], 'readonly')
-        .objectStore(tableName)
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
 
         const data: any = []
         const reg = new RegExp(`${searchStr.toString()}`)
-        const cursorEvent =  store.openCursor()
+        const cursorEvent = store.openCursor()
         cursorEvent.onsuccess = (res: Event) => {
             const cursor = (res.target as IDBRequest).result
             if (cursor) {
@@ -124,14 +125,77 @@ export function dbRead(tableName: String, field: string, searchStr: string|numbe
     })
 }
 
-// 精准搜索
-export function dbReadByIndex(tableName: string, indexName: string, searchStr: string|number) {
+export function dbReadAll(tableName: string): Promise<Box[]> {
     return new Promise((resolve, reject) => {
-        const transaction = vstore.state.dbbase.db.transaction([tableName], 'readonly')
+        // if (!vstore.state.dataBase.db || !tableName) return
+        const store = vstore.state.dataBase.db
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+
+        const request = store.getAll()
+        request.onsuccess = (res: Event) => {
+            const target = res.target as IDBRequest
+            // console.log('数据是 -> ', target.result)
+            resolve(target.result || [])
+        }
+        request.onerror = (err: Event) => {
+            reject(err.type)
+        }
+    })
+}
+
+export function dbReadSome(tableName: string, offset: number = 0, oldOffset:number = 0): Promise<Box[]> {
+    return new Promise((resolve, reject) => {
+        const store = vstore.state.dataBase.db
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+
+        const handler = (startIndex: number, endIndex: number) => {
+            const cursorEvent = store.openCursor(IDBKeyRange.bound(startIndex, endIndex, true, false))
+            const data: Box[] = []
+            cursorEvent.onsuccess = (res: Event) => {
+                const cursor = (res.target as IDBRequest).result
+                if (cursor) {
+                    // console.log(cursor.value, field, cursor.value[field].match(reg))
+                    data.push(cursor.value)
+                    cursor.continue()
+                } else {
+                    console.log('没数据了 ->', data)
+                    resolve(data)
+                }
+            }
+            cursorEvent.onerror = (err: Event) => {
+                reject(err.type)
+            }
+        }
+        // oldOffset < offset
+        if (offset === 0) {
+            const keyCursorRequest = store.openKeyCursor(null, 'prev')
+            keyCursorRequest.onsuccess = (res: Event) => {
+                const result = (res.target as IDBRequest).result
+                let reOffset: number | null = null
+                let offsetLimit: number | null = null
+                reOffset = result.primaryKey
+                offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
+                handler(offsetLimit, reOffset!)
+            }
+        } else {
+            const reOffset = offset
+            const offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
+            handler(offsetLimit, reOffset!)
+            console.log('offset ->', reOffset, offsetLimit)
+        }
+    })
+}
+
+// 精准搜索
+export function dbReadByIndex(tableName: string, indexName: string, searchStr: string | number) {
+    return new Promise((resolve, reject) => {
+        const transaction = vstore.state.dataBase.db.transaction([tableName], 'readonly')
         const store = transaction.objectStore(tableName)
         const index = store.index(indexName)
         const request = index.get(searchStr)
-    
+
         request.onsuccess = (e: Event) => {
             const { result } = e.target as IDBOpenDBRequest
             // console.log('result -> ', result)
@@ -150,10 +214,10 @@ export function dbDelete(tableName: string, key: number) {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dbbase.db || !key) return
         const request = vstore.state.dbbase.db
-        .transaction([tableName], 'readwrite')
-        .objectStore(tableName)
-        .delete(key)
-        request.onsuccess = function(res: Event) {
+            .transaction([tableName], 'readwrite')
+            .objectStore(tableName)
+            .delete(key)
+        request.onsuccess = function (res: Event) {
             resolve(res.type)
         }
         request.onerror = (err: Event) => {
@@ -166,7 +230,7 @@ export function dbDelete(tableName: string, key: number) {
 export function dbUpdate(tableName: string, data: any) {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dbbase.db || !data) return
-        
+
         const transaction = vstore.state.dbbase.db.transaction([tableName], 'readwrite')
         const objectStore = transaction.objectStore(tableName)
 

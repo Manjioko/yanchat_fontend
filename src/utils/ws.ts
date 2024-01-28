@@ -10,7 +10,7 @@ const maxRefreshCount = 15
 // 每次 refresh 时间都是上次的 1.5 倍
 const perTime = 1.5
 
-function refreshConnectSocket(ws:Ref<WebSocket>, url:string, appendMessage:Function, signal:Ref<number>) {
+function refreshConnectSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage:Function, signal:Ref<number>) {
     if (refreshCount < maxRefreshCount) {
         refreshCount++
         setTimeout(() => {
@@ -26,7 +26,7 @@ function refreshConnectSocket(ws:Ref<WebSocket>, url:string, appendMessage:Funct
     // connectWebSocket(...arguments)
 }
 
-function connectWebSocket(ws:Ref<WebSocket>, url:string, appendMessage:Function, signal:Ref<number>) {
+function connectWebSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage:Function, signal:Ref<number>) {
     console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
         console.log('超过重连次数...')
@@ -36,7 +36,7 @@ function connectWebSocket(ws:Ref<WebSocket>, url:string, appendMessage:Function,
             retryCount = 0
             return
         } else {
-            // ws.value = null
+            ws.value = undefined
             signal.value = 2
             return
         }

@@ -18,17 +18,17 @@
                 v-for="(i, idx) in friendsList"
                 v-show="i.searchActive"
                 class="f-friends"
-                :key="i.id"
+                :key="i.user_id"
                 :class="{'i-active': i.active}"
                 @click="handleSelect(idx, i)"
             >
                 <!-- <div class="unread-dot" v-if="showUnread(chatDataOb[i.to_table])">
                     {{ handleUnreadDotNum(chatDataOb[i.to_table]) }}
                 </div> -->
-                <el-badge :value="handleUnreadDotNum(chatDataOb[i.to_table])" :max="99">
+                <el-badge :value="handleUnreadDotNum(chatDataOb[i.chat_table])" :max="99">
                     <img
                         class="i-img"
-                        :src="i.avatar"
+                        :src="i.avatar_url"
                         alt="avatar"
                         @error="handleError(i)"
                     >
@@ -36,9 +36,9 @@
                 
                 <div class="i-text">
                     <div class="i-name">{{ i.name }}</div>
-                    <div class="i-msg">{{ handleUnreadMsg(chatDataOb[i.to_table]) || i.message }}</div>
+                    <div class="i-msg">{{ handleUnreadMsg(chatDataOb[i.chat_table]) || i.message }}</div>
                 </div>
-                <div class="i-time">{{ handleShowTime(chatDataOb[i.to_table]) || i.time }}</div>
+                <div class="i-time">{{ handleShowTime(chatDataOb[i.chat_table]) || i.time }}</div>
             </section>
         </main>
     </div>
@@ -74,13 +74,14 @@
         </el-dialog>
     </div>
 </template>
-<script setup>
-import { ref, defineProps, onMounted, defineEmits, watch } from 'vue'
+<script setup lang="ts">
+import { ref, defineProps, onMounted, defineEmits, watch, Ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { dbOpen } from '@/utils/indexDB'
+import { Friend } from '@/interface/global'
 // // 打开数据库
 // dbOpen({
     
@@ -94,58 +95,50 @@ const props = defineProps({
 })
 const emit = defineEmits(['handleActiveFriend'])
 
-const friendsList = ref([
-    // {
-    //     name: '银河队长',
-    //     id: '13445',
-    //     time: '22:12',
-    //     message: '我已经毁灭半人马星座了，勿 call',
-    //     avatar: require('../assets/avatar2.png'),
-    //     active: false
-    // },
-])
+const friendsList:Ref<Friend[]> = ref([])
 
 // 用户信息
-const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+const user_info = JSON.parse(sessionStorage.getItem('user_info') || '')
 handleDdOperate(user_info)
 // console.log('user_info -> ', friends)
 const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
-    avatarSrc.value = val
+    avatarSrc.value = val || ''
 })
 
 onMounted(() => {
     if (!props.friends) return
     const f = JSON.parse(props.friends)
+    const phone_number = user_info.phone_number
     // console.log('f -> ', f)
     const baseUrl = sessionStorage.getItem('baseUrl')
-    f?.forEach(item => {
+    f?.forEach((item: Friend) => {
         friendsList.value.push({
-            name: item.user,
-            id: item.user_id,
+            name: item.name,
+            user_id: item.user_id,
             time: '',
             message: '',
-            avatar: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
+            avatar_url: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
             active: false,
             searchActive: true,
-            to_table: item.chat_table
+            chat_table: item.chat_table,
+            phone_number
         })
     })
 })
 
 // 数据库操作
-function handleDdOperate(userInfo) {
+function handleDdOperate(userInfo: {friends: string}) {
     const friends = JSON.parse(userInfo.friends)
     const indexList = [
         { name: 'user_id', unique: false },
         { name: 'table_id', unique: false },
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },
-        { name: 'chat', unique: false }
     ]
-    const tableNameList = friends.map(item => item.chat_table)
+    const tableNameList = friends.map((item: Friend) => item.chat_table)
     dbOpen({
         dbName: user_info.user_id,
         tableNameList,
@@ -154,8 +147,8 @@ function handleDdOperate(userInfo) {
 }
 
 let dShow = ref(false)
-const oldIdx = ref(null)
-function handleSelect(idx, row) {
+const oldIdx:Ref<number|null> = ref(null)
+function handleSelect(idx:number, row:Friend) {
     // console.log(idx, row.to_table)
     friendsList.value.forEach((item, i) => {
         if (i === idx) {
@@ -170,10 +163,10 @@ function handleSelect(idx, row) {
 
         item.active = false
     })
-    if (!row.to_table) return
+    if (!row.chat_table) return
     // console.log(' chatDataOb.value -> ', chatDataOb.value)
-    if (!chatDataOb.value[row.to_table]) return
-    chatDataOb.value[row.to_table].unread = 0
+    if (!chatDataOb.value[row.chat_table]) return
+    chatDataOb.value[row.chat_table].unread = 0
 }
 
 // 添加好友功能
@@ -222,27 +215,28 @@ async function addFriend() {
 
     friendsList.value.length = 0
     const baseUrl = sessionStorage.getItem('baseUrl')
-    res.data.friends.forEach(item => {
+    res.data.friends.forEach((item:Friend) => {
         friendsList.value.push({
-            name: item.user,
-            id: item.user_id,
+            name: item.name,
+            user_id: item.user_id,
             time: '',
             message: '',
-            avatar:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
+            avatar_url:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
             active: false,
             searchActive: true,
-            to_table: item.chat_table
+            chat_table: item.chat_table,
+            phone_number: item.phone_number
         })
     })
-    const getUserInfo = JSON.parse(sessionStorage.getItem('user_info'))
+    const getUserInfo = JSON.parse(sessionStorage.getItem('user_info') || '')
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
     dShow.value = false
 }
 
 // 更新好友信息
-const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info')))
-let chatDataOb = ref({})
+const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info') || ''))
+let chatDataOb:{ [key:string]: any } = ref({})
 watch(chatDataOb, (val) => {
     sessionStorage.setItem('chatDataOb', JSON.stringify(val))
 },
@@ -250,7 +244,7 @@ watch(chatDataOb, (val) => {
 onMounted(() => {
     handleUnread()
 })
-watch(() => props.tryToRefreshChatOb, (chat) => {
+watch(() => props.tryToRefreshChatOb, (chat: any) => {
     const { to_table } = chat
     // console.log('更新 chat -> ', chat, chatDataOb.value[to_table])
     if (!to_table || !chatDataOb.value[to_table]) return
@@ -264,7 +258,7 @@ watch(() => props.tryToRefreshChatOb, (chat) => {
     console.log('更改成功 -> ', chatDataOb.value[to_table])
 })
 
-watch(() => props.refreshChatDataOb, (ob) => {
+watch(() => props.refreshChatDataOb, (ob:any) => {
     const { isUnread, chat } = ob
     if (!chatDataOb.value[chat.to_table]) {
         chatDataOb.value[chat.to_table] = {
@@ -292,7 +286,7 @@ async function handleUnread() {
         method: 'post',
         url: api.unread,
         data: {
-            friends: flist?.map(i => i.chat_table),
+            friends: flist?.map((i:Friend) => i.chat_table),
             user_id: userInfo.value.user_id
         }
     }))
@@ -314,12 +308,12 @@ async function handleUnread() {
 }
 
 // 处理未读信息(文字部分)
-function handleUnreadMsg(unreadOb) {
+function handleUnreadMsg(unreadOb: any) {
     return unreadOb?.chat.text ?? ''
 }
 
 // 处理时间
-function handleShowTime(unreadOb) {
+function handleShowTime(unreadOb:any) {
     if (unreadOb?.chat?.time) {
         const time = unreadOb.chat.time
         return String(time).slice(10, -3) ?? ''
@@ -329,7 +323,7 @@ function handleShowTime(unreadOb) {
 }
 
 // 处理未读数目
-function handleUnreadDotNum(ob) {
+function handleUnreadDotNum(ob:any) {
     if (ob?.unread === 0) return ''
     return ob?.unread ?? ''
 }
@@ -367,8 +361,8 @@ watch(searchText, shake)
 function handleAvatarSelfErr() {
     avatarSrc.value = require('../assets/default_avatar.png')
 }
-function handleError(i) {
-    i.avatar = require('../assets/default_avatar.png')
+function handleError(i: Friend) {
+    i.avatar_url = require('../assets/default_avatar.png')
 }
 </script>
 <style lang="scss" scoped>

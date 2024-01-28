@@ -30,7 +30,7 @@ import { v4 as uuidv4 } from 'uuid'
 const emit = defineEmits(['destroy', 'center'])
 const props = defineProps({
     socket: {
-        type: Object,
+        type: WebSocket,
         default: () => ({})
     },
     friend: {
