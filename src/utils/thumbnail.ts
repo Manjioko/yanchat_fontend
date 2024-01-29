@@ -1,4 +1,4 @@
-function getVideoBase64(url: string, compressRatio = 0.19) {
+function getVideoBase64(url: string, compressRatio = 0.19): Promise<string> {
     return  new Promise ((resolve) => {
         //resolve是一个函数 将异步代码成功的结果传入即可
         //reject也是一个函数 是用来传入异步代码失败的自定义结果
@@ -39,7 +39,7 @@ function getVideoBase64(url: string, compressRatio = 0.19) {
 }
 
 
-function getImageBase64(url: string, compressRatio = 0.3) {
+function getImageBase64(url: string, compressRatio = 0.3): Promise<string> {
     return new Promise ((resolve) => {
         let dataURL = ""
         let image: HTMLImageElement | null = new Image()

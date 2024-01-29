@@ -1,11 +1,11 @@
 <template>
     <main class="main" @contextmenu.prevent>
         <friendsList
-            :friends="userInfo?.friends ?? '[]'"
+            :friends="userInfo.friends"
             :refreshChatDataOb="newChatData"
             :tryToRefreshChatOb="trytoRfChat"
             :signal="signal"
-            :avatarRefresh="avatarRefresh || ''"
+            :avatarRefresh="avatarRefresh"
             @handleActiveFriend="handleActiveFriend"
         />
         <section class="chat-window">
@@ -27,7 +27,7 @@
                 v-if="activeFriend"
                 ref="chatWindow"
                 :chatBox="chatBox"
-                :avatarRefresh="avatarRefresh || ''"
+                :avatarRefresh="avatarRefresh"
                 :markdown="isUseMd"
                 @scroll="handleScroll"
                 @deleted="handleDeleted"
@@ -118,7 +118,7 @@ let boxScrolltop:number = 0
 // websocket 客户端
 let websocket:Ref<WebSocket | undefined> = ref(undefined)
 const userInfo:Ref<UserInfo> = ref({
-    friends: '',
+    friends: '[]',
     phone_number: '',
     user_id: '',
     user: ''
@@ -802,7 +802,7 @@ function handleExit() {
 }
 
 // 头像更新
-const avatarRefresh = ref('')
+const avatarRefresh:Ref<string> = ref('')
 function handleAvatarChange(url: string) {
     avatarRefresh.value = url
 }

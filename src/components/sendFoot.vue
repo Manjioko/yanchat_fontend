@@ -30,7 +30,7 @@
     </main>
     <!-- <videoCallOfferer v-if="showOfferer"/> -->
 </template>
-<script setup>
+<script setup lang="ts">
 import {ref, defineProps, defineEmits, reactive} from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
@@ -44,6 +44,7 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
+import { Box } from '@/interface/global'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
@@ -65,7 +66,7 @@ function hdkeydown() {
 }
 
 // 发送文本到聊天框的处理器
-function sendMessage(chatData) {
+function sendMessage(chatData?:Box) {
     if (chatData) {
         // Center(chatData, 'sent')
         emit('center', chatData, 'sent')
@@ -78,12 +79,17 @@ function sendMessage(chatData) {
 
     // websocket.value?.send(JSON.stringify(sendData))
     const uuid = uuidv4()
-    const dataOb = reactive({
+    const dataOb:Box = reactive({
         type: 'text',
         text: message,
         user: 1,
         time: timeFormat(),
-        chat_id: uuid
+        chat_id: uuid,
+        quote: '',
+        to_table: '',
+        to_id: '', 
+        user_id: '',
+        loading: false
     })
     if (props.quote) {
         dataOb.quote = props.quote
@@ -96,17 +102,17 @@ function sendMessage(chatData) {
 }
 
 // 文件分段上传测试
-function uploadSliceFile(file, cb) {
+function uploadSliceFile(file:File, cb:Function) {
     uploadSlice.handleFile(file, cb)
 }
 // 文件上传
-async function uploadFile(e) {
+async function uploadFile(e:Event) {
     const formData = new FormData()
     formData.append("file", e.target.files[0])
     const size = byteCovert(e.target.files[0]?.size)
     if (!size) return 
     const uuid = uuidv4()
-    const box = reactive({
+    const box:Box = reactive({
         progress: 0,
         type: e.target.files[0]?.type,
         fileName: e.target.files[0]?.name,
@@ -119,7 +125,11 @@ async function uploadFile(e) {
         src: '',
         thumbnail: '',
         destroy: false,
-        chat_id: uuid
+        chat_id: uuid,
+        to_table: '',
+        to_id: '',
+        user_id: '',
+        loading: false
     })
     // 发送信息到文本框
     sendMessage(box)
@@ -136,7 +146,7 @@ async function uploadFile(e) {
         const thumbnail = await getImageBase64(getURL)
         box.thumbnail = thumbnail
     }
-    uploadSliceFile(e.target.files[0], function(err, progress, response) {
+    uploadSliceFile(e.target.files[0], function(err: string | null, progress:number | null, response:string | null) {
         if (err) {
             box.progress = 0
             box.response = ''
