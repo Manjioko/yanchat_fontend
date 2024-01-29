@@ -2,8 +2,8 @@
     <main class="main" @contextmenu.prevent>
         <friendsList
             :friends="userInfo?.friends ?? '[]'"
-            :refreshChatDataOb="newChatData || {}"
-            :tryToRefreshChatOb="trytoRfChat || {}"
+            :refreshChatDataOb="newChatData"
+            :tryToRefreshChatOb="trytoRfChat"
             :signal="signal"
             :avatarRefresh="avatarRefresh || ''"
             @handleActiveFriend="handleActiveFriend"
@@ -106,7 +106,7 @@ import {
     dbReadSome
 } from '@/utils/indexDB'
 
-import { Box, Friend } from '@/interface/global'
+import { Box, Friend, UserInfo, RefreshMessage } from '@/interface/global'
 import { offsetType } from '@/types/global'
 
 // 测试数据
@@ -114,21 +114,22 @@ import { offsetType } from '@/types/global'
 
 let chatBox:Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
-let boxScrolltop = 0
+let boxScrolltop:number = 0
 // websocket 客户端
 let websocket:Ref<WebSocket | undefined> = ref(undefined)
-const userInfo = ref({
+const userInfo:Ref<UserInfo> = ref({
     friends: '',
     phone_number: '',
-    user_id: ''
+    user_id: '',
+    user: ''
 })
 // 连接信号
-let signal = ref(0)
+let signal:Ref<number> = ref(0)
 
 // 用户信息
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info') || '')
 // 好友信息
-let userFriends = JSON.parse(userInfo.value.friends)
+let userFriends:Friend[] = JSON.parse(userInfo.value.friends)
 
 // 计时器
 let refreshTokenTime: number | null | undefined = null
@@ -178,8 +179,36 @@ function getRefreshToken() {
     }, 1000 * 60 * 60)
 }
 
-let newChatData = ref({})
-let trytoRfChat = ref({})
+let newChatData:Ref<RefreshMessage> = ref({
+    chat: {
+        type: '', // 类型 
+        text: '', // 消息内容 
+        time: 0 ,// 时间 
+        user: 0, // 用户区分，1 是自己， 0 是别人
+        chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
+        to_table: '', // 聊天框的 id
+        to_id: '', // 聊天对象的 id
+        user_id: '', // 自己的 id
+        phone_number: '', // 手机号
+        loading: false, // 是否正在上传
+        id: 0 // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
+    }
+})
+let trytoRfChat:Ref<RefreshMessage> = ref({
+    chat: {
+        type: '', // 类型 
+        text: '', // 消息内容 
+        time: 0 ,// 时间 
+        user: 0, // 用户区分，1 是自己， 0 是别人
+        chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
+        to_table: '', // 聊天框的 id
+        to_id: '', // 聊天对象的 id
+        user_id: '', // 自己的 id
+        phone_number: '', // 手机号
+        loading: false, // 是否正在上传
+        id: 0 // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
+    }
+})
 function Center(chatData: Box, type: string) {
 
     // 发送消息
@@ -377,11 +406,11 @@ function centerDeleted(chat: Box) {
             chatBox.value.splice(idx, 1)
         }
         chat.text = '[撤回一条信息]'
-        trytoRfChat.value = chat
+        trytoRfChat.value = { chat }
         return
     }
     chat.text = '[撤回一条信息]'
-    trytoRfChat.value = chat
+    trytoRfChat.value = { chat }
     // console.log('撤回 -> 1')
 }
 
@@ -528,9 +557,9 @@ function notifyToWindow(textOb: { text: any; user_id: any }) {
 
     if (Notification.permission === 'granted') {
         // console.log('新消息 -> ', userFriends)
-        const fr = userFriends?.find((f: { user_id: any }) => f.user_id === textOb.user_id)
+        const fr = userFriends?.find((f:Friend) => f.user_id === textOb.user_id)
         // console.log('fr', fr)
-        const notification = new Notification(fr?.user || '新消息', {
+        const notification = new Notification(fr?.name || '新消息', {
             body: textOb.text || '',
             // 可选的通知图标
             // icon: require('../assets/avatar1.png'),
@@ -812,7 +841,7 @@ async function handleDeleted (idx: number) {
         console.log('删除成功 -> ', res)
         chatBox.value.splice(idx, 1)
         chat.text = '[已删除一条信息]'
-        trytoRfChat.value = chat
+        trytoRfChat.value = { chat }
     } else {
         console.log('删除失败 -> ', res.data)
     }

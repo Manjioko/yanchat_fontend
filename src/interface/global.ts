@@ -36,8 +36,30 @@ interface Friend {
     searchActive: boolean // 用户搜索
 }
 
+// 用户信息
+interface UserInfo {
+    id?: number
+    user: string
+    password?: string // 后台不会返回密码,所以这个不做要求
+    user_id: string
+    phone_number: string
+    friends: string
+    group?: string
+    avatar_url?: string
+    is_use_md?: boolean
+    created_at?: string
+    updated_at?: string
+}
+
+// 更新好友列表结构
+interface RefreshMessage {
+    isUnread?: number,
+    chat: Box
+}
 
 export {
     Box,
-    Friend
+    Friend,
+    UserInfo,
+    RefreshMessage
 }

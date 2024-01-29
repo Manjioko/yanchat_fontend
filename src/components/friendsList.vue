@@ -81,17 +81,18 @@ import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { dbOpen } from '@/utils/indexDB'
-import { Friend } from '@/interface/global'
+import { Box, Friend, RefreshMessage } from '@/interface/global'
+// import { RefreshMessage } from '@/interface/global'
 // // 打开数据库
 // dbOpen({
     
 // })
 const props = defineProps({
     friends: String,
-    refreshChatDataOb: Object,
+    refreshChatDataOb: Object as () => RefreshMessage,
     signal: Number,
     avatarRefresh: String,
-    tryToRefreshChatOb: Object,
+    tryToRefreshChatOb: Object as () => RefreshMessage,
 })
 const emit = defineEmits(['handleActiveFriend'])
 
@@ -244,7 +245,7 @@ watch(chatDataOb, (val) => {
 onMounted(() => {
     handleUnread()
 })
-watch(() => props.tryToRefreshChatOb, (chat: any) => {
+watch(() => props.tryToRefreshChatOb!.chat, (chat: Box) => {
     const { to_table } = chat
     // console.log('更新 chat -> ', chat, chatDataOb.value[to_table])
     if (!to_table || !chatDataOb.value[to_table]) return
@@ -258,7 +259,7 @@ watch(() => props.tryToRefreshChatOb, (chat: any) => {
     console.log('更改成功 -> ', chatDataOb.value[to_table])
 })
 
-watch(() => props.refreshChatDataOb, (ob:any) => {
+watch(() => props.refreshChatDataOb!, (ob:RefreshMessage) => {
     const { isUnread, chat } = ob
     if (!chatDataOb.value[chat.to_table]) {
         chatDataOb.value[chat.to_table] = {
