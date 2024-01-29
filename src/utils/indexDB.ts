@@ -49,7 +49,7 @@ export function dbOpen(options: DbOpenOptions) {
     })
 }
 
-export function dbAdd(tableName: String, data: any[]) {
+export function dbAdd(tableName: String, data: Box[]) {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
@@ -97,7 +97,7 @@ export function dbRead(tableName: String, field: string, searchStr: string | num
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
 
-        const data: any = []
+        const data:Box[] = []
         const reg = new RegExp(`${searchStr.toString()}`)
         const cursorEvent = store.openCursor()
         cursorEvent.onsuccess = (res: Event) => {
@@ -180,7 +180,7 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
                 handler(offsetLimit, reOffset!)
             }
         } else {
-            const reOffset = offset
+            const reOffset = offset - 1 // 为什么要减去 1？ 因为 offset 值已经取过了，正确的取值应该从 offset 之前的一位开始
             const offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
             handler(offsetLimit, reOffset!)
             console.log('offset ->', reOffset, offsetLimit)
@@ -227,11 +227,11 @@ export function dbDelete(tableName: string, key: number) {
 }
 
 // 更新数据库字段
-export function dbUpdate(tableName: string, data: any) {
+export function dbUpdate(tableName: string, data: Box) {
     return new Promise((resolve, reject) => {
-        if (!vstore.state.dbbase.db || !data) return
+        if (!vstore.state.dataBase.db || !data) return
 
-        const transaction = vstore.state.dbbase.db.transaction([tableName], 'readwrite')
+        const transaction = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
         const objectStore = transaction.objectStore(tableName)
 
         // 使用 key 参数来指定键

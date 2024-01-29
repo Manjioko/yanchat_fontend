@@ -183,30 +183,26 @@ let newChatData:Ref<RefreshMessage> = ref({
     chat: {
         type: '', // 类型 
         text: '', // 消息内容 
-        time: 0 ,// 时间 
+        time: '' ,// 时间 
         user: 0, // 用户区分，1 是自己， 0 是别人
         chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
         to_table: '', // 聊天框的 id
         to_id: '', // 聊天对象的 id
         user_id: '', // 自己的 id
-        phone_number: '', // 手机号
         loading: false, // 是否正在上传
-        id: 0 // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
     }
 })
 let trytoRfChat:Ref<RefreshMessage> = ref({
     chat: {
         type: '', // 类型 
         text: '', // 消息内容 
-        time: 0 ,// 时间 
+        time: '' ,// 时间 
         user: 0, // 用户区分，1 是自己， 0 是别人
         chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
         to_table: '', // 聊天框的 id
         to_id: '', // 聊天对象的 id
         user_id: '', // 自己的 id
-        phone_number: '', // 手机号
         loading: false, // 是否正在上传
-        id: 0 // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
     }
 })
 function Center(chatData: Box, type: string) {

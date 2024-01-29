@@ -45,6 +45,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
 import { Box } from '@/interface/global'
+import { UploadCallback } from '@/interface/download'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
@@ -102,22 +103,24 @@ function sendMessage(chatData?:Box) {
 }
 
 // 文件分段上传测试
-function uploadSliceFile(file:File, cb:Function) {
+function uploadSliceFile(file:File, cb: UploadCallback) {
     uploadSlice.handleFile(file, cb)
 }
 // 文件上传
 async function uploadFile(e:Event) {
     const formData = new FormData()
-    formData.append("file", e.target.files[0])
-    const size = byteCovert(e.target.files[0]?.size)
+    const target = e.target as HTMLInputElement
+    if (!target.files?.length) return
+    formData.append("file", target.files[0])
+    const size = byteCovert(target.files[0]?.size)
     if (!size) return 
     const uuid = uuidv4()
     const box:Box = reactive({
         progress: 0,
-        type: e.target.files[0]?.type,
-        fileName: e.target.files[0]?.name,
+        type: target.files[0]?.type,
+        fileName: target.files[0]?.name,
         // text 文本描述主要用于好友栏的提示
-        text: `[文件]${e.target.files[0]?.name ?? ''}`,
+        text: `[文件]${target.files[0]?.name ?? ''}`,
         size,
         time: timeFormat(),
         response: '',
@@ -133,20 +136,20 @@ async function uploadFile(e:Event) {
     })
     // 发送信息到文本框
     sendMessage(box)
-    // console.log('e.target.files[0] -> ', box.type)
+    // console.log('target.files[0] -> ', box.type)
     // 获取缩略图
     if (box.type.includes('video')) {
         // console.log('video -> ', 'video')
-        const getURL = window.URL.createObjectURL(e.target.files[0])
+        const getURL = window.URL.createObjectURL(target.files[0])
         const thumbnail = await getVideoBase64(getURL)
         box.thumbnail = thumbnail
     }
     if (box.type.includes('image')) {
-        const getURL = window.URL.createObjectURL(e.target.files[0])
+        const getURL = window.URL.createObjectURL(target.files[0])
         const thumbnail = await getImageBase64(getURL)
         box.thumbnail = thumbnail
     }
-    uploadSliceFile(e.target.files[0], function(err: string | null, progress:number | null, response:string | null) {
+    uploadSliceFile(target.files[0], function(err, progress, response) {
         if (err) {
             box.progress = 0
             box.response = ''
@@ -165,13 +168,13 @@ async function uploadFile(e:Event) {
 
         if (response) {
             box.response = response
-            box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response.data}`
+            box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response}`
         }
 
     })
 
     // 清空 targt,不然上传同一个文件会没有反应
-    e.target.value = null
+    target.value = ''
     // upload(api.file, formData, function(err, progress, response) {
     //     if (err) {
     //         box.progress = 0
