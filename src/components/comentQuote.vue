@@ -16,7 +16,7 @@
     </section>
 </template>
 <!-- script setup -->
-<script setup>
+<script setup lang="ts">
 import { Close } from '@element-plus/icons-vue'
 import { defineProps, defineEmits } from 'vue'
 const emit = defineEmits(['close'])
