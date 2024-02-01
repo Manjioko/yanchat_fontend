@@ -64,7 +64,7 @@ const emit = defineEmits([
 
 let dShow =  ref(false)
 const user_id = sessionStorage.getItem('user_id')
-const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
 
 const changeMarkdownList = [
     { label: '是', value: true },
@@ -111,10 +111,12 @@ function handleExit() {
 
 // 上传头像
 async function uploadAvatar(e: Event) {
+    if (!e.target) return
     const formData = new FormData()
     const user_id = sessionStorage.getItem('user_id') || ''
     formData.append('user_id', user_id)
-    formData.append("avatar", (e.target as HTMLInputElement).files[0])
+    const target = e.target as HTMLInputElement
+    formData.append("avatar", target.files?.[0] || '')
     const [err, res] = await to(request({
         method: 'post',
         url: api.avatar,
