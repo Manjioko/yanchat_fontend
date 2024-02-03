@@ -733,7 +733,14 @@ async function getChatFromServer(isSwitchFriend: boolean = false) {
             offsetOb[activeFriend.value.chat_table] = {}
         }
         offsetOb[activeFriend.value.chat_table].dataOffset = offset
-        chatData = data.map((d: { chat: string }) => JSON.parse(d.chat))
+        chatData = data.map((d: { chat: string, id: number }) => ({...JSON.parse(d.chat), id: d.id}))
+        dbAdd(activeFriend.value.chat_table, chatData as Box[])
+        .then(() => {
+            console.log('从服务器获取的数据，保存到数据库中成功')
+        })
+        .catch((err: string) => {
+            console.log('服务器聊天数据保存本地失败 -> ', err)
+        })
 
     }
     // let chatBoxLen = chatBox.value.length
