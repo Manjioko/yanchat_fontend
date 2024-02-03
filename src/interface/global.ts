@@ -19,7 +19,21 @@ interface Box {
     id?: number // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
     // 视频通话可能需要以下这些类型
     from?: string // 发送者
-    quote?: string // 引用
+    quote?: string, // 引用
+    event?: string, // 用于视频通话时传递通信类型,也可以约束接口用
+    data?: any // 用于存放一些额外数据
+}
+
+const InitBox: Box = {
+    type: '', // 类型 
+    text: '', // 消息内容 
+    time: '', // 时间 
+    user: 1, // 用户区分，1 是自己， 0 是别人
+    chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
+    to_table: '', // 聊天框的 id
+    to_id: '', // 聊天对象的 id
+    user_id: '', // 自己的 id
+    loading: false // 是否正在上传
 }
 
 interface Friend {
@@ -70,6 +84,7 @@ interface PingPong {
 
 export {
     Box,
+    InitBox,
     Friend,
     UserInfo,
     RefreshMessage,

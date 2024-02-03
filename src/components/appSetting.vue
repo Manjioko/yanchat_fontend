@@ -46,7 +46,7 @@
         </el-dialog>
     </div>
 </template>
-<script setup>
+<script setup lang="ts">
 import { defineProps, ref, defineExpose, defineEmits, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
@@ -64,7 +64,7 @@ const emit = defineEmits([
 
 let dShow =  ref(false)
 const user_id = sessionStorage.getItem('user_id')
-const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
 
 const changeMarkdownList = [
     { label: '是', value: true },
@@ -99,22 +99,24 @@ defineExpose({
     showDialog
 })
 
-function showDialog(isShow) {
+function showDialog(isShow: boolean) {
     dShow.value = isShow
 }
 
 // 处理退出登录
 function handleExit() {
     emit('exit')
-    dShow = false
+    dShow.value = false
 }
 
 // 上传头像
-async function uploadAvatar(e) {
+async function uploadAvatar(e: Event) {
+    if (!e.target) return
     const formData = new FormData()
-    const user_id = sessionStorage.getItem('user_id')
+    const user_id = sessionStorage.getItem('user_id') || ''
     formData.append('user_id', user_id)
-    formData.append("avatar", e.target.files[0])
+    const target = e.target as HTMLInputElement
+    formData.append("avatar", target.files?.[0] || '')
     const [err, res] = await to(request({
         method: 'post',
         url: api.avatar,
@@ -132,7 +134,7 @@ async function uploadAvatar(e) {
             message: '修改用户头像成功',
             type: 'success',
         })
-        const baseUrl = sessionStorage.getItem('baseUrl')
+        const baseUrl = sessionStorage.getItem('baseUrl') || ''
         avatarSrc.value = `${baseUrl}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`
         emit('avaterChange', avatarSrc.value)
     }
@@ -142,7 +144,7 @@ async function uploadAvatar(e) {
 // 保存昵称
 const nickName = ref('')
 async function saveNickName() {
-    const user_info = JSON.parse(sessionStorage.getItem('user_info'))
+    const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
     console.log('user_info -> ', user_info)
     if (!nickName.value) return console.log('昵称为空')
     const [err, res] = await to(request({

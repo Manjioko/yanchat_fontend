@@ -20,11 +20,13 @@
     </VueDragResize>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import VueDragResize from 'vue-drag-resize'
 import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
 import { timeFormat, getUseTime } from '@/utils/timeFormat'
 import { v4 as uuidv4 } from 'uuid'
+import { VideoConfig } from '@/interface/video'
+// import { Box } from '@/interface/global'
 
 // import { ElNotification } from 'element-plus'
 const emit = defineEmits(['destroy', 'center'])
@@ -37,18 +39,15 @@ const props = defineProps({
         type: Object,
         default: () => ({})
     },
-    anwserData: {
-        type: Object,
-        default: () => ({})
-    }
+    anwserData: Object as () => VideoConfig
 })
 
 const width = ref(500)
 const height = ref(360)
-let localStream = null
+let localStream:MediaStream | null = null
 // let localVideo = null
-let localpeerConnection = null
-const user_id = sessionStorage.getItem('user_id')
+let localpeerConnection:RTCPeerConnection | null = null
+const user_id: string = sessionStorage.getItem('user_id') || ''
 const constraints = { 
     video: {
         width: width.value,
@@ -57,7 +56,7 @@ const constraints = {
     audio: false
 }
 
-const sendOfferConfig = {
+const sendOfferConfig: VideoConfig = {
     event: 'videoCallOffer',
     type: 'offer',
     user_id,
@@ -66,7 +65,7 @@ const sendOfferConfig = {
     data: null
 }
 
-const sendIcecandidateConfig = {
+const sendIcecandidateConfig: VideoConfig = {
     event: 'videoCallOffer',
     type: 'candidate',
     user_id,
@@ -75,7 +74,7 @@ const sendIcecandidateConfig = {
     data: null
 }
 
-const sendRequestConfig = {
+const sendRequestConfig: VideoConfig = {
     event: 'videoCallRequest',
     type: 'request',
     user_id,
@@ -84,7 +83,7 @@ const sendRequestConfig = {
     data: null
 }
 
-const sendLeaveConfig = {
+const sendLeaveConfig: VideoConfig = {
     event: 'videoCallLeave',
     type: 'leave',
     user_id,
@@ -116,14 +115,19 @@ const showStopIcon = ref(false)
 async function start() {
     localpeerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
     localStream = await navigator.mediaDevices.getUserMedia(constraints)
-    const videoEl = document.getElementById('local-video')
-    videoEl.addEventListener('playing', () => {
-        showStopIcon.value = true
-    })
-    videoEl.srcObject = localStream
-    localStream.getTracks().forEach((track) => {
-        localpeerConnection.addTrack(track, localStream)
-    })
+    if (localStream) {
+        const videoEl = document.getElementById('local-video') as HTMLMediaElement
+        if (!videoEl) return
+        videoEl.addEventListener('playing', () => {
+            showStopIcon.value = true
+        })
+        videoEl.srcObject = localStream
+        localStream.getTracks().forEach((track) => {
+            // 这里 localStream 只有两种状态 MediaStream | null,前面已经判断 localStream 存在
+            // 这里就断言 localStream 为 MediaStream 类型数据
+            localpeerConnection?.addTrack(track, localStream!)
+        })
+    }
 
     // sendOffer()
     sendIcecandidate()
@@ -139,14 +143,17 @@ onMounted(() => {
 
 // 发送 offer
 async function sendOffer() {
-    let offer = await localpeerConnection.createOffer()
-    await localpeerConnection.setLocalDescription(offer)
-    sendOfferConfig.data = localpeerConnection.localDescription
-    props.socket.send(JSON.stringify(sendOfferConfig))
+    let offer = await localpeerConnection?.createOffer()
+    await localpeerConnection?.setLocalDescription(offer)
+    if (sendOfferConfig && localpeerConnection) {
+        sendOfferConfig.data = localpeerConnection.localDescription
+        props.socket.send(JSON.stringify(sendOfferConfig))
+    }
 }
 
 // 发送候选者
 async function sendIcecandidate() {
+    if(!localpeerConnection) return
     localpeerConnection.onicecandidate = (event) => {
         if (event.candidate) {
             sendIcecandidateConfig.data = event.candidate
@@ -157,28 +164,29 @@ async function sendIcecandidate() {
 
 // 播放远程流
 async function playRemote() {
+    if(!localpeerConnection) return
     localpeerConnection.ontrack = (e) => {
-        document.getElementById('remote-video').srcObject = e.streams[0]
+        (document.getElementById('remote-video') as HTMLMediaElement).srcObject = e.streams[0]
     }
 }
 
 
 // 接收 answer
-async function listenAnswer(answer) {
+async function listenAnswer(answer: any) {
     // 将 Answer 保存为远程描述；
-    await localpeerConnection.setRemoteDescription(answer)
+    await localpeerConnection?.setRemoteDescription(answer)
 }
 
 // 接收 candidate
-async function listenIcecandidate(candidate) {
+async function listenIcecandidate(candidate:any) {
     if (candidate) {
         await localpeerConnection?.addIceCandidate(candidate)
     }
     
 }
 // 计时
-let startTime = null
-function listenResponse(data) {
+let startTime:number | null = null
+function listenResponse(data:any) {
     if (data === 'ok') {
         sendOffer()
         startTime = new Date().getTime()
@@ -187,9 +195,9 @@ function listenResponse(data) {
     }
 }
 
-function disconnectVideoCall(rejectMessage) {
-    localpeerConnection.close()
-    localStream.getTracks().forEach(track => track.stop())
+function disconnectVideoCall(rejectMessage?:string) {
+    localpeerConnection?.close()
+    localStream?.getTracks().forEach(track => track.stop())
     emit('destroy', true)
     // 处理通话时长显示
     const uuid = uuidv4()

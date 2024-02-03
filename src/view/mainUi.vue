@@ -106,7 +106,8 @@ import {
     dbReadSome
 } from '@/utils/indexDB'
 
-import { Box, Friend, UserInfo, RefreshMessage } from '@/interface/global'
+import { Box, Friend, UserInfo, RefreshMessage, InitBox } from '@/interface/global'
+import { VideoConfig, InitVideoConfig } from '@/interface/video'
 import { offsetType } from '@/types/global'
 
 // 测试数据
@@ -180,32 +181,12 @@ function getRefreshToken() {
 }
 
 let newChatData:Ref<RefreshMessage> = ref({
-    chat: {
-        type: '', // 类型 
-        text: '', // 消息内容 
-        time: '' ,// 时间 
-        user: 0, // 用户区分，1 是自己， 0 是别人
-        chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
-        to_table: '', // 聊天框的 id
-        to_id: '', // 聊天对象的 id
-        user_id: '', // 自己的 id
-        loading: false, // 是否正在上传
-    }
+    chat: InitBox
 })
 let trytoRfChat:Ref<RefreshMessage> = ref({
-    chat: {
-        type: '', // 类型 
-        text: '', // 消息内容 
-        time: '' ,// 时间 
-        user: 0, // 用户区分，1 是自己， 0 是别人
-        chat_id: '', // chatbox自己的唯一值，用于标记自己，方便模糊查询用
-        to_table: '', // 聊天框的 id
-        to_id: '', // 聊天对象的 id
-        user_id: '', // 自己的 id
-        loading: false, // 是否正在上传
-    }
+    chat: InitBox
 })
-function Center(chatData: Box, type: string) {
+function Center<T extends Box>(chatData: T, type: string): void {
 
     // 发送消息
     if (type === 'sent') {
@@ -358,7 +339,7 @@ function Center(chatData: Box, type: string) {
     // 视频通话 anwser 通信
     if (type === 'videoCallAnwser') {
         console.log('video call event1 -> ', type)
-        centerVideoCallAnwser(chatData)
+        centerVideoCallAnwser(chatData as VideoConfig)
     }
 
     // 视频通话 offer 通信
@@ -370,7 +351,7 @@ function Center(chatData: Box, type: string) {
     // 结束视频通话
     if (type === 'videoCallLeave') {
         console.log('video call event3 -> ', type)
-        centerVideoCallLeave(chatData)
+        centerVideoCallLeave(chatData as VideoConfig)
     }
 
     // 视频通话请求
@@ -382,7 +363,7 @@ function Center(chatData: Box, type: string) {
     // 视频通话请求回复
     if (type === 'videoCallResponse') {
         console.log('video call event5 -> ', type)
-        centerVideoCallResponse(chatData)
+        centerVideoCallResponse(chatData as VideoConfig)
     }
 
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
@@ -443,8 +424,8 @@ function centerVideoCallOffer(chatData: Box) {
 }
 
 const showOfferer = ref(false)
-const videocallAnwserData:Ref<any> = ref(null)
-function centerVideoCallAnwser(chatData:Box) {
+const videocallAnwserData:Ref<VideoConfig> = ref(InitVideoConfig)
+function centerVideoCallAnwser(chatData:VideoConfig) {
     // console.log('视频通话开始了 -> ', chatData)
     videocallAnwserData.value = chatData
     // showOfferer.value = true
@@ -526,12 +507,12 @@ function centerVideoCallRequest(chatData:Box) {
     }, 1000 * 60)
 }
 
-function centerVideoCallResponse(chatData:Box) {
+function centerVideoCallResponse(chatData: VideoConfig) {
     videocallAnwserData.value = chatData
 }
 
 // 结束通话中转
-function centerVideoCallLeave(chatData:Box) {
+function centerVideoCallLeave(chatData: VideoConfig) {
     if (chatData.from === 'offerer') {
         videocallOfferData.value = chatData
         return
