@@ -1,3 +1,6 @@
+// import { VideoConfig } from "./video"
+import { VideoConfig } from "./video"
+import { Ref } from 'vue'
 interface Box {
     progress?: number // 文件上传的进度信息
     fileName?: string // 文件名
@@ -33,7 +36,7 @@ const InitBox: Box = {
     to_table: '', // 聊天框的 id
     to_id: '', // 聊天对象的 id
     user_id: '', // 自己的 id
-    loading: false // 是否正在上传
+    loading: true // 是否正在上传
 }
 
 interface Friend {
@@ -76,10 +79,23 @@ interface RefreshMessage {
 interface PingPong {
     user_id: string
     to_id: string
-    table_id: string
+    to_table: string
     chat_id: string
     pingpong: string
-    id: string // 这里应该是服务器数据库响应的 id
+    id: number // 这里应该是服务器数据库响应的 id
+}
+
+interface WsConnectParams {
+    ws: Ref<WebSocket | undefined>
+    url: string
+    centerFn(data: Box, type?: string): void
+    videoFn(data: VideoConfig, type?: string): void
+    pingPongFn(data: PingPong, type?: string): void
+    signal: Ref<number>
+}
+
+interface Tip extends Box {
+    unread: number
 }
 
 export {
@@ -88,5 +104,7 @@ export {
     Friend,
     UserInfo,
     RefreshMessage,
-    PingPong
+    PingPong,
+    WsConnectParams,
+    Tip
 }

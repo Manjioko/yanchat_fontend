@@ -2,7 +2,7 @@ import vstore from '@/store'
 import { DbOpenOptions } from '@/interface/indexDB'
 import { Box } from '@/interface/global'
 
-export function dbOpen(options: DbOpenOptions) {
+export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 
     // const store = useStore()
     const { dbName, version = 1, indexList = [], tableNameList = [], oldDb = null } = options
@@ -50,7 +50,7 @@ export function dbOpen(options: DbOpenOptions) {
     })
 }
 
-export function dbAdd(tableName: String, data: Box[]) {
+export function dbAdd(tableName: String, data: Box[]):Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
@@ -66,7 +66,7 @@ export function dbAdd(tableName: String, data: Box[]) {
             // 事务完成
             tran.oncomplete = (res: Event) => {
                 resolve(res.type)
-            };
+            }
 
             // 事务失败
             tran.onerror = (err: Event) => {
@@ -76,15 +76,19 @@ export function dbAdd(tableName: String, data: Box[]) {
             }
 
         } else {
-            const request = vstore.state.dbbase.db
-                .transaction([tableName], 'readwrite')
-                .objectStore(tableName)
-                .add(data)
-            request.onsuccess = function (res: Event) {
+            const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
+            const store = tran.objectStore(tableName)
+            store.add(data)
+            // 事务完成
+            tran.oncomplete = (res: Event) => {
                 resolve(res.type)
             }
-            request.onerror = (err: Event) => {
-                reject(err.type)
+
+            // 事务失败
+            tran.onerror = (err: Event) => {
+
+                const target = err.target as IDBRequest
+                reject(target.error?.message)
             }
         }
     })

@@ -106,7 +106,7 @@ import {
     dbReadSome
 } from '@/utils/indexDB'
 
-import { Box, Friend, UserInfo, RefreshMessage, InitBox } from '@/interface/global'
+import { Box, Friend, UserInfo, RefreshMessage, InitBox, WsConnectParams, PingPong } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 import { offsetType } from '@/types/global'
 
@@ -142,7 +142,15 @@ onMounted(async () => {
     const wsUrl = sessionStorage.getItem('wsBaseUrl')
     // console.log('user id -> ', user_id)
     const url = `${wsUrl}?user_id=${user_id}`
-    ws(websocket, url, Center, signal)
+    const wsParams: WsConnectParams = {
+        ws: websocket,
+        url,
+        centerFn: Center,
+        pingPongFn: PingPongCenter,
+        videoFn: VideoCenter,
+        signal
+    }
+    ws(wsParams)
     getRefreshToken()
 })
 
@@ -186,7 +194,7 @@ let newChatData:Ref<RefreshMessage> = ref({
 let trytoRfChat:Ref<RefreshMessage> = ref({
     chat: InitBox
 })
-function Center<T extends Box>(chatData: T, type: string): void {
+function Center(chatData: Box, type?: string): void {
 
     // 发送消息
     if (type === 'sent') {
@@ -279,6 +287,7 @@ function Center<T extends Box>(chatData: T, type: string): void {
         }
         const stopLoading = watchEffect(() => {
             if (chatData.loading === false) {
+                console.log('stopLoading -> ', chatData)
                 newChatData.value = {
                     // isUnread 为 1时标记为未读，0 时标记为已读需要展示
                     isUnread: 0,
@@ -332,46 +341,52 @@ function Center<T extends Box>(chatData: T, type: string): void {
         centerDeleted(chatData)
     }
 
-    if (type === 'pong') {
-        centerPong(chatData)
-    }
-
-    // 视频通话 anwser 通信
-    if (type === 'videoCallAnwser') {
-        console.log('video call event1 -> ', type)
-        centerVideoCallAnwser(chatData as VideoConfig)
-    }
-
-    // 视频通话 offer 通信
-    if (type === 'videoCallOffer') {
-        console.log('video call event2 -> ', type)
-        centerVideoCallOffer(chatData)
-    }
-
-    // 结束视频通话
-    if (type === 'videoCallLeave') {
-        console.log('video call event3 -> ', type)
-        centerVideoCallLeave(chatData as VideoConfig)
-    }
-
-    // 视频通话请求
-    if (type === 'videoCallRequest') {
-        console.log('video call event4 -> ', type)
-        centerVideoCallRequest(chatData)
-    }
-
-    // 视频通话请求回复
-    if (type === 'videoCallResponse') {
-        console.log('video call event5 -> ', type)
-        centerVideoCallResponse(chatData as VideoConfig)
-    }
-
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
         nextTick(() => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
             chatWindow.value.scrollBar.setScrollTop(end_sp)
             // console.log('end_sp -> ', end_sp, chatWindow.value)
         })
+    }
+}
+
+function PingPongCenter(data: PingPong, type?: string) {
+    console.log('pingpong -> ', data, type)
+    if (type === 'pong') {
+        centerPong(data)
+    }
+}
+
+function VideoCenter(data: VideoConfig, type?: string) {
+    console.log('data -> ', data, type)
+        // 视频通话 anwser 通信
+        if (type === 'videoCallAnwser') {
+        console.log('video call event1 -> ', type)
+        centerVideoCallAnwser(data)
+    }
+
+    // 视频通话 offer 通信
+    if (type === 'videoCallOffer') {
+        console.log('video call event2 -> ', type)
+        centerVideoCallOffer(data)
+    }
+
+    // 结束视频通话
+    if (type === 'videoCallLeave') {
+        console.log('video call event3 -> ', type)
+        centerVideoCallLeave(data)
+    }
+
+    // 视频通话请求
+    if (type === 'videoCallRequest') {
+        console.log('video call event4 -> ', type)
+        centerVideoCallRequest(data)
+    }
+
+    // 视频通话请求回复
+    if (type === 'videoCallResponse') {
+        console.log('video call event5 -> ', type)
+        centerVideoCallResponse(data)
     }
 }
 
@@ -394,14 +409,16 @@ function centerDeleted(chat: Box) {
 }
 
 // 接收消息回响
-function centerPong(chatData: Box) {
-    if (activeFriend.value.chat_table === chatData.to_table) {
+function centerPong(data: PingPong) {
+    // console.log('123 -> ', data, activeFriend.value)
+    if (activeFriend.value.chat_table === data.to_table) {
+        // console.log('xxx')
         const len =  chatBox.value.length - 1
         for (let i = len; i >= 0; i--) {
             const chat = chatBox.value[i]
-            if (chat.chat_id === chatData.chat_id) {
+            if (chat.chat_id === data.chat_id) {
                 if (chat.loading) chat.loading = false
-                dbAdd(chat.to_table, [{...chat, id: chatData.id}])
+                dbAdd(chat.to_table, [{...chat, id: data.id}])
                 .then(res => {
                     console.log('存入数据库成功了 -> ', res)
                 }).catch(err => {
@@ -417,7 +434,7 @@ function centerPong(chatData: Box) {
 // 开启视频通话
 const showAnwserer:Ref<boolean> = ref(false)
 const videocallOfferData:Ref<any> = ref(null)
-function centerVideoCallOffer(chatData: Box) {
+function centerVideoCallOffer(chatData: VideoConfig) {
     // console.log('视频通话开始了 -> ', chatData)
     videocallOfferData.value = chatData
     showAnwserer.value = true
@@ -439,7 +456,7 @@ function destroyVideoCallAnwserer() {
     showAnwserer.value = false
 }
 
-function centerVideoCallRequest(chatData:Box) {
+function centerVideoCallRequest(chatData:VideoConfig) {
     // videocallOfferData.value = chatData
     // showAnwserer.value = true
     console.log('请求数据是 ->', chatData)
