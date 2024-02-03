@@ -329,6 +329,8 @@ function Center(chatData: Box, type: string) {
                     isUnread: 0,
                     chat: chatData,
                 }
+                // 保存到数据库
+                // dbAdd(chatData)
             } else {
                 // console.log('发到别处的信息 -> ', chatData)
                 // 撤回信息不推送到好友栏
@@ -410,7 +412,7 @@ function centerDeleted(chat: Box) {
     // console.log('撤回 -> 1')
 }
 
-// 接收消息引用
+// 接收消息回响
 function centerPong(chatData: Box) {
     if (activeFriend.value.chat_table === chatData.to_table) {
         const len =  chatBox.value.length - 1
@@ -702,8 +704,8 @@ async function getChatFromServer(isSwitchFriend: boolean = false) {
 
 
     // 获取本地聊天记录
-    let chatData: Box[] | null = null
-    if (offsetOb[activeFriend.value.chat_table].dataOffset) {
+    let chatData: Box[] | null = []
+    if (offsetOb[activeFriend.value.chat_table]?.dataOffset) {
         console.log('要从本地那数据 -> ', offsetOb[activeFriend.value.chat_table].dataOffset)
         const offset = offsetOb[activeFriend.value.chat_table].dataOffset || 0
         chatData = await getChatFromLocal(offset,0,activeFriend.value)
@@ -717,7 +719,7 @@ async function getChatFromServer(isSwitchFriend: boolean = false) {
             data: {
                 chat_table: activeFriend.value.chat_table,
                 // offset: offsetOb[activeFriend.value.to_table] || 0,
-                offset: offsetOb[activeFriend.value.chat_table].dataOffset || 0,
+                offset: offsetOb[activeFriend.value.chat_table]?.dataOffset || 0,
                 user_id: sessionStorage.getItem('user_id')
             }
         }))
@@ -729,6 +731,9 @@ async function getChatFromServer(isSwitchFriend: boolean = false) {
 
         if (res.status !== 200) return
         const { data, offset } = res.data
+        if (!offsetOb[activeFriend.value.chat_table]) {
+            offsetOb[activeFriend.value.chat_table] = {}
+        }
         offsetOb[activeFriend.value.chat_table].dataOffset = offset
         chatData = data.map((d: { chat: string }) => JSON.parse(d.chat))
 

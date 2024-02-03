@@ -39,6 +39,7 @@ export function dbOpen(options: DbOpenOptions) {
             const db = result
             tableNameList.forEach((table: string) => {
                 const store = db.createObjectStore(table, { keyPath: 'id' })
+                console.log('store -> ', store)
                 indexList.forEach((item: { name: string, unique: boolean }) => {
                     store.createIndex(item.name, item.name, { unique: item.unique })
                 })
@@ -151,6 +152,7 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
             .objectStore(tableName)
 
         const handler = (startIndex: number, endIndex: number) => {
+            if (startIndex === endIndex) return resolve([])
             const cursorEvent = store.openCursor(IDBKeyRange.bound(startIndex, endIndex, true, false))
             const data: Box[] = []
             cursorEvent.onsuccess = (res: Event) => {
@@ -175,7 +177,8 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
                 const result = (res.target as IDBRequest).result
                 let reOffset: number | null = null
                 let offsetLimit: number | null = null
-                reOffset = result.primaryKey
+                console.log('target ->', res.target)
+                reOffset = result?.primaryKey || 0
                 offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
                 handler(offsetLimit, reOffset!)
             }

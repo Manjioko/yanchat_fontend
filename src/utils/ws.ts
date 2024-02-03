@@ -1,4 +1,5 @@
-import { Ref } from "vue";
+import { Ref } from "vue"
+import { PingPong } from "@/interface/global"
 const MAX_RETRIES = 10
 let retryCount = 0
 
@@ -85,12 +86,13 @@ function connectWebSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage
             default:
                 appendMessage(chatData, 'received')
                 {
-                    const pong = {
+                    const pong: PingPong = {
                         user_id: chatData.to_id,
                         to_id: chatData.user_id,
                         table_id: chatData.to_table,
                         chat_id: chatData.chat_id,
-                        pingpong: 'pong'
+                        pingpong: 'pong',
+                        id: chatData.id // 这里应该是服务器数据库响应的 id
                     }
                     ws.value?.send(JSON.stringify(pong))
                 }

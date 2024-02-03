@@ -58,9 +58,20 @@ interface RefreshMessage {
     chat: Box
 }
 
+// 回响形状
+interface PingPong {
+    user_id: string
+    to_id: string
+    table_id: string
+    chat_id: string
+    pingpong: string
+    id: string // 这里应该是服务器数据库响应的 id
+}
+
 export {
     Box,
     Friend,
     UserInfo,
-    RefreshMessage
+    RefreshMessage,
+    PingPong
 }
