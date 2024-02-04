@@ -103,6 +103,7 @@ import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
 import {
     dbAdd,
     dbReadRange,
+    dbReadRangeNotOffset,
     // dbReadAll,
     dbReadSome
 } from '@/utils/indexDB'
@@ -110,7 +111,6 @@ import {
 import { Box, Friend, UserInfo, RefreshMessage, InitBox, WsConnectParams, PingPong } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 import { offsetType } from '@/types/global'
-import { DESC } from '@/interface/indexDB'
 
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
@@ -614,9 +614,11 @@ async function getChatFromLocal(offset: number, oldOffset: number, f: Friend): P
     
 
     // const boxData: Box[] = await dbReadAll(f.chat_table) as Box[]
-    const boxData: Box[] = await dbReadSome(f.chat_table, offset, oldOffset) as Box[]
-    const testbox: Box[] = await dbReadRange(f.chat_table, 51, DESC.UP) as Box[]
+    const boxData: Box[] = await dbReadSome(f.chat_table, offset, oldOffset)
+    const testbox: Box[] = await dbReadRange(f.chat_table, 121)
+    const testBoxNotOffset: Box[] = await dbReadRangeNotOffset(f.chat_table)
     console.log('测试数据 -> ', testbox)
+    console.log('测试 not offset -> ', testBoxNotOffset)
     // console.log('boxData -> ', boxData)
     
     // 如果boxData的长度大于0,说明有数据,需要保存offset信息

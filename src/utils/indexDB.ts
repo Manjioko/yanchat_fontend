@@ -1,6 +1,7 @@
 import vstore from '@/store'
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box } from '@/interface/global'
+import typeIs from './type'
 
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 
@@ -216,9 +217,10 @@ export function dbReadByIndex(tableName: string, indexName: string, searchStr: s
     })
 }
 
-export function dbReadRange(tableName: string, offset: number, desc: DESC, size:number = 10) {
+export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC.UP, size:number = 10): Promise<Box[]> {
     return new Promise((resolve, reject) => {
-        const store = vstore.state.dataBase.db
+        if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
+        const store = (vstore.state.dataBase.db as IDBDatabase)
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
         const box:Box[] = []
@@ -228,7 +230,7 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC, size:
             const cur = (e.target as IDBRequest).result
             if (cur) {
                 if (time < size) {
-                    box.unshift(cur.value)
+                    desc === DESC.UP ? box.unshift(cur.value) : box.push(cur.value)
                     time++
                     cur.continue()
                 } else {
@@ -243,6 +245,56 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC, size:
             reject(target.error?.message)
         }
     })
+}
+
+export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, size: number = 10): Promise<Box[]> {
+    return new Promise((resolve,reject) => {
+        if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
+        const store = (vstore.state.dataBase.db as IDBDatabase)
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+
+        const handler = (offset: number) => {
+            const cursorEvent = store.openCursor(IDBKeyRange.upperBound(offset), desc)
+            const data: Box[] = []
+            let time: number = 0
+            cursorEvent.onsuccess = (res: Event) => {
+                const cursor = (res.target as IDBRequest).result
+                if (cursor) {
+                    if (time < size) {
+                        desc === DESC.UP ? data.unshift(cursor.value) : data.push(cursor.value)
+                        time++
+                        cursor.continue()
+                    } else {
+                        resolve(data)
+                    }
+                } else {
+                    // console.log('没数据了 ->', data)
+                    resolve(data)
+                }
+            }
+            cursorEvent.onerror = (err: Event) => {
+                const target = err.target as IDBRequest
+                reject(target.error?.message)
+            }
+        }
+
+        const keyCursorRequest = store.openKeyCursor(null, 'prev')
+        keyCursorRequest.onsuccess = (res: Event) => {
+            const result = (res.target as IDBRequest).result
+            if (result) {
+                handler(result.primaryKey)
+            }
+        }
+
+        keyCursorRequest.onerror = (err: Event) => {
+            const target = err.target as IDBRequest
+            reject(target.error?.message)
+        }
+        
+    })
+      
+
 }
 
 // 删除数据库字段
