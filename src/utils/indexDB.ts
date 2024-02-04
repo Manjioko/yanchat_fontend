@@ -216,13 +216,34 @@ export function dbReadByIndex(tableName: string, indexName: string, searchStr: s
     })
 }
 
-// export function dbReadRange(tableName: string, offset: number | null, desc: DESC) {
-//     return new Promise((resolve, reject) => {
-//         if (offset) {
-            
-//         }
-//     })
-// }
+export function dbReadRange(tableName: string, offset: number, desc: DESC, size:number = 10) {
+    return new Promise((resolve, reject) => {
+        const store = vstore.state.dataBase.db
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+        const box:Box[] = []
+        let time:number = 0
+        const curReq = store.openCursor(IDBKeyRange.upperBound(offset, true), desc)
+        curReq.onsuccess = (e: Event) => {
+            const cur = (e.target as IDBRequest).result
+            if (cur) {
+                if (time < size) {
+                    box.unshift(cur.value)
+                    time++
+                    cur.continue()
+                } else {
+                    resolve(box)
+                }
+            } else {
+                resolve(box)
+            }
+        },
+        curReq.onerror = (err: Event) => {
+            const target = err.target as IDBRequest
+            reject(target.error?.message)
+        }
+    })
+}
 
 // 删除数据库字段
 export function dbDelete(tableName: string, key: number) {
