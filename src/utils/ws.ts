@@ -1,4 +1,5 @@
-import { Ref } from "vue";
+import { PingPong, WsConnectParams } from "@/interface/global"
+import { dbAdd } from "./indexDB"
 const MAX_RETRIES = 10
 let retryCount = 0
 
@@ -10,13 +11,13 @@ const maxRefreshCount = 15
 // 每次 refresh 时间都是上次的 1.5 倍
 const perTime = 1.5
 
-function refreshConnectSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage:Function, signal:Ref<number>) {
+function refreshConnectSocket(params: WsConnectParams) {
     if (refreshCount < maxRefreshCount) {
         refreshCount++
         setTimeout(() => {
             console.log('重连机制刷新 -> ', refreshCount)
             // eslint-disable-next-line prefer-rest-params
-            connectWebSocket(ws, url, appendMessage, signal)
+            connectWebSocket(params)
             refreshTime = refreshTime * perTime
         }, refreshTime * 1000 * 60)
 
@@ -26,11 +27,12 @@ function refreshConnectSocket(ws:Ref<WebSocket|undefined>, url:string, appendMes
     // connectWebSocket(...arguments)
 }
 
-function connectWebSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage:Function, signal:Ref<number>) {
+function connectWebSocket(params: WsConnectParams) {
+    const { ws, url, centerFn, videoFn, pingPongFn, signal} = params
     console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
         console.log('超过重连次数...')
-        const isHasRefresh = refreshConnectSocket(ws, url, appendMessage, signal)
+        const isHasRefresh = refreshConnectSocket(params)
         if (isHasRefresh) {
             signal.value = 0
             retryCount = 0
@@ -60,46 +62,55 @@ function connectWebSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage
 
         switch (chatData.receivedType) {
             case 'deleted':
-                appendMessage(chatData, 'deleted')
+                centerFn(chatData, 'deleted')
                 break
             case 'pong':
-                // console.log('对方确认收到', chatData)
-                appendMessage(chatData, 'pong')
+                console.log('对方确认收到', chatData)
+                pingPongFn(chatData, 'pong')
                 break
             case 'videoCallRequest':
-                appendMessage(chatData, 'videoCallRequest')
+                videoFn(chatData, 'videoCallRequest')
                 break
             case 'videoCallResponse':
-                appendMessage(chatData, 'videoCallResponse')
+                videoFn(chatData, 'videoCallResponse')
                 break
             case 'videoCallOffer':
                 console.log('offer -> ', chatData)
-                appendMessage(chatData, 'videoCallOffer')
+                videoFn(chatData, 'videoCallOffer')
                 break
             case 'videoCallAnwser':
-                appendMessage(chatData, 'videoCallAnwser')
+                videoFn(chatData, 'videoCallAnwser')
                 break
             case 'videoCallLeave':
-                appendMessage(chatData, 'videoCallLeave')
+                videoFn(chatData, 'videoCallLeave')
                 break
             default:
-                appendMessage(chatData, 'received')
+                centerFn(chatData, 'received')
                 {
-                    const pong = {
+                    const pong: PingPong = {
                         user_id: chatData.to_id,
                         to_id: chatData.user_id,
-                        table_id: chatData.to_table,
+                        to_table: chatData.to_table,
                         chat_id: chatData.chat_id,
-                        pingpong: 'pong'
+                        pingpong: 'pong',
+                        id: chatData.id // 这里应该是服务器数据库响应的 id
                     }
+                    console.log('客户端响应 -> ', pong)
                     ws.value?.send(JSON.stringify(pong))
+                    dbAdd(chatData.to_table, chatData)
+                    .then(() => {
+                        console.log('ws.ts 处保存数据到数据库成功')
+                    })
+                    .catch((err: string) => {
+                        console.log('ws.ts 保存数据到数据库失败 -> ', err)
+                    })
                 }
                 break;
         }
     }
 
     ws.value.onclose = function (res:any) {
-        appendMessage('与WebSocket服务端的连接已关闭', 'received')
+        console.log('与WebSocket服务端的连接已关闭', 'received')
         signal.value = 0
         if (res.code && res.code == 4001) {
             console.log('close 断开连接 -> ', res.reason)
@@ -108,7 +119,7 @@ function connectWebSocket(ws:Ref<WebSocket|undefined>, url:string, appendMessage
         setTimeout(() => {
             console.log('正在重连 websocket ...')
             retryCount++
-            connectWebSocket(ws, url, appendMessage, signal)
+            connectWebSocket(params)
         }, 500)
     }
 

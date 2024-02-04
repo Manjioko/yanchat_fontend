@@ -80,8 +80,8 @@ import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import { dbOpen } from '@/utils/indexDB'
-import { Box, Friend, RefreshMessage } from '@/interface/global'
+import { dbOpen, dbAdd } from '@/utils/indexDB'
+import { Box, Friend, RefreshMessage, Tip, UserInfo } from '@/interface/global'
 // import { RefreshMessage } from '@/interface/global'
 // // 打开数据库
 // dbOpen({
@@ -131,7 +131,7 @@ onMounted(() => {
 })
 
 // 数据库操作
-function handleDdOperate(userInfo: {friends: string}) {
+function handleDdOperate(userInfo: UserInfo) {
     const friends = JSON.parse(userInfo.friends)
     const indexList = [
         { name: 'user_id', unique: false },
@@ -140,10 +140,14 @@ function handleDdOperate(userInfo: {friends: string}) {
         { name: 'phone_number', unique: false },
     ]
     const tableNameList = friends.map((item: Friend) => item.chat_table)
+    console.log('friends -> ', friends)
     dbOpen({
         dbName: user_info.user_id,
         tableNameList,
         indexList
+    }).then(() => {
+        // 处理未读信息
+        handleUnread()
     })
 }
 
@@ -229,32 +233,32 @@ async function addFriend() {
             phone_number: item.phone_number
         })
     })
-    const getUserInfo = JSON.parse(sessionStorage.getItem('user_info') || '')
+    const getUserInfo: UserInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}')
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
     dShow.value = false
 }
 
 // 更新好友信息
-const userInfo = ref(JSON.parse(sessionStorage.getItem('user_info') || ''))
-let chatDataOb:{ [key:string]: any } = ref({})
+const userInfo: Ref<UserInfo> = ref(JSON.parse(sessionStorage.getItem('user_info') || '{}'))
+let chatDataOb:Ref<{ [to_table:string]: Tip }> = ref({})
 watch(chatDataOb, (val) => {
     sessionStorage.setItem('chatDataOb', JSON.stringify(val))
 },
 { deep: true })
-onMounted(() => {
-    handleUnread()
-})
+// onMounted(() => {
+//     handleUnread()
+// })
 watch(() => props.tryToRefreshChatOb!.chat, (chat: Box) => {
     const { to_table } = chat
     // console.log('更新 chat -> ', chat, chatDataOb.value[to_table])
     if (!to_table || !chatDataOb.value[to_table]) return
-    const beforChatId = chatDataOb.value[to_table].chat.chat_id
+    const beforChatId = chatDataOb.value[to_table].chat_id
     console.log('is should deleted -> ', beforChatId === chat.chat_id)
     if (beforChatId !== chat.chat_id) return
     chatDataOb.value[to_table] = {
         unread: chatDataOb.value[chat.to_table].unread,
-        chat,
+        ...chat,
     }
     console.log('更改成功 -> ', chatDataOb.value[to_table])
 })
@@ -264,13 +268,13 @@ watch(() => props.refreshChatDataOb!, (ob:RefreshMessage) => {
     if (!chatDataOb.value[chat.to_table]) {
         chatDataOb.value[chat.to_table] = {
             unread: isUnread ? 1 : 0,
-            chat,
+            ...chat,
         }
         return
     }
     chatDataOb.value[chat.to_table] = {
         unread: isUnread ? chatDataOb.value[chat.to_table].unread + 1 : 0,
-        chat,
+        ...chat,
     }
 })
 
@@ -298,25 +302,37 @@ async function handleUnread() {
     console.log('unread -> ', unRead)
     if (unRead.status !== 200) return
     if (unRead.data === 'err') return
+    const setTipData:{ [key:string]: Tip } = {}
     // 处理一开始返回最后一条数据正好被用户删除时的情况
     Object.keys(unRead.data).forEach(key => {
-        const chat = unRead.data[key].chat
-        if (chat.del_self || chat.del_other) {
-            chat.text = '[已删除一条消息]'
+        const len = unRead.data[key].chat.length
+        console.log('len -> ', len, unRead.data[key])
+        const lastChat = unRead.data[key].chat[len - 1 < 0 ? 0 : len - 1]
+        dbAdd(key,unRead.data[key].chat)
+        .then(() => {
+            console.log('成功将未读信息保存到数据库中！')
+        })
+        .catch((err: string) => {
+            console.log('将未读信息保存到数据库中失败了 -> ', err)
+        })
+        if (lastChat.del_self || lastChat.del_other) {
+            lastChat.text = '[已删除一条消息]'
         }
+        setTipData[key] = {...lastChat, unread: unRead.data[key].unread}
     })
-    chatDataOb.value = unRead.data
+    chatDataOb.value = setTipData
 }
 
 // 处理未读信息(文字部分)
-function handleUnreadMsg(unreadOb: any) {
-    return unreadOb?.chat.text ?? ''
+function handleUnreadMsg(unreadOb: Tip): string {
+    // console.log('chat xxx -> ', unreadOb)
+    return unreadOb?.text ?? ''
 }
 
 // 处理时间
-function handleShowTime(unreadOb:any) {
-    if (unreadOb?.chat?.time) {
-        const time = unreadOb.chat.time
+function handleShowTime(unreadOb:Tip): string {
+    if (unreadOb?.time) {
+        const time = unreadOb.time
         return String(time).slice(10, -3) ?? ''
     }
 
@@ -324,7 +340,7 @@ function handleShowTime(unreadOb:any) {
 }
 
 // 处理未读数目
-function handleUnreadDotNum(ob:any) {
+function handleUnreadDotNum(ob: Tip): string | number {
     if (ob?.unread === 0) return ''
     return ob?.unread ?? ''
 }

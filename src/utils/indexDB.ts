@@ -2,7 +2,7 @@ import vstore from '@/store'
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box } from '@/interface/global'
 
-export function dbOpen(options: DbOpenOptions) {
+export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 
     // const store = useStore()
     const { dbName, version = 1, indexList = [], tableNameList = [], oldDb = null } = options
@@ -39,6 +39,7 @@ export function dbOpen(options: DbOpenOptions) {
             const db = result
             tableNameList.forEach((table: string) => {
                 const store = db.createObjectStore(table, { keyPath: 'id' })
+                console.log('store -> ', store)
                 indexList.forEach((item: { name: string, unique: boolean }) => {
                     store.createIndex(item.name, item.name, { unique: item.unique })
                 })
@@ -49,7 +50,7 @@ export function dbOpen(options: DbOpenOptions) {
     })
 }
 
-export function dbAdd(tableName: String, data: Box[]) {
+export function dbAdd(tableName: String, data: Box[]):Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
@@ -65,7 +66,7 @@ export function dbAdd(tableName: String, data: Box[]) {
             // 事务完成
             tran.oncomplete = (res: Event) => {
                 resolve(res.type)
-            };
+            }
 
             // 事务失败
             tran.onerror = (err: Event) => {
@@ -75,15 +76,19 @@ export function dbAdd(tableName: String, data: Box[]) {
             }
 
         } else {
-            const request = vstore.state.dbbase.db
-                .transaction([tableName], 'readwrite')
-                .objectStore(tableName)
-                .add(data)
-            request.onsuccess = function (res: Event) {
+            const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
+            const store = tran.objectStore(tableName)
+            store.add(data)
+            // 事务完成
+            tran.oncomplete = (res: Event) => {
                 resolve(res.type)
             }
-            request.onerror = (err: Event) => {
-                reject(err.type)
+
+            // 事务失败
+            tran.onerror = (err: Event) => {
+
+                const target = err.target as IDBRequest
+                reject(target.error?.message)
             }
         }
     })
@@ -151,6 +156,7 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
             .objectStore(tableName)
 
         const handler = (startIndex: number, endIndex: number) => {
+            if (startIndex === endIndex) return resolve([])
             const cursorEvent = store.openCursor(IDBKeyRange.bound(startIndex, endIndex, true, false))
             const data: Box[] = []
             cursorEvent.onsuccess = (res: Event) => {
@@ -175,7 +181,8 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
                 const result = (res.target as IDBRequest).result
                 let reOffset: number | null = null
                 let offsetLimit: number | null = null
-                reOffset = result.primaryKey
+                console.log('target ->', res.target)
+                reOffset = result?.primaryKey || 0
                 offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
                 handler(offsetLimit, reOffset!)
             }

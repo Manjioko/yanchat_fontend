@@ -132,7 +132,7 @@ async function uploadFile(e:Event) {
         to_table: '',
         to_id: '',
         user_id: '',
-        loading: false
+        loading: true
     })
     // 发送信息到文本框
     sendMessage(box)
