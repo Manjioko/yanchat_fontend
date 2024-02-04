@@ -5,3 +5,8 @@ export interface DbOpenOptions {
     tableNameList?: string[]
     oldDb?: IDBDatabase | null
 }
+
+export enum DESC {
+    UP = 'prev',
+    DOWN = 'next'
+}

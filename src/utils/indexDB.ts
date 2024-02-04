@@ -1,5 +1,5 @@
 import vstore from '@/store'
-import { DbOpenOptions } from '@/interface/indexDB'
+import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box } from '@/interface/global'
 
 export function dbOpen(options: DbOpenOptions) {
@@ -208,6 +208,14 @@ export function dbReadByIndex(tableName: string, indexName: string, searchStr: s
         }
     })
 }
+
+// export function dbReadRange(tableName: string, offset: number | null, desc: DESC) {
+//     return new Promise((resolve, reject) => {
+//         if (offset) {
+            
+//         }
+//     })
+// }
 
 // 删除数据库字段
 export function dbDelete(tableName: string, key: number) {
