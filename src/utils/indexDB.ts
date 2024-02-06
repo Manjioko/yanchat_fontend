@@ -175,24 +175,11 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
                 reject(err.type)
             }
         }
-        // oldOffset < offset
-        if (offset === 0) {
-            const keyCursorRequest = store.openKeyCursor(null, 'prev')
-            keyCursorRequest.onsuccess = (res: Event) => {
-                const result = (res.target as IDBRequest).result
-                let reOffset: number | null = null
-                let offsetLimit: number | null = null
-                console.log('target ->', res.target)
-                reOffset = result?.primaryKey || 0
-                offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
-                handler(offsetLimit, reOffset!)
-            }
-        } else {
-            const reOffset = offset - 1 // 为什么要减去 1？ 因为 offset 值已经取过了，正确的取值应该从 offset 之前的一位开始
-            const offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
-            handler(offsetLimit, reOffset!)
-            console.log('offset ->', reOffset, offsetLimit)
-        }
+
+        const reOffset = offset - 1 // 为什么要减去 1？ 因为 offset 值已经取过了，正确的取值应该从 offset 之前的一位开始
+        const offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
+        handler(offsetLimit, reOffset!)
+        console.log('offset ->', reOffset, offsetLimit)
     })
 }
 

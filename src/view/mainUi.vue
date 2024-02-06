@@ -105,7 +105,7 @@ import {
     dbReadRange,
     dbReadRangeNotOffset,
     // dbReadAll,
-    dbReadSome
+    // dbReadSome
 } from '@/utils/indexDB'
 
 import { Box, Friend, UserInfo, RefreshMessage, InitBox, WsConnectParams, PingPong } from '@/interface/global'
@@ -584,7 +584,7 @@ const imgLoadList:Ref<number[]> = ref([])
 // 点击好友
 async function handleActiveFriend(f: Friend) {
 
-    const boxData:Box[] = await getChatFromLocal(0,0,f)
+    const boxData:Box[] = await getChatFromLocal(0,f)
 
     // 切走之前,把数据保存到本地
     if (activeFriend.value) {
@@ -597,31 +597,34 @@ async function handleActiveFriend(f: Friend) {
     isGetChatHistory = true
 
     // 将保存信息加载到聊天框
-    if (boxData.length > 0) {
-        handleChatDataFromLocal(boxData, f)
-    } else {
-        // 没有就加载聊天信息
-        getChatFromServer(true)
-    }
+    // if (boxData.length > 0) {
+    //     handleChatDataFromLocal(boxData, f)
+    // } else {
+    //     // 没有就加载聊天信息
+    //     getChatFromServer(true)
+    // }
+
+    handleChatDataFromLocal(boxData, f)
 }
 
 // 从本地获取聊天记录
-async function getChatFromLocal(offset: number, oldOffset: number, f: Friend): Promise<Box[]> {
+async function getChatFromLocal(offset: number, f: Friend): Promise<Box[]> {
     const user_id = sessionStorage.getItem('user_id') || ''
     // 将上次保存的offset信息释放到内存中
     offsetOb = JSON.parse(localStorage.getItem(user_id + 'offsetOb') || '{}')
     // const oldDataOffset = offsetOb[f.chat_table]?.dataOffset || 0
     
-
-    // const boxData: Box[] = await dbReadAll(f.chat_table) as Box[]
-    const boxData: Box[] = await dbReadSome(f.chat_table, offset, oldOffset)
-    const testbox: Box[] = await dbReadRange(f.chat_table, 121)
-    const testBoxNotOffset: Box[] = await dbReadRangeNotOffset(f.chat_table)
-    console.log('测试数据 -> ', testbox)
-    console.log('测试 not offset -> ', testBoxNotOffset)
-    // console.log('boxData -> ', boxData)
+    let boxData: Box[] = []
+    if (offset) {
+        console.log('有')
+        boxData = await dbReadRange(f.chat_table, offset)
+    } else {
+        console.log('没有')
+        boxData = await dbReadRangeNotOffset(f.chat_table)
+    }
+    console.log('boxData -> ', boxData)
     
-    // 如果boxData的长度大于0,说明有数据,需要保存offset信息
+    // 如果boxData的长度大于 0, 说明有数据,需要保存 offset 信息
     if (boxData.length > 0) {
         const dataOffset = boxData[0].id
         if (!offsetOb[f.chat_table]) {
@@ -711,44 +714,46 @@ async function getChatFromServer(isSwitchFriend: boolean = false) {
     if (offsetOb[activeFriend.value.chat_table]?.dataOffset) {
         console.log('要从本地那数据 -> ', offsetOb[activeFriend.value.chat_table].dataOffset)
         const offset = offsetOb[activeFriend.value.chat_table].dataOffset || 0
-        chatData = await getChatFromLocal(offset,0,activeFriend.value)
+        chatData = await getChatFromLocal(offset, activeFriend.value)
     }
-    if (chatData && chatData.length === 0) {
 
-        // 从服务器拉取聊天记录
-        const [err, res] = await to(request({
-            method: 'post',
-            url: api.chatData,
-            data: {
-                chat_table: activeFriend.value.chat_table,
-                // offset: offsetOb[activeFriend.value.to_table] || 0,
-                offset: offsetOb[activeFriend.value.chat_table]?.dataOffset || 0,
-                user_id: sessionStorage.getItem('user_id')
-            }
-        }))
 
-        if (err) {
-            console.log('获取聊天记录错误：', err)
-            return
-        }
 
-        if (res.status !== 200) return
-        const { data, offset } = res.data
-        if (!offsetOb[activeFriend.value.chat_table]) {
-            offsetOb[activeFriend.value.chat_table] = {}
-        }
-        offsetOb[activeFriend.value.chat_table].dataOffset = offset
-        chatData = data.map((d: { chat: string, id: number }) => ({...JSON.parse(d.chat), id: d.id}))
-        dbAdd(activeFriend.value.chat_table, chatData as Box[])
-        .then(() => {
-            console.log('从服务器获取的数据，保存到数据库中成功')
-        })
-        .catch((err: string) => {
-            console.log('服务器聊天数据保存本地失败 -> ', err)
-        })
+    // if (chatData && chatData.length === 0) {
 
-    }
-    // let chatBoxLen = chatBox.value.length
+    //     // 从服务器拉取聊天记录
+    //     const [err, res] = await to(request({
+    //         method: 'post',
+    //         url: api.chatData,
+    //         data: {
+    //             chat_table: activeFriend.value.chat_table,
+    //             // offset: offsetOb[activeFriend.value.to_table] || 0,
+    //             offset: offsetOb[activeFriend.value.chat_table]?.dataOffset || 0,
+    //             user_id: sessionStorage.getItem('user_id')
+    //         }
+    //     }))
+
+    //     if (err) {
+    //         console.log('获取聊天记录错误：', err)
+    //         return
+    //     }
+
+    //     if (res.status !== 200) return
+    //     const { data, offset } = res.data
+    //     if (!offsetOb[activeFriend.value.chat_table]) {
+    //         offsetOb[activeFriend.value.chat_table] = {}
+    //     }
+    //     offsetOb[activeFriend.value.chat_table].dataOffset = offset
+    //     chatData = data.map((d: { chat: string, id: number }) => ({...JSON.parse(d.chat), id: d.id}))
+    //     dbAdd(activeFriend.value.chat_table, chatData as Box[])
+    //     .then(() => {
+    //         console.log('从服务器获取的数据，保存到数据库中成功')
+    //     })
+    //     .catch((err: string) => {
+    //         console.log('服务器聊天数据保存本地失败 -> ', err)
+    //     })
+
+    // }
 
     // console.log('聊天记录 -> ', res.data)
     const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
