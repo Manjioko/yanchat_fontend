@@ -112,6 +112,11 @@ interface Position {
     }
 }
 
+enum IsSwitchFriend {
+    Yes,
+    No
+}
+
 export {
     Box,
     InitBox,
@@ -121,5 +126,6 @@ export {
     PingPong,
     WsConnectParams,
     Tip,
-    Position
+    Position,
+    IsSwitchFriend
 }

@@ -110,7 +110,17 @@ import {
     // dbReadSome
 } from '@/utils/indexDB'
 
-import { Box, Friend, UserInfo, RefreshMessage, InitBox, WsConnectParams, PingPong, Position } from '@/interface/global'
+import {
+    Box,
+    Friend,
+    UserInfo,
+    RefreshMessage,
+    InitBox,
+    WsConnectParams,
+    PingPong,
+    Position,
+    IsSwitchFriend
+} from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
 import { DESC } from '@/interface/indexDB'
@@ -603,7 +613,8 @@ async function handleActiveFriend(f: Friend) {
     activeFriend.value = f
     // console.log('切换好友 -> ', activeFriend.value)
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
-    isGetChatHistory = true
+    isGetChatHistoryFromUp = true
+    isGetChatHistoryFromDown = true
 
     // 将保存信息加载到聊天框
     // if (boxData.length > 0) {
@@ -615,7 +626,7 @@ async function handleActiveFriend(f: Friend) {
 
     // handleChatDataFromLocal(boxData, f)
     // handleChatDataFromLocalNew(boxData, f)
-    getChatFromServer(true)
+    getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
 }
 
 // 将好友聊天定位位置保存到 vuex 中
@@ -767,55 +778,43 @@ function handleChatData(data: Box[]): Box[] {
 // 接收到信息时信息栏滚动到底部
 const chatWindow = ref()
 
-// 查询锁
-let isGetChatHistory = true
+// 查询锁 向上锁
+let isGetChatHistoryFromUp = true
+// 查询锁，向下锁
+let isGetChatHistoryFromDown = true
 
 // 从服务器获取聊天记录
 // offsetOb 可以放置不同的 offset, 比如数据库的 offset, 和滚动距离的 offset
 // let offsetOb:{ [key: string]: offsetType  } = {}
-async function getChatFromServer(isSwitchFriend: boolean = false, downModel: boolean = false) {
-    if (!isGetChatHistory) return
-
-    // 从服务器拉取聊天记录
-    // 决定拉数据前，上锁，防止重复操作
-    isGetChatHistory = false
-
-    // 上锁后再判断是否是切换好友，这样做的好处是
-    // 可以利用锁的开关去判断该时间段是否是可以触发
-    // 滚动事件的时机
-    if (isSwitchFriend) {
-        // 这个置空的情况不希望触发滚动事件
-        // 因为这样会导致重复执行 getChatFromServer 函数
-        // chatBox.value = []
+async function getChatFromServer(isSwitchFriend: IsSwitchFriend, rollingDeriction: DESC) {
+    if (isSwitchFriend === IsSwitchFriend.Yes) {
         firstTimeGetChatData()
     } else {
-        normalGetChatData(downModel)
+        normalGetChatData(rollingDeriction)
     }
 }
 
 // 首次点击获取数据
 async function firstTimeGetChatData() {
+    // 这个置空的情况不希望触发滚动事件
+    // 因为这样会导致重复执行 getChatFromServer 函数
     chatBox.value = []
     // 看下之前的 定位记录存不存在
     const position:{ [chat_table: string]: Position } = JSON.parse(localStorage.getItem('Position') || '{}')
     const chat_table = activeFriend.value.chat_table
     const chatData:Box[] = []
     if (position[chat_table]) {
-        // 首次获取数据时，如果存在之前的定位信息，必须保证 offset 与 first 用一致
-        position[chat_table].offset = position[chat_table].first
-        localStorage.setItem('Position', JSON.stringify(position))
         chatData.push(...await dbReadRangeByArea(chat_table, position[chat_table].first, position[chat_table].last))
     } else {
         chatData.push(...await dbReadRangeNotOffset(chat_table))
     }
-    console.log('获取聊天记录 1 ->', chatData)
+    console.log('获取聊天记录 首次获取 ->', chatData)
 
-    // handlePositionAfterGetChatData(chatData, DESC.UP)
     handlePositionAfterFirstTimeGetChatData(chatData)
 }
 
 // 平常滚动获取数据
-async function normalGetChatData(isFromDown:boolean = false) {
+async function normalGetChatData(rollingDeriction:DESC) {
     // 看下之前的 定位记录存不存在
     const position:{ [chat_table: string]: Position } = JSON.parse(localStorage.getItem('Position') || '{}')
     const chat_table = activeFriend.value.chat_table
@@ -823,57 +822,74 @@ async function normalGetChatData(isFromDown:boolean = false) {
 
     if (!position[chat_table]) {
         return
-        // chatData.push(...await dbReadRangeByArea(chat_table, position[chat_table].first, position[chat_table].last))
     }
-    const offset = isFromDown ? chatBox.value[chatBox.value.length - 1].id : chatBox.value[0].id
-    // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
-    chatData.push(...await dbReadRange(chat_table, offset as number, isFromDown ? DESC.DOWN : DESC.UP))
-    console.log('获取聊天记录 2 -> ', chatData, isFromDown)
-
-    // 更新 offset
-    if (chatData[0]) {
-        console.log('更新offset -> ', chatData[0].id)
-        position[chat_table].offset = chatData[0].id as number
-        localStorage.setItem('Position', JSON.stringify(position))
-    }
-    console.log(`向哪个方向处理 -> ${isFromDown ? '向下' : '向上'}`)
-    if (isFromDown) {
+    console.log(`向哪个方向处理 -> ${rollingDeriction === DESC.DOWN ? '向下' : '向上'}`)
+    if (rollingDeriction === DESC.DOWN) {
         handlePositionAfterGetChatDataFromDown(chatData)
     } else {
         handlePositionAfterGetChatDataFromUp(chatData)
     }
 }
 // 获取数据后处理文件定位
-function handlePositionAfterGetChatDataFromUp(chatData:Box[]) {
+async function handlePositionAfterGetChatDataFromUp(chatData:Box[]) {
+    if (!isGetChatHistoryFromUp) return
+
+    // 从服务器拉取聊天记录
+    // 决定拉数据前，上锁，防止重复操作
+    isGetChatHistoryFromUp = false
+
+    const chat_table = activeFriend.value.chat_table
+    const offset =  chatBox.value[0].id
+    // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
+    chatData.push(...await dbReadRange(chat_table, offset as number, DESC.UP))
+    console.log('获取聊天记录 向上 -> ', chatData)
+
     const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
     const resChatData = handleChatData(chatData || [])
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
-        const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-        console.log('sp -> ', start_sp, end_sp)
-        chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
+        mediaDelayPosition(() => {
+            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+            console.log('sp -> ', start_sp, end_sp)
+            chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
+        })
     })
 
     // 释放锁
-    isGetChatHistory = true
+    isGetChatHistoryFromUp = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistory = false 
+    if (chatData?.length === 0) isGetChatHistoryFromUp = false 
 }
 
-function handlePositionAfterGetChatDataFromDown(chatData: Box[]) {
+async function handlePositionAfterGetChatDataFromDown(chatData: Box[]) {
+
+    if (!isGetChatHistoryFromDown) return
+
+    // 从服务器拉取聊天记录
+    // 决定拉数据前，上锁，防止重复操作
+    isGetChatHistoryFromDown = false
+
+    const chat_table = activeFriend.value.chat_table
+    const offset =  chatBox.value[chatBox.value.length - 1].id
+    // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
+    chatData.push(...await dbReadRange(chat_table, offset as number, DESC.DOWN))
+    console.log('获取聊天记录 向下 -> ', chatData)
     const tmpScrollTopValue = boxScrolltop
     const resChatData = handleChatData(chatData || [])
     chatBox.value.push(...resChatData)
     nextTick(() => {
-        chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
+        // chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
+        mediaDelayPosition(() => {
+            chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
+        })
     })
 
     // 释放锁
-    isGetChatHistory = true
+    isGetChatHistoryFromDown = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistory = false 
+    if (chatData?.length === 0) isGetChatHistoryFromDown = false 
 }
 
 function handlePositionAfterFirstTimeGetChatData(chatData:Box[]) {
@@ -888,20 +904,46 @@ function handlePositionAfterFirstTimeGetChatData(chatData:Box[]) {
             const div:HTMLElement = chatDivList[dataIndex]
             if (div) {
                 console.log('div -> ', div, position[activeFriend.value.chat_table].use)
-                div.scrollIntoView(true)
+                
+                mediaDelayPosition(() => {
+                    div.scrollIntoView()
+                })
             }
         } else {
             // const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
             // 随便设置值，后期需要优化
-            chatWindow.value.scrollBar.setScrollTop(100)
+            // chatWindow.value.scrollBar.setScrollTop(100)
+            mediaDelayPosition(() => {
+                chatWindow.value.scrollBar.setScrollTop(100)
+            })
         }
     })
 
     // 释放锁
-    isGetChatHistory = true
+    isGetChatHistoryFromUp = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistory = false 
+    if (chatData?.length === 0) isGetChatHistoryFromUp = false 
+}
+
+// 媒体文件延迟定位处理
+function mediaDelayPosition(cb: Function) {
+    chatBox.value.forEach((d, i: number) => {
+        if (d.type.includes('video') || d.type.includes('image')) {
+            imgLoadList.value.push(i)
+        }
+    })
+    
+    if (imgLoadList.value.length) {
+        const isAllLoadedStop = watchEffect(() => {
+        if (imgLoadList.value.length === 0) {
+                cb()
+                isAllLoadedStop()
+            }
+        })
+    } else {
+        cb()
+    }
 }
 // 保存 scrollOffset 到数据库
 // function saveOffsetOb() {
@@ -925,17 +967,17 @@ const scrollOffsetAntiShakeFn = antiShake(handleFriendChatScroll, 1000)
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val: { scrollTop: number }) {
-    // console.log('handleScroll isGetChatHistory -> ', isGetChatHistory)
+    // console.log('handleScroll isGetChatHistoryFromUp -> ', isGetChatHistoryFromUp)
     boxScrolltop = val.scrollTop
     scrollOffsetAntiShakeFn()
-    if (Math.floor(val.scrollTop) === 0 && isGetChatHistory) {
-        scrollAntiShakeFn()
+    if (Math.floor(val.scrollTop) === 0 && isGetChatHistoryFromUp) {
+        scrollAntiShakeFn(IsSwitchFriend.No, DESC.UP)
     }
     const scrollHeight = scrollBar.value.wrapRef.scrollHeight
     const clientHeight = scrollBar.value.wrapRef.clientHeight
-    if (val.scrollTop + clientHeight + 5 >= scrollHeight && isGetChatHistory) {
-        console.log('超过了')
-        scrollAntiShakeFn(false, true)
+    if (val.scrollTop + clientHeight + 5 >= scrollHeight && isGetChatHistoryFromDown) {
+        console.log('滚到了底部，需要获取数据了')
+        scrollAntiShakeFn(IsSwitchFriend.No, DESC.DOWN)
     }
 }
 
