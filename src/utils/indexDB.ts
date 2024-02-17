@@ -205,6 +205,7 @@ export function dbReadByIndex(tableName: string, indexName: string, searchStr: s
 }
 
 export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC.UP, size:number = 10): Promise<Box[]> {
+    console.log('获取数据 参数 -> ', desc, offset)
     return new Promise((resolve, reject) => {
         if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
         const store = (vstore.state.dataBase.db as IDBDatabase)
@@ -212,7 +213,8 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC
             .objectStore(tableName)
         const box:Box[] = []
         let time:number = 0
-        const curReq = store.openCursor(IDBKeyRange.upperBound(offset, true), desc)
+        const bound = desc === DESC.DOWN ? IDBKeyRange.lowerBound(offset, true) : IDBKeyRange.upperBound(offset, true)
+        const curReq = store.openCursor(bound, desc)
         curReq.onsuccess = (e: Event) => {
             const cur = (e.target as IDBRequest).result
             if (cur) {
@@ -223,6 +225,31 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC
                 } else {
                     resolve(box)
                 }
+            } else {
+                resolve(box)
+            }
+        },
+        curReq.onerror = (err: Event) => {
+            const target = err.target as IDBRequest
+            reject(target.error?.message)
+        }
+    })
+}
+
+// 范围数据
+export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperOffset: number): Promise<Box[]> {
+    return new Promise((resolve, reject) => {
+        if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
+        const store = (vstore.state.dataBase.db as IDBDatabase)
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+        const box:Box[] = []
+        const curReq = store.openCursor(IDBKeyRange.bound(lowerOffset, upperOffset, false, false))
+        curReq.onsuccess = (e: Event) => {
+            const cur = (e.target as IDBRequest).result
+            if (cur) {
+                box.push(cur.value)
+                cur.continue()
             } else {
                 resolve(box)
             }
@@ -271,6 +298,8 @@ export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, si
             const result = (res.target as IDBRequest).result
             if (result) {
                 handler(result.primaryKey)
+            } else {
+                resolve([])
             }
         }
 

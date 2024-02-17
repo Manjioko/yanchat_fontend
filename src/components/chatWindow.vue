@@ -123,13 +123,14 @@
     </div>
 </template>
 <script setup>
-import { defineProps, defineExpose,ref, defineEmits, watch, provide } from 'vue'
+import { defineProps, defineExpose,ref, defineEmits, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
 import sendMedia from '@/components/sendMedia.vue'
 import menu from '@/utils/contextMenu'
 import comentQuote from './comentQuote.vue'
+import { useStore } from 'vuex'
 import { WarningFilled } from '@element-plus/icons-vue'
 // import menu from '@/utils/contextMenu'
 // import ContextMenu from '@imengyu/vue3-context-menu'
@@ -149,6 +150,12 @@ const baseUrl = sessionStorage.getItem('baseUrl')
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
     avatarSrc.value = val
+})
+
+const store =  useStore()
+// 将 scrollBar 保存到 vuex
+onMounted(() => {
+    store.commit('chatWindow/setScrollBar', scrollBar.value)
 })
 
 const md = MarkdownIt({

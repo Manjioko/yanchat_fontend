@@ -100,6 +100,7 @@ const friendsList:Ref<Friend[]> = ref([])
 
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info') || '')
+console.log('用户信息 -》 ', user_info)
 handleDdOperate(user_info)
 // console.log('user_info -> ', friends)
 const user_id = sessionStorage.getItem('user_id')
@@ -117,7 +118,7 @@ onMounted(() => {
     const baseUrl = sessionStorage.getItem('baseUrl')
     f?.forEach((item: Friend) => {
         friendsList.value.push({
-            name: item.name,
+            name: item.name || item.user as string,
             user_id: item.user_id,
             time: '',
             message: '',
@@ -132,7 +133,7 @@ onMounted(() => {
 
 // 数据库操作
 function handleDdOperate(userInfo: UserInfo) {
-    const friends = JSON.parse(userInfo.friends)
+    const friends = JSON.parse(userInfo.friends) || []
     const indexList = [
         { name: 'user_id', unique: false },
         { name: 'table_id', unique: false },
@@ -222,7 +223,7 @@ async function addFriend() {
     const baseUrl = sessionStorage.getItem('baseUrl')
     res.data.friends.forEach((item:Friend) => {
         friendsList.value.push({
-            name: item.name,
+            name: item.name || item.user as string,
             user_id: item.user_id,
             time: '',
             message: '',
@@ -230,7 +231,8 @@ async function addFriend() {
             active: false,
             searchActive: true,
             chat_table: item.chat_table,
-            phone_number: item.phone_number
+            phone_number: item.phone_number,
+            user: item.user
         })
     })
     const getUserInfo: UserInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}')

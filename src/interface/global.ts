@@ -51,7 +51,8 @@ interface Friend {
     time?: string | number
     message?: string
     active: boolean // 用户点击
-    searchActive: boolean // 用户搜索
+    searchActive: boolean, // 用户搜索
+    user?: string
 }
 
 // 用户信息
@@ -98,6 +99,19 @@ interface Tip extends Box {
     unread: number
 }
 
+interface Position {
+    first: number
+    last: number
+    use: number
+    offset: number
+    area: {
+        x: number
+        y: number
+        top: number
+        left: number
+    }
+}
+
 export {
     Box,
     InitBox,
@@ -106,5 +120,6 @@ export {
     RefreshMessage,
     PingPong,
     WsConnectParams,
-    Tip
+    Tip,
+    Position
 }
