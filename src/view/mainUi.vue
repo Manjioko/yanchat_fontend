@@ -601,55 +601,35 @@ const imgLoadList:Ref<number[]> = ref([])
 // 点击好友（切换好友）
 async function handleActiveFriend(f: Friend) {
 
-    // const boxData:Box[] = await getChatFromLocal(0,f)
-
     // 切走之前,把数据保存到本地
     if (activeFriend.value.chat_table) {
-        // saveOffsetOb()
-        handleFriendChatScroll()
+        saveChatWindowPosition()
     }
 
     // 设置好友信息
     activeFriend.value = f
-    // console.log('切换好友 -> ', activeFriend.value)
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
     isGetChatHistoryFromUp = true
     isGetChatHistoryFromDown = true
-
-    // 将保存信息加载到聊天框
-    // if (boxData.length > 0) {
-    //     handleChatDataFromLocal(boxData, f)
-    // } else {
-    //     // 没有就加载聊天信息
-    //     getChatFromServer(true)
-    // }
-
-    // handleChatDataFromLocal(boxData, f)
-    // handleChatDataFromLocalNew(boxData, f)
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
 }
 
 // 将好友聊天定位位置保存到 vuex 中
-function handleFriendChatScroll() {
+function saveChatWindowPosition() {
     // console.log(`Reset offset -> ${isResetOffset ? 'Yes' : 'No'}`)
     const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect() 
     const chatDivList:HTMLLIElement[] = [...scrollBar.value.wrapRef.children[0].children[0].children]
     let canSaw:any[] = []
     chatDivList.forEach((div, idx) => {
-        // console.log(div.getBoundingClientRect())
         const rect = div.getBoundingClientRect()
-        // console.log('rect -> ', rect, chatWindowRect)
         if (rect.top >= chatWindowRect.top && rect.bottom <= chatWindowRect.bottom) {
             canSaw.push({
                 index: idx,
                 id: chatBox.value[idx].id,
-                position: 1,
-                rect
+                // rect
             })
         }
-        // canSaw.push(div)
     })
-    // console.log('cansaw -> ', canSaw)
     if (canSaw.length) {
         let extendFirst = chatBox.value[canSaw[0].index as number - 5] || chatBox.value[0]
         let extendLast = chatBox.value[canSaw[canSaw.length - 1].index as number + 5] || chatBox.value[chatBox.value.length - 1]
@@ -666,14 +646,12 @@ function handleFriendChatScroll() {
                 first: extendFirst.id as number,
                 last: extendLast.id as number,
                 use: canSaw[0].id,
-                area: canSaw[0].rect.toJSON(),
-                offset: chatBox.value[0].id as number
+                // area: canSaw[0].rect.toJSON(),
+                // offset: chatBox.value[0].id as number
             }
             beforedata[af.chat_table] = saveData
             localStorage.setItem('Position', JSON.stringify(beforedata))
-
-            // sessionStorage.setItem('lastFriendData', JSON.stringify(saveData))
-            console.log('save data is -> ', saveData)
+            console.log('定位信息 -> ', saveData)
         } else {
             console.log('extendFirst 或 extendLast 不存在')
         }
@@ -735,7 +713,7 @@ function handleFriendChatScroll() {
 //             })
 //         } else {
 //             chatWindow.value.scrollBar.setScrollTop(scrollOffset)
-//             // handleFriendChatScroll()
+//             // saveChatWindowPosition()
 //         }
 //     })
 // }
@@ -962,7 +940,7 @@ function mediaDelayPosition(cb: Function) {
 //     }
 // }
 // const scrollOffsetAntiShakeFn = antiShake(saveOffsetOb, 1000)
-const scrollOffsetAntiShakeFn = antiShake(handleFriendChatScroll, 1000)
+const scrollOffsetAntiShakeFn = antiShake(saveChatWindowPosition, 1000)
 // 滚动条事件处理
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
