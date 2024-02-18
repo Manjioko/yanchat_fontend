@@ -244,6 +244,7 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
         const box:Box[] = []
+        console.log('offset -> ', lowerOffset, upperOffset)
         const curReq = store.openCursor(IDBKeyRange.bound(lowerOffset, upperOffset, false, false))
         curReq.onsuccess = (e: Event) => {
             const cur = (e.target as IDBRequest).result
@@ -309,8 +310,29 @@ export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, si
         }
         
     })
-      
+}
 
+export function dbGetLastPrimaryKey(tableName: string): Promise<number | undefined> {
+    return new Promise((resolve, reject) => {
+        if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
+        const store = (vstore.state.dataBase.db as IDBDatabase)
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+        const keyCursorRequest = store.openKeyCursor(null, 'prev')
+        keyCursorRequest.onsuccess = (res: Event) => {
+            const result = (res.target as IDBRequest).result
+            if (result) {
+                resolve(result.primaryKey)
+            } else {
+                resolve(undefined)
+            }
+        }
+
+        keyCursorRequest.onerror = (err: Event) => {
+            const target = err.target as IDBRequest
+            reject(target.error?.message)
+        }
+    })
 }
 
 // 删除数据库字段

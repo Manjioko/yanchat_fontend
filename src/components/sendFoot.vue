@@ -1,4 +1,11 @@
 <template>
+    <header>
+        <section v-if="showGotoBottom" style="position: relative;">
+            <div class="goto-bottom" @click="handleGotoBottom">
+                <span>回到最新位置</span>
+            </div>
+        </section>
+    </header>
     <main>
         <section class="select-tab">
             <div class="video-call">
@@ -31,7 +38,7 @@
     <!-- <videoCallOfferer v-if="showOfferer"/> -->
 </template>
 <script setup lang="ts">
-import {ref, defineProps, defineEmits, reactive} from 'vue'
+import { ref, defineProps, defineEmits, reactive, computed, watch } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
@@ -46,6 +53,7 @@ import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
 import { Box } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
+import { useStore } from 'vuex'
 // import videoCallOfferer from './videoCallOfferer.vue'
 // import videoCallAnwserer from './videoCallAnwserer.vue'
 
@@ -58,7 +66,13 @@ const props = defineProps({
     }
 })
 const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart'])
+const store = useStore()
+const showGotoBottom = computed(() => store.state.footSend.goToBottom)
 
+console.log('showGotoBottom -> ', showGotoBottom.value)
+watch(() => showGotoBottom.value, (val) => {
+    console.log('watch showgotobottom -> ', val)
+})
 const chatText = ref('')
 
 // 键盘 摁下 enter 键触发事件
@@ -199,6 +213,10 @@ function videoCall() {
     emit('videoCallStart', { videoCallStart: true })
     // showOfferer.value = true
 }
+
+function handleGotoBottom() {
+    store.commit('footSend/setGotoBottomState', false)
+}
 </script>
 <style lang="scss" scoped>
 .text-send {
@@ -286,5 +304,24 @@ function videoCall() {
     img {
         width: 18px;
     }
+}
+.goto-bottom {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 100px;
+    background: #fff;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 2px 2px 6px #f5f5f5;
+    cursor: pointer;
+    color: #0093ff;
+}
+.goto-bottom:hover {
+    background-color: #f5f5f5;
 }
 </style>

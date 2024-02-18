@@ -376,7 +376,7 @@ const shake = antiShake(() => {
         
     })
 }, 1000)
-watch(searchText, shake)
+watch(searchText, () => shake())
 function handleAvatarSelfErr() {
     avatarSrc.value = require('../assets/default_avatar.png')
 }
