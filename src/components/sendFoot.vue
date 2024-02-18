@@ -38,7 +38,7 @@
     <!-- <videoCallOfferer v-if="showOfferer"/> -->
 </template>
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, reactive, computed, watch } from 'vue'
+import { ref, defineProps, defineEmits, reactive, computed } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
@@ -69,10 +69,10 @@ const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart'])
 const store = useStore()
 const showGotoBottom = computed(() => store.state.footSend.goToBottom)
 
-console.log('showGotoBottom -> ', showGotoBottom.value)
-watch(() => showGotoBottom.value, (val) => {
-    console.log('watch showgotobottom -> ', val)
-})
+// console.log('showGotoBottom -> ', showGotoBottom.value)
+// watch(() => showGotoBottom.value, (val) => {
+//     console.log('watch showgotobottom -> ', val)
+// })
 const chatText = ref('')
 
 // 键盘 摁下 enter 键触发事件

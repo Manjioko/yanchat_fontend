@@ -777,6 +777,19 @@ async function handlePositionAfterGetChatDataFromDown() {
         // chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
         mediaDelayPosition(() => {
             chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
+            if (!chatData.length) {
+                const stop = watchEffect(() => {
+                    // console.log('什么情况')
+                    const scrollHeight = scrollBar.value.wrapRef.scrollHeight
+                    const clientHeight = scrollBar.value.wrapRef.clientHeight
+                    const scrollTop = scrollBar.value.wrapRef.scrollTop
+                    if (scrollTop + clientHeight + 10 >= scrollHeight) {
+                        store.commit('footSend/setGotoBottomState', false)
+                        // console.log('这里的情况是 -》 ', scrollTop, clientHeight, scrollHeight)
+                        setTimeout(() => stop(), 0)
+                    }
+                })
+            }
         })
     })
 
@@ -816,20 +829,36 @@ async function handlePositionAfterFirstTimeGetChatData() {
                     div.scrollIntoView()
                     // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
                     if (lastId && chatData.length && lastId === chatData[chatData.length - 1].id) {
-                        // console.log('lasid -> ', lastId, chatData[chatData.length - 1].id)
                         // 向下锁 锁死
                         isGetChatHistoryFromDown = false
+                        const scrollHeight = scrollBar.value.wrapRef.scrollHeight
+                        const clientHeight = scrollBar.value.wrapRef.clientHeight
+                        const scrollTop = scrollBar.value.wrapRef.scrollTop
+                        if (scrollTop + clientHeight < scrollHeight - 10) {
+                            console.log('这里吗？', boxScrolltop, clientHeight, scrollHeight, scrollBar.value.wrapRef)
+                            // 用于显示 "回到最新" Tip 按钮
+                            store.commit('footSend/setGotoBottomState', true)
+                            const stop = watchEffect(() => {
+                                if (showGotoBottom.value === false) {
+                                    const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+                                    chatWindow.value.scrollBar.setScrollTop(end_sp)
+                                    stop()
+                                }
+                            })
+                        }
                     } else {
+                        console.log('=====================')
                         // 用于显示 "回到最新" Tip 按钮
                         store.commit('footSend/setGotoBottomState', true)
-                        // console.log(' -> ', position[chat_table])
                         const stop = watchEffect(() => {
                             if (showGotoBottom.value === false) {
+                                stop()
                                 // 回到最新位置实际上需要模拟没有定位信息, 第一次获取数据的状态, 所以需要把定位信息删除并且更新 Position
                                 delete position[chat_table]
                                 localStorage.setItem('Position', JSON.stringify(position))
+                                console.log('这里触发吗？111')
                                 handlePositionAfterFirstTimeGetChatData()
-                                stop()
+                                
                             }
                         })
                     }
@@ -871,23 +900,6 @@ function mediaDelayPosition(cb: Function) {
         cb()
     }
 }
-// 保存 scrollOffset 到数据库
-// function saveOffsetOb() {
-//     if (activeFriend.value.chat_table) {
-//         const user_id = sessionStorage.getItem('user_id')
-//         // console.log('保存到本地了 ->', boxScrolxltop, offsetOb)
-//         if (!offsetOb[activeFriend.value.chat_table]) {
-//             offsetOb[activeFriend.value.chat_table] = {
-//                 scrollOffset: 0,
-//                 dataOffset: 0
-//             }
-//         }
-//         offsetOb[activeFriend.value.chat_table].scrollOffset = boxScrolltop
-//         // offsetOb[activeFriend.value.chat_table].dataOffset = offsetOb[activeFriend.value.chat_table].dataOffset || 0
-//         localStorage.setItem(user_id + 'offsetOb', JSON.stringify(offsetOb))
-//     }
-// }
-// const scrollOffsetAntiShakeFn = antiShake(saveOffsetOb, 1000)
 const scrollOffsetAntiShakeFn = antiShake(saveChatWindowPosition, 1000)
 // 滚动条事件处理
 // 创建一个防抖实例函数
@@ -897,7 +909,6 @@ async function handleScroll(val: { scrollTop: number }) {
     boxScrolltop = val.scrollTop
     scrollOffsetAntiShakeFn()
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistoryFromUp) {
-        // console.log('xxxxxxxxxxx')
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.UP)
     }
     const scrollHeight = scrollBar.value.wrapRef.scrollHeight
