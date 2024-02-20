@@ -46,6 +46,7 @@
                 :quote="comment"
                 @center="Center"
                 @videoCallStart="handleVideoCallStart"
+                @gotoBottom="handleGotoBottom"
                 />
             </section>
         </section>
@@ -893,6 +894,27 @@ watchEffect(() => {
         
     }
 })
+
+async function handleGotoBottom() {
+    const setScrollToBottom = () => {
+        const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+        chatWindow.value.scrollBar.setScrollTop(end_sp)
+    }
+    if (isLastChatList.value) {
+        setScrollToBottom()
+    } else {
+        chatBox.value = []
+        const chatData: Box[] = []
+        const chat_table = activeFriend.value.chat_table
+        chatData.push(...await dbReadRangeNotOffset(chat_table))
+        chatBox.value.unshift(...chatData)
+        nextTick(() => {
+            mediaDelayPosition(() => {
+                setScrollToBottom()
+            })
+        })
+    }
+}
 
 const scrollOffsetAntiShakeFn = antiShake(saveChatWindowPosition, 1000)
 // 滚动条事件处理

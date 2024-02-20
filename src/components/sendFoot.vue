@@ -35,27 +35,19 @@
             </button>
         </div>
     </main>
-    <!-- <videoCallOfferer v-if="showOfferer"/> -->
 </template>
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, reactive, computed } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
-// import router from '@/router/router'
-import { 
-    // upload,
-    // uploadSlice
-    uploadSlice
-} from '@/utils/download'
+import { uploadSlice } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
 import { Box } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
 import { useStore } from 'vuex'
-// import videoCallOfferer from './videoCallOfferer.vue'
-// import videoCallAnwserer from './videoCallAnwserer.vue'
 
 const props = defineProps({
     chatBox: Object,
@@ -65,14 +57,10 @@ const props = defineProps({
         default: ''
     }
 })
-const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart'])
+const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart', 'gotoBottom'])
 const store = useStore()
 const showGotoBottom = computed(() => store.state.footSend.goToBottom)
 
-// console.log('showGotoBottom -> ', showGotoBottom.value)
-// watch(() => showGotoBottom.value, (val) => {
-//     console.log('watch showgotobottom -> ', val)
-// })
 const chatText = ref('')
 
 // 键盘 摁下 enter 键触发事件
@@ -215,7 +203,8 @@ function videoCall() {
 }
 
 function handleGotoBottom() {
-    store.commit('footSend/setGotoBottomState', false)
+    // store.commit('footSend/setGotoBottomState', false)
+    emit('gotoBottom')
 }
 </script>
 <style lang="scss" scoped>
