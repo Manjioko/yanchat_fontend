@@ -257,6 +257,9 @@ function Center(chatData: Box, type?: string): void {
 
         // core
         chatBox.value.push(chatData)
+        // if (isLastChatList.value) {
+        //     chatBox.value.push(chatData)
+        // }
         if (chatData.progress !== undefined) {
             // if (chatData.type.includes('video') || chatData.type.includes('image')) {
             //     console.log('图片或视频上传测试,不上传到服务器')
@@ -748,7 +751,7 @@ async function handlePositionAfterGetChatDataFromUp() {
     const resChatData = handleChatData(chatData || [])
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
-        mediaDelayPosition(() => {
+        mediaDelayPosition(chatData, () => {
             const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
             console.log('sp -> ', start_sp, end_sp)
             chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
@@ -782,9 +785,9 @@ async function handlePositionAfterGetChatDataFromDown() {
     chatBox.value.push(...resChatData)
     nextTick(() => {
         // chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
-        mediaDelayPosition(() => {
+        mediaDelayPosition(chatData, () => {
             chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
-            if (!chatData.length || chatData.length < 10 || lastId === chatData[chatData.length - 1].id) {
+            if (!chatData.length || chatData.length < 10 || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
                 isLastChatList.value = true
                 isGetChatHistoryFromDown = false
@@ -824,7 +827,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
             const div:HTMLElement = chatDivList[dataIndex]
             if (div) {
                 // console.log('div -> ', div, position[chat_table].use)
-                mediaDelayPosition(() => {
+                mediaDelayPosition(chatData, () => {
                     div.scrollIntoView()
                     // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
                     if (lastId && chatData.length && lastId === chatData[chatData.length - 1].id) {
@@ -849,7 +852,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
         } else {
             // 随便设置值，后期需要优化
             // chatWindow.value.scrollBar.setScrollTop(100)
-            mediaDelayPosition(() => {
+            mediaDelayPosition(chatData, () => {
                 const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
                 chatWindow.value.scrollBar.setScrollTop(end_sp)
             })
@@ -864,10 +867,12 @@ async function handlePositionAfterFirstTimeGetChatData() {
 }
 
 // 媒体文件延迟定位处理
-function mediaDelayPosition(cb: Function) {
-    chatBox.value.forEach((d, i: number) => {
+function mediaDelayPosition(chatData: Box[], cb: Function) {
+    chatData.forEach((d, i: number) => {
         if (d.type.includes('video') || d.type.includes('image')) {
             imgLoadList.value.push(i)
+            // 数组去重
+            imgLoadList.value = [...new Set(imgLoadList.value)]
         }
     })
     
@@ -907,9 +912,10 @@ async function handleGotoBottom() {
         const chatData: Box[] = []
         const chat_table = activeFriend.value.chat_table
         chatData.push(...await dbReadRangeNotOffset(chat_table))
-        chatBox.value.unshift(...chatData)
+        const resChatData = handleChatData(chatData || [])
+        chatBox.value.unshift(...resChatData)
         nextTick(() => {
-            mediaDelayPosition(() => {
+            mediaDelayPosition(chatData, () => {
                 setScrollToBottom()
             })
         })
