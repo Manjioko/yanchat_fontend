@@ -136,6 +136,7 @@ function handleDdOperate(userInfo: UserInfo) {
     const friends = JSON.parse(userInfo.friends) || []
     const indexList = [
         { name: 'user_id', unique: false },
+        { name: 'id', unique: true },
         { name: 'table_id', unique: false },
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },

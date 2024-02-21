@@ -245,7 +245,9 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
             .objectStore(tableName)
         const box:Box[] = []
         console.log('offset -> ', lowerOffset, upperOffset)
-        const curReq = store.openCursor(IDBKeyRange.bound(lowerOffset, upperOffset, false, false))
+        const lower = lowerOffset >= 0 ? lowerOffset : 0
+        const upper = upperOffset >= 0 ? upperOffset : 0
+        const curReq = store.openCursor(IDBKeyRange.bound(lower, upper, false, false))
         curReq.onsuccess = (e: Event) => {
             const cur = (e.target as IDBRequest).result
             if (cur) {
