@@ -842,7 +842,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
         // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
         const scrollHeight = scrollBar.value.wrapRef.scrollHeight
         const clientHeight = scrollBar.value.wrapRef.clientHeight
-        if (scrollHeight === clientHeight && chatData.length) {
+        if (scrollHeight === clientHeight && chatData.length && chatData[chatData.length - 1].id !== lastId) {
             scrollSafeLength.value += Math.ceil(scrollSafeLength.value / 2)
             localStorage.setItem('Position', JSON.stringify(position))
             console.log('数量不够')
