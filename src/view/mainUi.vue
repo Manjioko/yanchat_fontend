@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed, ComputedRef } from 'vue'
 import { useStore } from 'vuex'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws'
@@ -135,7 +135,7 @@ let chatBox:Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
 let boxScrolltop:Ref<number> = ref(0)
 // 确保聊天页面可以滚动的安全长度
-let scrollSafeLength: Ref<number> = ref(3)
+let scrollSafeLength: Ref<number> = ref(10)
 // websocket 客户端
 let websocket:Ref<WebSocket | undefined> = ref(undefined)
 const userInfo:Ref<UserInfo> = ref({
@@ -156,8 +156,9 @@ let userFriends:Friend[] = JSON.parse(userInfo.value.friends)
 let refreshTokenTime: number | null | undefined = null
 
 const store = useStore()
-const scrollBar = computed(() => store.state.chatWindow.scrollBar)
-const showGotoBottom = computed(() => store.state.footSend.goToBottom)
+const scrollBar: ComputedRef<any> = computed(() => store.state.chatWindow.scrollBar)
+const chatListEle: ComputedRef<HTMLElement> = computed(() => store.state.chatWindow.chatListEle)
+const showGotoBottom :ComputedRef<boolean>= computed(() => store.state.footSend.goToBottom)
 
 // const route = useRoute()
 onMounted(async () => {
@@ -265,29 +266,12 @@ function Center(chatData: Box, type?: string): void {
             pongSaveCacheData.push(chatData)
         }
         if (chatData.progress !== undefined) {
-            // if (chatData.type.includes('video') || chatData.type.includes('image')) {
-            //     console.log('图片或视频上传测试,不上传到服务器')
-            // } else {
-            //     const stop = watchEffect(() => {
-            //         if (chatData.progress >= 100 && chatData.response) {
-            //             websocket.value.send(JSON.stringify(chatData))
-            //             stop()
-            //         }
-            //     })
-            // }
             const stop = watchEffect(() => {
                 if ((chatData.progress || 0) >= 100 && chatData.response) {
                     if (websocket.value) {
                         const ws = websocket.value as WebSocket
                         ws.send(JSON.stringify(chatData))
                     }
-                    
-                    // if (chatData.type.includes('video') || chatData.type.includes('image')) {
-                    //     nextTick(() => {
-                    //         const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
-                    //         chatWindow.value.scrollBar.setScrollTop(end_sp)
-                    //     })
-                    // }
                     stop()
                 }
                 if (chatData.destroy) {
@@ -380,7 +364,7 @@ function Center(chatData: Box, type?: string): void {
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
         nextTick(() => {
             if (showGotoBottom.value) return
-            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+            const end_sp = chatListEle.value.scrollHeight
             chatWindow.value.scrollBar.setScrollTop(end_sp)
         })
     }
@@ -666,7 +650,8 @@ async function handleActiveFriend(f: Friend) {
 // 将好友聊天定位位置保存到 vuex 中
 function saveChatWindowPosition() {
     const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect() 
-    const chatDivList:HTMLLIElement[] = [...scrollBar.value.wrapRef.children[0].children[0].children]
+    const chatDivList:HTMLElement[] = [...chatListEle.value.children] as HTMLElement[]
+    // console.log('chatDivList -> ', chatDivList)
     let canSaw:any[] = []
     chatDivList.forEach((div, idx) => {
         const rect = div.getBoundingClientRect()
@@ -777,12 +762,13 @@ async function handlePositionAfterGetChatDataFromUp() {
     chatData.push(...await dbReadRange(chat_table, offset as number, DESC.UP))
     console.log('获取聊天记录 向上 -> ', chatData)
 
-    const start_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+    const start_sp = chatListEle.value.scrollHeight
+    // console.log('向上时元素 -> ', chatListEle.value)
     const resChatData = handleChatData(chatData || [])
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
         mediaDelayPosition(chatData, () => {
-            const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+            const end_sp = chatListEle.value.scrollHeight
             console.log('sp -> ', start_sp, end_sp)
             chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
         })
@@ -867,7 +853,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
         if (position[chat_table]) {
             // console.log('postion -> ', position, position[chat_table], chatBox.value)
             const dataIndex = chatBox.value.findIndex(item => item.id === position[chat_table]?.use)
-            const chatDivList:HTMLLIElement[] = [...scrollBar.value.wrapRef.children[0].children[0].children]
+            const chatDivList:HTMLElement[] = [...chatListEle.value.children] as HTMLElement[]
             const div:HTMLElement = chatDivList[dataIndex]
             if (div) {
                 // console.log('div -> ', div, position[chat_table].use)
@@ -895,7 +881,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
             // 随便设置值，后期需要优化
             // chatWindow.value.scrollBar.setScrollTop(100)
             mediaDelayPosition(chatData, () => {
-                const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+                const end_sp = chatListEle.value.scrollHeight
                 chatWindow.value.scrollBar.setScrollTop(end_sp)
             })
         }
@@ -944,7 +930,7 @@ watchEffect(() => {
 
 async function handleGotoBottom() {
     const setScrollToBottom = () => {
-        const end_sp = chatWindow.value.scrollBar.wrapRef.children[0].scrollHeight
+        const end_sp = chatListEle.value.scrollHeight
         chatWindow.value.scrollBar.setScrollTop(end_sp)
     }
     if (isLastChatList.value) {

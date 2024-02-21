@@ -1,9 +1,9 @@
 <template>
     <div class="text-show">
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
-            <div @contextmenu.prevent="handleMenu" data-menu-stop>
+            <div @contextmenu.prevent="handleMenu" data-menu-stop data-chat-list>
                 <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id">
-                    <div class="show-time">{{ handleTime(idx) }}</div>
+                    <div class="show-time">{{ handleTime(Number(idx)) }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
                         <div class="quote-and-box-style-remote">
@@ -29,7 +29,7 @@
                                         :response="textObject.response"
                                         :fileName="textObject.fileName"
                                         :thumbnail="textObject.thumbnail"
-                                        :data-index="idx"
+                                        :data-index="Number(idx)"
                                         :destroy="textObject.destroy"
                                         :user="textObject.user"
                                         @withdraw="emitWithdraw"
@@ -42,11 +42,11 @@
                                         :progress="textObject.progress"
                                         :type="textObject.type"
                                         :fileName="textObject.fileName"
-                                        :size="textObject.size"
+                                        :size="textObject.size?.toString()"
                                         :response="textObject.response"
                                         :destroy="textObject.destroy"
                                         :user="textObject.user"
-                                        :data-index="idx"
+                                        :data-index="Number(idx)"
                                         @withdraw="emitWithdraw"
                                         @deleted="emitDeleted"
                                         @quote="handleQuote"
@@ -90,7 +90,7 @@
                                     :response="textObject.response"
                                     :fileName="textObject.fileName"
                                     :thumbnail="textObject.thumbnail"
-                                    :data-index="idx"
+                                    :data-index="Number(idx)"
                                     :destroy="textObject.destroy"
                                     :user="textObject.user"
                                     @withdraw="emitWithdraw"
@@ -103,9 +103,9 @@
                                     :progress="textObject.progress"
                                     :type="textObject.type"
                                     :fileName="textObject.fileName"
-                                    :size="textObject.size"
+                                    :size="textObject.size?.toString()"
                                     :response="textObject.response"
-                                    :data-index="idx"
+                                    :data-index="Number(idx)"
                                     :destroy="textObject.destroy"
                                     :user="textObject.user"
                                     @withdraw="emitWithdraw"
@@ -122,7 +122,7 @@
         </el-scrollbar>
     </div>
 </template>
-<script setup>
+<script setup lang="ts">
 import { defineProps, defineExpose,ref, defineEmits, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
@@ -132,8 +132,7 @@ import menu from '@/utils/contextMenu'
 import comentQuote from './comentQuote.vue'
 import { useStore } from 'vuex'
 import { WarningFilled } from '@element-plus/icons-vue'
-// import menu from '@/utils/contextMenu'
-// import ContextMenu from '@imengyu/vue3-context-menu'
+import { Box } from '@/interface/global'
 
 const props = defineProps({
     chatBox: Object,
@@ -149,13 +148,16 @@ const baseUrl = sessionStorage.getItem('baseUrl')
 
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 watch(() => props.avatarRefresh, (val) => {
-    avatarSrc.value = val
+    if (val) {
+        avatarSrc.value = val
+    }
 })
 
 const store =  useStore()
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
     store.commit('chatWindow/setScrollBar', scrollBar.value)
+    store.commit('chatWindow/setChatListEle', document.querySelector('[data-chat-list]'))
 })
 
 const md = MarkdownIt({
@@ -170,20 +172,20 @@ const md = MarkdownIt({
             }
         }
 
-        return '';
+        return ''
     }
 })
-function textToMarkdown(text) {
+function textToMarkdown(text: string) {
     return props.markdown ? md.render(text) : text
 }
-function handleScroll(e) {
-    // console.log('handleScroll', val)
+function handleScroll(e: any) {
+    // console.log('handleScroll', e)
     emit('scroll', e)
 }
 
 // 自定义加载事件
 const vSpinner = {
-    mounted(el, binding) {
+    mounted(el:HTMLElement, binding:any) {
         binding.value.spinnerTime && clearTimeout(binding.value.spinnerTime)
         binding.value.spinnerTime = setTimeout(() => {
             if (binding.value.loading) {
@@ -195,35 +197,40 @@ const vSpinner = {
 }
 // let metaData
 // 头像处理
-function handleAvatar(ob) {
-    const baseUrl = sessionStorage.getItem('baseUrl')
+function handleAvatar(ob: Box) {
+    const baseUrl: string = sessionStorage.getItem('baseUrl') || ''
+    if (baseUrl) {
+        const imgUrl = `${baseUrl}/avatar/avatar_${ob.user_id}.jpg`
+        return imgUrl
+    } else {
+        console.log('baseUrl 不存在')
+    }
     // console.log(ob)
-    const imgUrl = `${baseUrl}/avatar/avatar_${ob.user_id}.jpg`
-    return imgUrl
+    
 }
 
-function handleTime(idx) {
+function handleTime(idx: number) {
     const beforItem = props.chatBox?.[idx - 1 || 0]
     const nowItem = props.chatBox?.[idx]
     if (!beforItem) return ''
-    const beforTime = new Date(beforItem?.time ?? '') 
-    const nowTime = new Date(nowItem?.time ?? '')
+    const beforTime = new Date(beforItem?.time ?? '').getTime()
+    const nowTime = new Date(nowItem?.time ?? '').getTime()
     const result = (nowTime - beforTime) / (1000 * 60)
     if (result > 10) {
-        return nowItem.time
+        return nowItem?.time
     }
     return ''
 }
 
 // 媒体 src 处理
-function handleSendMediaSrc(ob) {
+function handleSendMediaSrc(ob: Box) {
     const baseUrl = sessionStorage.getItem('baseUrl')
     const mediaUrl = ob.response ? `${baseUrl}/source/${ob.response}` : ob.src
     // console.log('mediaUrl -> ', mediaUrl)
     return mediaUrl
 }
 
-function handleDataSet(node, targetNode) {
+function handleDataSet(node: any, targetNode?:any) {
     for (let key in node.dataset) {
         if (key.includes('menu')) {
             if (key === 'menuText') {
@@ -236,15 +243,15 @@ function handleDataSet(node, targetNode) {
     }
     return handleDataSet(node.parentNode,targetNode)
 }
-function handleMenu(e) {
+function handleMenu(e:any) {
     const node = handleDataSet(e.target)
     const menuText = [
       { 
         label: "复制", 
         onClick: () => {
-            console.log(window.getSelection().toString())
+            // console.log(window.getSelection().toString())
             console.log(navigator)
-            const copyStr = window.getSelection().toString()
+            const copyStr = window.getSelection()?.toString() || ''
             // 使用Clipboard API复制文本到剪贴板(浏览器限制,必须是 https 或者 localhost 才可以使用)
             navigator?.clipboard?.writeText(copyStr)
             .catch((error) => {
@@ -293,16 +300,16 @@ function handleMenu(e) {
         menu(e, menuText) 
     }
 }
-function emitWithdraw (index) {
+function emitWithdraw (index: number) {
     emit('withdraw', index)
 }
 
-function emitDeleted (index) {
+function emitDeleted (index: number) {
     console.log('删除 -> ', index)
     emit('deleted', index)
 }
 
-function handleError(e) {
+function handleError(e:any) {
     e.target.src = require('../assets/default_avatar.png')
     // avatarSrc.value = require('../assets/default_avatar.png')
 }
@@ -310,13 +317,13 @@ function handleSelfError() {
     avatarSrc.value = require('../assets/default_avatar.png')
 }
 
-function handleQuote(idx) {
+function handleQuote(idx:number) {
     console.log('handleQuote')
     emit('quote', idx)
 }
 
 // 图片加载完成后处理
-function handleLoaded(index) {
+function handleLoaded(index: number) {
     emit('loaded', index)
 }
 </script>

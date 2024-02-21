@@ -22,8 +22,8 @@ interface Box {
     id?: number // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
     // 视频通话可能需要以下这些类型
     from?: string // 发送者
-    quote?: string, // 引用
-    event?: string, // 用于视频通话时传递通信类型,也可以约束接口用
+    quote?: string // 引用
+    event?: string // 用于视频通话时传递通信类型,也可以约束接口用
     data?: any // 用于存放一些额外数据
 }
 

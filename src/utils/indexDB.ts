@@ -31,12 +31,10 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
                 dbVersion: newVersion || version,
             })
             resolve(result)
-            // console.log('vstore -> ',vstore)
         }
         request.onupgradeneeded = event => {
 
             const result = (event.target as IDBOpenDBRequest).result
-            // console.log('成功2 ->', result)
             const db = result
             tableNameList.forEach((table: string) => {
                 const store = db.createObjectStore(table, { keyPath: 'id' })
@@ -45,8 +43,6 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
                     store.createIndex(item.name, item.name, { unique: item.unique })
                 })
             })
-
-            // resolve(event.target.result)
         }
     })
 }
