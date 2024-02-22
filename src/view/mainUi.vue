@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed, ComputedRef, reactive, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed, ComputedRef } from 'vue'
 import { useStore } from 'vuex'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws'
@@ -429,11 +429,11 @@ function centerDeleted(chat: Box) {
 }
 
 // 接收消息回响
-const pongSaveCacheData:Box[] = reactive([])
-watch(() => pongSaveCacheData, (val: Box[]) => {
-    console.log('pongSaveCacheData -> ', val)
-    store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
-})
+const pongSaveCacheData:Box[] = []
+// watch(pongSaveCacheData, (val: Box[]) => {
+//     console.log('pongSaveCacheData -> ', val)
+//     store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
+// })
 
 function centerPong(data: PingPong) {
     if (activeFriend.value.chat_table === data.to_table) {
@@ -632,7 +632,7 @@ const activeFriend:Ref<Friend> = ref({
     active: false,
     searchActive: false
 })
-const imgLoadList:Ref<number[]> = ref([])
+const imgLoadList:Ref<string[]> = ref([])
 
 // 点击好友（切换好友）
 async function handleActiveFriend(f: Friend) {
@@ -807,7 +807,8 @@ async function handlePositionAfterGetChatDataFromDown() {
         // chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
         mediaDelayPosition(chatData, () => {
             chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
-            if (!chatData.length || chatData.length < 10 || lastId === chatData[chatData.length - 1]?.id) {
+            console.log('chatData.length -> ', chatData.length)
+            if (!chatData.length || chatData.length < scrollSafeLength.value || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
                 isLastChatList.value = true
                 isGetChatHistoryFromDown = false
@@ -896,11 +897,12 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
 // 媒体文件延迟定位处理
 function mediaDelayPosition(chatData: Box[], cb: Function) {
-    chatData.forEach((d, i: number) => {
+    chatData.forEach((d: Box) => {
         if (d.type.includes('video') || d.type.includes('image')) {
-            imgLoadList.value.push(i)
-            // 数组去重
-            imgLoadList.value = [...new Set(imgLoadList.value)]
+            if (!imgLoadList.value.includes(d.chat_id)) {
+                imgLoadList.value.push(d.chat_id)
+                console.log('保存了什么嘛 -> ', imgLoadList.value)
+            }
         }
     })
     
@@ -1076,15 +1078,13 @@ function handleQuoteClose() {
 }
 
 // 处理图片加载完成事件
-function handleLoaded(boxindex: any) {
-    // console.log('加载完成 -> ', boxindex)
+function handleLoaded(chat_id: string) {
     if (imgLoadList.value.length) {
-        const fdidx = imgLoadList.value.findIndex(f => f === boxindex)
+        const fdidx = imgLoadList.value.findIndex(f => f === chat_id)
         if (fdidx !== -1) {
             imgLoadList.value.splice(fdidx, 1)
         }
     }
-    // chatBox.value[index].loaded = true
 }
 
 </script>

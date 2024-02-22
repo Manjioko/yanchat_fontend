@@ -97,6 +97,7 @@ const props = defineProps({
     user: Number,
     thumbnail: String,
     destroy: Boolean,
+    chatId: String
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
@@ -165,7 +166,7 @@ function loadEmit() {
             scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight
         }
     }
-    emit('loaded', props.dataIndex)
+    emit('loaded', props.chatId)
 }
 
 // const isVideoLoad = ref(false)

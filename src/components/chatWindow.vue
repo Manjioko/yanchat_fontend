@@ -32,6 +32,7 @@
                                         :data-index="Number(idx)"
                                         :destroy="textObject.destroy"
                                         :user="textObject.user"
+                                        :chat-id="textObject.chat_id"
                                         @withdraw="emitWithdraw"
                                         @deleted="emitDeleted"
                                         @quote="handleQuote"
@@ -93,6 +94,7 @@
                                     :data-index="Number(idx)"
                                     :destroy="textObject.destroy"
                                     :user="textObject.user"
+                                    :chat-id="textObject.chat_id"
                                     @withdraw="emitWithdraw"
                                     @deleted="emitDeleted"
                                     @quote="handleQuote"
@@ -323,8 +325,8 @@ function handleQuote(idx:number) {
 }
 
 // 图片加载完成后处理
-function handleLoaded(index: number) {
-    emit('loaded', index)
+function handleLoaded(chat_id: string) {
+    emit('loaded', chat_id)
 }
 </script>
 <style lang="scss" scoped>
