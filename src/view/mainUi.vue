@@ -648,6 +648,8 @@ async function handleActiveFriend(f: Friend) {
     isGetChatHistoryFromUp = true
     isGetChatHistoryFromDown = true
     isLastChatList.value = false
+    // 存在回到最新提示的也需要清理掉
+    store.commit('footSend/setGotoBottomState', false)
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
 }
 
@@ -885,6 +887,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
             mediaDelayPosition(chatData, () => {
                 const end_sp = chatListEle.value.scrollHeight
                 chatWindow.value.scrollBar.setScrollTop(end_sp)
+                isLastChatList.value = true
             })
         }
     })
