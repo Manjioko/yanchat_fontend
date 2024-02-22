@@ -2,7 +2,7 @@
     <header>
         <section v-if="showGotoBottom" style="position: relative;">
             <div class="goto-bottom" @click="handleGotoBottom">
-                <span>回到最新位置</span>
+                <span>{{ pongSaveCacheData.length }} 回到最新位置</span>
             </div>
         </section>
     </header>
@@ -60,6 +60,7 @@ const props = defineProps({
 const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart', 'gotoBottom'])
 const store = useStore()
 const showGotoBottom = computed(() => store.state.footSend.goToBottom)
+const pongSaveCacheData = computed(() => store.state.footSend.pongSaveCacheData)
 
 const chatText = ref('')
 

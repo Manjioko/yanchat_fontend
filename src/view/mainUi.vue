@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed, ComputedRef } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed, ComputedRef, reactive, watch } from 'vue'
 import { useStore } from 'vuex'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws'
@@ -429,7 +429,12 @@ function centerDeleted(chat: Box) {
 }
 
 // 接收消息回响
-let pongSaveCacheData:Box[] = []
+const pongSaveCacheData:Box[] = reactive([])
+watch(() => pongSaveCacheData, (val: Box[]) => {
+    console.log('pongSaveCacheData -> ', val)
+    store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
+})
+
 function centerPong(data: PingPong) {
     if (activeFriend.value.chat_table === data.to_table) {
         // const len =  chatBox.value.length - 1
@@ -474,8 +479,6 @@ function centerPong(data: PingPong) {
                     console.log('存入数据库成功了 -> ', res)
                 }).catch(err => {
                     console.log('存入数据库失败了 -> ', err)
-                }).finally(() => {
-                    pongSaveCacheData.splice(index, 1)
                 })
             }
         }
@@ -851,12 +854,10 @@ async function handlePositionAfterFirstTimeGetChatData() {
             console.log('安全长度是多少 -> ', scrollSafeLength.value)
         }
         if (position[chat_table]) {
-            // console.log('postion -> ', position, position[chat_table], chatBox.value)
             const dataIndex = chatBox.value.findIndex(item => item.id === position[chat_table]?.use)
             const chatDivList:HTMLElement[] = [...chatListEle.value.children] as HTMLElement[]
             const div:HTMLElement = chatDivList[dataIndex]
             if (div) {
-                // console.log('div -> ', div, position[chat_table].use)
                 mediaDelayPosition(chatData, () => {
                     div.scrollIntoView()
                     // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
@@ -868,7 +869,6 @@ async function handlePositionAfterFirstTimeGetChatData() {
                         
                         const scrollTop = scrollBar.value.wrapRef.scrollTop
                         if (scrollTop + clientHeight < scrollHeight - 10) {
-                            // console.log('这里吗？', boxScrolltop, clientHeight, scrollHeight, scrollBar.value.wrapRef)
                             // 用于显示 "回到最新" Tip 按钮
                             store.commit('footSend/setGotoBottomState', true)
                         }
@@ -923,6 +923,7 @@ watchEffect(() => {
     if (boxScrolltop.value + clientHeight + 20 > scrollHeight) {
         if (isLastChatList.value) {
             store.commit('footSend/setGotoBottomState', false)
+            pongSaveCacheData.splice(0, pongSaveCacheData.length)
         }
         
     }
