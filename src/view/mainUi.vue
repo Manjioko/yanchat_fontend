@@ -647,6 +647,7 @@ async function handleActiveFriend(f: Friend) {
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
     isGetChatHistoryFromUp = true
     isGetChatHistoryFromDown = true
+    isLastChatList.value = false
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
 }
 
@@ -937,6 +938,7 @@ async function handleGotoBottom() {
         chatWindow.value.scrollBar.setScrollTop(end_sp)
     }
     if (isLastChatList.value) {
+        console.log('这里 ?????????')
         setScrollToBottom()
     } else {
         chatBox.value = []
