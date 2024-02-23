@@ -162,10 +162,8 @@ const showGotoBottom :ComputedRef<boolean>= computed(() => store.state.footSend.
 
 // const route = useRoute()
 onMounted(async () => {
-    // console.log('route -> ', userInfo.value.chat_table)
     const user_id = sessionStorage.getItem('user_id')
     const wsUrl = sessionStorage.getItem('wsBaseUrl')
-    // console.log('user id -> ', user_id)
     const url = `${wsUrl}?user_id=${user_id}`
     const wsParams: WsConnectParams = {
         ws: websocket,
@@ -264,6 +262,7 @@ function Center(chatData: Box, type?: string): void {
             chatBox.value.push(chatData)
         } else {
             pongSaveCacheData.push(chatData)
+            store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
         }
         if (chatData.progress !== undefined) {
             const stop = watchEffect(() => {
@@ -317,8 +316,6 @@ function Center(chatData: Box, type?: string): void {
     if (type === 'received') {
         // console.log('mainUI 接收信息!', chatData)
         try {
-            // const chatData = JSON.parse(chatData)
-            // console.log('id 比较 -> ', chatData.user_id, userInfo.value.user_id)
             if (chatData.user_id === userInfo.value.user_id) {
                 chatData.user = 1
             } else {
@@ -326,7 +323,6 @@ function Center(chatData: Box, type?: string): void {
             }
             console.log('activeFriend.value -> ', activeFriend.value)
             if (chatData.user_id === activeFriend?.value?.user_id) {
-                // console.log('发到自己的信息 -> ', chatData.type)
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
                 // chatBox.value.push(chatData)
@@ -334,15 +330,13 @@ function Center(chatData: Box, type?: string): void {
                     chatBox.value.push(chatData)
                 } else {
                     pongSaveCacheData.push(chatData)
+                    store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
                 }
                 newChatData.value = {
                     isUnread: 0,
                     chat: chatData,
                 }
-                // 保存到数据库
-                // dbAdd(chatData)
             } else {
-                // console.log('发到别处的信息 -> ', chatData)
                 // 撤回信息不推送到好友栏
                 newChatData.value = {
                     isUnread: 1,
@@ -430,10 +424,6 @@ function centerDeleted(chat: Box) {
 
 // 接收消息回响
 const pongSaveCacheData:Box[] = []
-// watch(pongSaveCacheData, (val: Box[]) => {
-//     console.log('pongSaveCacheData -> ', val)
-//     store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
-// })
 
 function centerPong(data: PingPong) {
     if (activeFriend.value.chat_table === data.to_table) {
@@ -647,9 +637,12 @@ async function handleActiveFriend(f: Friend) {
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
     isGetChatHistoryFromUp = true
     isGetChatHistoryFromDown = true
+    // 记录的结尾标识也需要重置
     isLastChatList.value = false
-    // 存在回到最新提示的也需要清理掉
+    // 存在回到最新提示的也需要重置
     store.commit('footSend/setGotoBottomState', false)
+    // 未显示内容需要重置
+    store.commit('footSend/setPongSaveCacheData', [])
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
 }
 
