@@ -157,17 +157,17 @@ watch(() => props.avatarRefresh, (val) => {
 })
 
 const store =  useStore()
-let chatListDiv:HTMLElement | null = null
+// let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
 watch(() => props.chatBox, () => {
-    updatedScrollData(chatListDiv)
+    updatedScrollData()
 })
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
     store.commit('chatWindow/setScrollBar', scrollBar.value)
     store.commit('chatWindow/setChatListEle', document.querySelector('[data-chat-list]'))
-    chatListDiv = document.querySelector('[data-chat-list]')
-    updatedScrollData(chatListDiv)
+    console.log('scrollBar -> ', scrollBar.value)
+    updatedScrollData()
 })
 
 const md = MarkdownIt({
@@ -190,17 +190,21 @@ function textToMarkdown(text: string) {
 }
 
 // 更新滚动数据
-function updatedScrollData(data: HTMLElement | null) {
-    const s: ScrollData = {
-        scrollTop: data?.scrollTop || 0,
-        scrollHeight: data?.scrollHeight || 0,
-        clientHeight: data?.clientHeight || 0
+function updatedScrollData() {
+    if (scrollBar.value) {
+        const s: ScrollData = {
+            scrollTop: scrollBar.value.wrapRef.scrollTop || 0,
+            scrollHeight: scrollBar.value.wrapRef.scrollHeight || 0,
+            clientHeight: scrollBar.value.wrapRef.clientHeight || 0,
+            scrollBar: scrollBar.value
+        }
+        store.commit('chatWindow/setScrollData', s)
     }
-    store.commit('chatWindow/setScrollData', s)
+
 }
 
 function handleScroll(e: any) {
-    updatedScrollData(chatListDiv)
+    updatedScrollData()
     emit('scroll', e)
 }
 

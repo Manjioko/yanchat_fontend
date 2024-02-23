@@ -126,7 +126,7 @@ import {
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
 import { DESC } from '@/interface/indexDB'
-// import { ScrollData } from '@/interface/chatWindow'
+import { ScrollData } from '@/interface/chatWindow'
 
 
 // 测试数据
@@ -157,10 +157,10 @@ let userFriends:Friend[] = JSON.parse(userInfo.value.friends)
 let refreshTokenTime: number | null | undefined = null
 
 const store = useStore()
-const scrollBar: ComputedRef<any> = computed(() => store.state.chatWindow.scrollBar)
+// const scrollBar: ComputedRef<any> = computed(() => store.state.chatWindow.scrollBar)
 const chatListEle: ComputedRef<HTMLElement> = computed(() => store.state.chatWindow.chatListEle)
 const showGotoBottom :ComputedRef<boolean>= computed(() => store.state.footSend.goToBottom)
-// const scrollData: ComputedRef<ScrollData> = computed(() => store.state.chatWindow.scrollData)
+const scrollData: ComputedRef<ScrollData> = computed(() => store.state.chatWindow.scrollData)
 
 // const route = useRoute()
 onMounted(async () => {
@@ -355,7 +355,7 @@ function Center(chatData: Box, type?: string): void {
 // 滚动聊天框到底部
 function scrollChatBoxToBottom(start_sp?: number) {
     const end_sp = chatListEle.value.scrollHeight
-    chatWindow.value.scrollBar.setScrollTop(start_sp ? end_sp - start_sp : end_sp)
+    scrollData.value.scrollBar.setScrollTop(start_sp ? end_sp - start_sp : end_sp)
 }
 // 将信息发送到好友模块的提示栏中
 function sendTipToFriendModel(unread: number, chat: Box) {
@@ -649,7 +649,7 @@ async function handleActiveFriend(f: Friend) {
 
 // 将好友聊天定位位置保存到 vuex 中
 function saveChatWindowPosition() {
-    const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect() 
+    const chatWindowRect = scrollData.value.scrollBar.wrapRef.getBoundingClientRect() 
     const chatDivList:HTMLElement[] = [...chatListEle.value.children] as HTMLElement[]
     // console.log('chatDivList -> ', chatDivList)
     let canSaw:any[] = []
@@ -757,6 +757,7 @@ async function handlePositionAfterGetChatDataFromUp() {
     const resChatData = handleChatData(chatData || [])
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
+        console.log('scrollData 3 -> ', scrollData)
         mediaDelayPosition(chatData, () => {
             // const end_sp = chatListEle.value.scrollHeight
             // chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
@@ -791,9 +792,10 @@ async function handlePositionAfterGetChatDataFromDown() {
     const resChatData = handleChatData(chatData || [])
     chatBox.value.push(...resChatData)
     nextTick(() => {
+        console.log('scrollDatan 2 -> ', scrollData)
         // chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
         mediaDelayPosition(chatData, () => {
-            chatWindow.value.scrollBar.setScrollTop(tmpScrollTopValue)
+            scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
             console.log('chatData.length -> ', chatData.length)
             if (!chatData.length || chatData.length < scrollSafeLength.value || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
@@ -830,10 +832,15 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
+        console.log('scrollData -> ', scrollData)
         // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
-        const scrollHeight = scrollBar.value.wrapRef.scrollHeight
-        const clientHeight = scrollBar.value.wrapRef.clientHeight
-        if (scrollHeight === clientHeight && chatData.length && chatData[chatData.length - 1].id !== lastId) {
+        // const scrollHeight = scrollBar.value.wrapRef.scrollHeight
+        // const clientHeight = scrollBar.value.wrapRef.clientHeight
+        if (
+            scrollData.value.scrollHeight === scrollData.value.clientHeight
+            && chatData.length
+            && chatData[chatData.length - 1].id !== lastId
+        ) {
             scrollSafeLength.value += Math.ceil(scrollSafeLength.value / 2)
             localStorage.setItem('Position', JSON.stringify(position))
             console.log('数量不够')
@@ -855,8 +862,8 @@ async function handlePositionAfterFirstTimeGetChatData() {
                         isGetChatHistoryFromDown = false
                         isLastChatList.value = true
                         
-                        const scrollTop = scrollBar.value.wrapRef.scrollTop
-                        if (scrollTop + clientHeight < scrollHeight - 10) {
+                        // const scrollTop = scrollBar.value.wrapRef.scrollTop
+                        if (scrollData.value.scrollTop + scrollData.value.clientHeight < scrollData.value.scrollHeight - 10) {
                             // 用于显示 "回到最新" Tip 按钮
                             store.commit('footSend/setGotoBottomState', true)
                         }
@@ -909,9 +916,9 @@ function mediaDelayPosition(chatData: Box[], cb: Function) {
 
 // 监听回到最新定位方法
 watchEffect(() => {
-    const scrollHeight = scrollBar.value?.wrapRef?.scrollHeight
-    const clientHeight = scrollBar.value?.wrapRef?.clientHeight
-    if (boxScrolltop.value + clientHeight + 20 > scrollHeight) {
+    // const scrollHeight = scrollBar.value?.wrapRef?.scrollHeight
+    // const clientHeight = scrollBar.value?.wrapRef?.clientHeight
+    if (scrollData.value.scrollTop + scrollData.value.clientHeight + 20 > scrollData.value.scrollHeight) {
         if (isLastChatList.value) {
             store.commit('footSend/setGotoBottomState', false)
             pongSaveCacheData.splice(0, pongSaveCacheData.length)
@@ -919,7 +926,7 @@ watchEffect(() => {
         
     }
 
-    if ((scrollHeight - clientHeight - boxScrolltop.value) > clientHeight * 1.5) {
+    if ((scrollData.value.scrollHeight - scrollData.value.clientHeight - boxScrolltop.value) > scrollData.value.clientHeight * 1.5) {
         // console.log('已经滚动超过一个聊天框的距离')
     }
 })
@@ -957,9 +964,9 @@ async function handleScroll(val: { scrollTop: number }) {
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistoryFromUp) {
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.UP)
     }
-    const scrollHeight = scrollBar.value.wrapRef.scrollHeight
-    const clientHeight = scrollBar.value.wrapRef.clientHeight
-    if (val.scrollTop + clientHeight + 5 >= scrollHeight && isGetChatHistoryFromDown) {
+    // const scrollHeight = scrollBar.value.wrapRef.scrollHeight
+    // const clientHeight = scrollBar.value.wrapRef.clientHeight
+    if (val.scrollTop + scrollData.value.clientHeight + 5 >= scrollData.value.scrollHeight && isGetChatHistoryFromDown) {
         // console.log('滚到了底部，需要获取数据了')
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.DOWN)
     }
