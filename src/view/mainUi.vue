@@ -933,6 +933,10 @@ watchEffect(() => {
         }
         
     }
+
+    if ((scrollHeight - clientHeight - boxScrolltop.value) > clientHeight * 1.5) {
+        // console.log('已经滚动超过一个聊天框的距离')
+    }
 })
 
 async function handleGotoBottom() {
@@ -941,7 +945,6 @@ async function handleGotoBottom() {
         chatWindow.value.scrollBar.setScrollTop(end_sp)
     }
     if (isLastChatList.value) {
-        console.log('这里 ?????????')
         setScrollToBottom()
     } else {
         chatBox.value = []
