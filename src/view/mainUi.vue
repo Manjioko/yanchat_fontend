@@ -725,20 +725,12 @@ async function getChatFromServer(isSwitchFriend: IsSwitchFriend, rollingDerictio
 
 // 首次点击获取数据
 async function firstTimeGetChatData() {
-    // 看下之前的 定位记录存不存在
-    // const position:{ [chat_table: string]: Position } = JSON.parse(localStorage.getItem('Position') || '{}')
     handlePositionAfterFirstTimeGetChatData()
 }
 
 // 平常滚动获取数据
 async function normalGetChatData(rollingDeriction:DESC) {
     // 看下之前的 定位记录存不存在
-    // const position:{ [chat_table: string]: Position } = JSON.parse(localStorage.getItem('Position') || '{}')
-    // const chat_table = activeFriend.value.chat_table
-
-    // if (!position[chat_table]) {
-    //     return
-    // }
     console.log(`向哪个方向处理 -> ${rollingDeriction === DESC.DOWN ? '向下' : '向上'}`)
     if (rollingDeriction === DESC.DOWN) {
         handlePositionAfterGetChatDataFromDown()
@@ -757,12 +749,10 @@ async function handlePositionAfterGetChatDataFromUp() {
     const chat_table = activeFriend.value.chat_table
     const offset =  chatBox.value[0].id
     const chatData:Box[] = []
-    // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
     chatData.push(...await dbReadRange(chat_table, offset as number, DESC.UP))
     console.log('获取聊天记录 向上 -> ', chatData)
 
     const start_sp = chatListEle.value.scrollHeight
-    // console.log('向上时元素 -> ', chatListEle.value)
     const resChatData = handleChatData(chatData || [])
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
