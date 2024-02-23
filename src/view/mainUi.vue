@@ -293,20 +293,12 @@ function Center(chatData: Box, type?: string): void {
         if (!('progress' in chatData)) {
             chatData.loading = true   
         } else {
-            newChatData.value = {
-                // isUnread 为 1时标记为未读，0 时标记为已读需要展示
-                isUnread: 0,
-                chat: chatData
-            }
+            sendTipToFriendModel(0, chatData)
         }
         const stopLoading = watchEffect(() => {
             if (chatData.loading === false) {
                 console.log('stopLoading -> ', chatData)
-                newChatData.value = {
-                    // isUnread 为 1时标记为未读，0 时标记为已读需要展示
-                    isUnread: 0,
-                    chat: chatData
-                }
+                sendTipToFriendModel(0, chatData)
                 stopLoading()
             }
         })
@@ -332,16 +324,10 @@ function Center(chatData: Box, type?: string): void {
                     pongSaveCacheData.push(chatData)
                     store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
                 }
-                newChatData.value = {
-                    isUnread: 0,
-                    chat: chatData,
-                }
+                sendTipToFriendModel(0, chatData)
             } else {
                 // 撤回信息不推送到好友栏
-                newChatData.value = {
-                    isUnread: 1,
-                    chat: chatData,
-                } 
+                sendTipToFriendModel(1, chatData)
 
             }
             // 推送消息到桌面
@@ -358,12 +344,25 @@ function Center(chatData: Box, type?: string): void {
     if (activeFriend.value && chatWindow?.value?.scrollBar) {
         nextTick(() => {
             if (showGotoBottom.value) return
-            const end_sp = chatListEle.value.scrollHeight
-            chatWindow.value.scrollBar.setScrollTop(end_sp)
+            // const end_sp = chatListEle.value.scrollHeight
+            // chatWindow.value.scrollBar.setScrollTop(end_sp)
+            scrollChatBoxToBottom()
         })
     }
 }
-
+// 滚动聊天框到底部
+function scrollChatBoxToBottom(start_sp?: number) {
+    const end_sp = chatListEle.value.scrollHeight
+    chatWindow.value.scrollBar.setScrollTop(start_sp ? end_sp - start_sp : end_sp)
+}
+// 将信息发送到好友模块的提示栏中
+function sendTipToFriendModel(unread: number, chat: Box) {
+    newChatData.value = {
+        // isUnread 为 1时标记为未读，0 时标记为已读需要展示
+        isUnread: unread,
+        chat: chat
+    }
+} 
 function PingPongCenter(data: PingPong, type?: string) {
     console.log('pingpong -> ', data, type)
     if (type === 'pong') {
@@ -757,9 +756,9 @@ async function handlePositionAfterGetChatDataFromUp() {
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
         mediaDelayPosition(chatData, () => {
-            const end_sp = chatListEle.value.scrollHeight
-            console.log('sp -> ', start_sp, end_sp)
-            chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
+            // const end_sp = chatListEle.value.scrollHeight
+            // chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
+            scrollChatBoxToBottom(start_sp)
         })
     })
 
@@ -868,8 +867,9 @@ async function handlePositionAfterFirstTimeGetChatData() {
             // 随便设置值，后期需要优化
             // chatWindow.value.scrollBar.setScrollTop(100)
             mediaDelayPosition(chatData, () => {
-                const end_sp = chatListEle.value.scrollHeight
-                chatWindow.value.scrollBar.setScrollTop(end_sp)
+                // const end_sp = chatListEle.value.scrollHeight
+                // chatWindow.value.scrollBar.setScrollTop(end_sp)
+                scrollChatBoxToBottom()
                 isLastChatList.value = true
             })
         }
@@ -923,12 +923,12 @@ watchEffect(() => {
 })
 
 async function handleGotoBottom() {
-    const setScrollToBottom = () => {
-        const end_sp = chatListEle.value.scrollHeight
-        chatWindow.value.scrollBar.setScrollTop(end_sp)
-    }
+    // const setScrollToBottom = () => {
+    //     const end_sp = chatListEle.value.scrollHeight
+    //     chatWindow.value.scrollBar.setScrollTop(end_sp)
+    // }
     if (isLastChatList.value) {
-        setScrollToBottom()
+        scrollChatBoxToBottom()
     } else {
         chatBox.value = []
         const chatData: Box[] = []
@@ -938,7 +938,7 @@ async function handleGotoBottom() {
         chatBox.value.unshift(...resChatData)
         nextTick(() => {
             mediaDelayPosition(chatData, () => {
-                setScrollToBottom()
+                scrollChatBoxToBottom()
             })
         })
     }
@@ -1000,9 +1000,8 @@ function handleIsUseMarkdown(val: boolean) {
 }
 
 // 删除处理
-async function handleDeleted (idx: number) {
+async function handleDeleted(idx: number) {
     const user_id = sessionStorage.getItem('user_id')
-    // console.log('删除 -> ', chatBox.value[idx].user_id === user_id)
     const chat = chatBox.value[idx]
     const [err, res] = await to(request({
         method: 'post',
