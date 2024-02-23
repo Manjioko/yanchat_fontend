@@ -3,7 +3,8 @@ export default {
     state() {
         return {
             scrollBar: null,
-            chatListEle: null
+            chatListEle: null,
+            scrollData: {}
         }
     },
     mutations: {
@@ -11,8 +12,10 @@ export default {
             state.scrollBar = payload
         },
         setChatListEle(state: any, payload: any) {
-            // console.log('chatListEle -> ', payload)
             state.chatListEle = payload
+        },
+        setScrollData(state: any, payload: any) {
+            state.scrollData = payload
         }
     }
 }

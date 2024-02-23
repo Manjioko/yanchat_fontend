@@ -126,6 +126,7 @@ import {
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
 import { DESC } from '@/interface/indexDB'
+// import { ScrollData } from '@/interface/chatWindow'
 
 
 // 测试数据
@@ -159,6 +160,7 @@ const store = useStore()
 const scrollBar: ComputedRef<any> = computed(() => store.state.chatWindow.scrollBar)
 const chatListEle: ComputedRef<HTMLElement> = computed(() => store.state.chatWindow.chatListEle)
 const showGotoBottom :ComputedRef<boolean>= computed(() => store.state.footSend.goToBottom)
+// const scrollData: ComputedRef<ScrollData> = computed(() => store.state.chatWindow.scrollData)
 
 // const route = useRoute()
 onMounted(async () => {

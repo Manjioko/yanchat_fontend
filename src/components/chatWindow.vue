@@ -135,6 +135,7 @@ import comentQuote from './comentQuote.vue'
 import { useStore } from 'vuex'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { Box } from '@/interface/global'
+import { ScrollData } from '@/interface/chatWindow'
 
 const props = defineProps({
     chatBox: Object,
@@ -156,10 +157,17 @@ watch(() => props.avatarRefresh, (val) => {
 })
 
 const store =  useStore()
+let chatListDiv:HTMLElement | null = null
+// 数据变动时,更新 scrollData
+watch(() => props.chatBox, () => {
+    updatedScrollData(chatListDiv)
+})
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
     store.commit('chatWindow/setScrollBar', scrollBar.value)
     store.commit('chatWindow/setChatListEle', document.querySelector('[data-chat-list]'))
+    chatListDiv = document.querySelector('[data-chat-list]')
+    updatedScrollData(chatListDiv)
 })
 
 const md = MarkdownIt({
@@ -180,8 +188,19 @@ const md = MarkdownIt({
 function textToMarkdown(text: string) {
     return props.markdown ? md.render(text) : text
 }
+
+// 更新滚动数据
+function updatedScrollData(data: HTMLElement | null) {
+    const s: ScrollData = {
+        scrollTop: data?.scrollTop || 0,
+        scrollHeight: data?.scrollHeight || 0,
+        clientHeight: data?.clientHeight || 0
+    }
+    store.commit('chatWindow/setScrollData', s)
+}
+
 function handleScroll(e: any) {
-    // console.log('handleScroll', e)
+    updatedScrollData(chatListDiv)
     emit('scroll', e)
 }
 
