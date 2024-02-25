@@ -311,6 +311,8 @@ function handleGotoBottom() {
     box-shadow: 2px 2px 6px #f5f5f5;
     cursor: pointer;
     color: #0093ff;
+    z-index: 9999;
+    user-select: none;
 }
 .goto-bottom:hover {
     background-color: #f5f5f5;

@@ -143,6 +143,7 @@ const props = defineProps({
     markdown: Boolean
 })
 const scrollBar = ref()
+let chatListDiv:HTMLElement | null = null
 provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
 const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded', 'quote'])
@@ -159,14 +160,16 @@ watch(() => props.avatarRefresh, (val) => {
 const store =  useStore()
 // let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
-watch(() => props.chatBox, () => {
+watch(() => props.chatBox?.length, () => {
+    // console.log('这里没变吗', scrollBar.value.wrapRef.clientHeight, scrollBar.value.wrapRef.scrollHeight)
     updatedScrollData()
 })
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
     store.commit('chatWindow/setScrollBar', scrollBar.value)
-    store.commit('chatWindow/setChatListEle', document.querySelector('[data-chat-list]'))
-    console.log('scrollBar -> ', scrollBar.value)
+    chatListDiv = document.querySelector('[data-chat-list]')
+    store.commit('chatWindow/setChatListEle', chatListDiv)
+    // console.log('scrollBar -> ', scrollBar.value)
     updatedScrollData()
 })
 
@@ -193,10 +196,9 @@ function textToMarkdown(text: string) {
 function updatedScrollData() {
     if (scrollBar.value) {
         const s: ScrollData = {
-            scrollTop: scrollBar.value.wrapRef.scrollTop || 0,
-            scrollHeight: scrollBar.value.wrapRef.scrollHeight || 0,
-            clientHeight: scrollBar.value.wrapRef.clientHeight || 0,
-            scrollBar: scrollBar.value
+            scrollBar: scrollBar.value,
+            el: scrollBar.value.wrapRef,
+            chatListDiv: chatListDiv
         }
         store.commit('chatWindow/setScrollData', s)
     }

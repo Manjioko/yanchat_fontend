@@ -1,6 +1,5 @@
 export interface ScrollData {
-    scrollTop: number,
-    scrollHeight: number,
-    clientHeight: number,
-    scrollBar: any
+    scrollBar: any,
+    el: HTMLElement,
+    chatListDiv: HTMLElement | null
 }

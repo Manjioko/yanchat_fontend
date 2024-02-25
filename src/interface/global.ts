@@ -117,6 +117,12 @@ enum IsSwitchFriend {
     No
 }
 
+// 用于普通的开关确认
+enum Judge {
+    YES,
+    NO
+}
+
 export {
     Box,
     InitBox,
@@ -127,5 +133,6 @@ export {
     WsConnectParams,
     Tip,
     Position,
-    IsSwitchFriend
+    IsSwitchFriend,
+    Judge
 }

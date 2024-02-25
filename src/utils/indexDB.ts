@@ -69,6 +69,13 @@ export function dbAdd(tableName: String, data: Box[]):Promise<string> {
             tran.onerror = (err: Event) => {
 
                 const target = err.target as IDBRequest
+                console.log('事务失败 -> ', target)
+                reject(target.error?.message)
+            }
+
+            store.onerror = (err: Event) => {
+                const target = err.target as IDBRequest
+                console.log('store 失败 -> ', target)
                 reject(target.error?.message)
             }
 
