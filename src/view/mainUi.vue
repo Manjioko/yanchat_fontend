@@ -22,6 +22,9 @@
                     </div>
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
+                <el-badge is-dot class="item">
+                    <el-icon :size="20" style="margin-left: 10px;"><ChatSquare /></el-icon>
+                </el-badge>
             </section>
             <ChatWindow
                 v-if="activeFriend"
@@ -99,6 +102,7 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote.vue'
 import { ElNotification, NotificationHandle } from 'element-plus'
+import { ChatSquare } from '@element-plus/icons-vue'
 import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
 // import localforage from 'localforage'
