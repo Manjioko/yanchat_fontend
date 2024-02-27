@@ -63,6 +63,7 @@ export const api = {
     changeNickName: '/changeNickName', // 修改昵称
     getFriends: '/getFriends', // 获取好友列表
     addFri: '/addFriend', // 新增好友
+    addFriTest: '/addFriendTest', // 新增好友测试
     unread: '/unread', // 获取未读信息
     file: '/uploadFile', // 上传文件
     sliceFile: '/uploadSliceFile', // 上传切片文件

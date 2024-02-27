@@ -193,7 +193,8 @@ async function addFriend() {
     let phone_number = user_info.phone_number
     const [err, res] = await to(request({
         method: 'post',
-        url: api.addFri,
+        // url: api.addFri,
+        url: api.addFriTest, // 好友添加功能更改,这里是测试用的 API
         data: {
             phone_number: phone_number,
             friend_phone_number: friend_phone_number.value
@@ -204,6 +205,7 @@ async function addFriend() {
         return
     }
     console.log('好友请求回来了 -> ', res, res?.data)
+    if (res.data) return // 注意这里,测试完成后需要解开 return
     if (res.data === 'miss') {
         missFri.value = false
         delayToShowErr()
