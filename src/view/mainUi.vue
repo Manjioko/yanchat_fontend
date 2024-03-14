@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
-                <el-badge is-dot class="item">
+                <el-badge is-dot class="message">
                     <el-icon :size="20" style="margin-left: 10px;"><ChatSquare /></el-icon>
                 </el-badge>
             </section>
@@ -1266,5 +1266,8 @@ function handleLoaded(chat_id: string) {
         }
     }
 
+}
+.message {
+    display: flex;
 }
 </style>
