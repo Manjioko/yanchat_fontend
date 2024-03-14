@@ -23,7 +23,7 @@
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
                 <el-badge is-dot class="item">
-                    <el-icon :size="20" style="margin-left: 10px;"><ChatSquare /></el-icon>
+                    <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
                 </el-badge>
             </section>
             <ChatWindow
@@ -1098,6 +1098,23 @@ function handleLoaded(chat_id: string) {
             imgLoadList.value.splice(fdidx, 1)
         }
     }
+}
+
+// 模拟消息
+function handleTips() {
+    console.log('模拟消息')
+    const user_id = sessionStorage.getItem('user_id')
+    const ws = websocket.value as WebSocket
+    // ws.send(JSON.stringify({
+    //     to_id: user_id,
+    //     tips: 'tipsMessages',
+    //     tipsBody: { data: '这是测试用的信息1'},
+    //     tipsType: 'addFriend'
+    // }))
+    ws.send(JSON.stringify({
+        to_id: user_id,
+        tips: 'clear',
+    }))
 }
 
 </script>

@@ -84,6 +84,9 @@ function connectWebSocket(params: WsConnectParams) {
             case 'videoCallLeave':
                 videoFn(chatData, 'videoCallLeave')
                 break
+            case 'tips':
+                console.log('这是消息系统发来的消息 -> ', chatData)
+                break
             default:
                 centerFn(chatData, 'received')
                 {
