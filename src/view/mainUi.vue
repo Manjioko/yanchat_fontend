@@ -22,8 +22,8 @@
                     </div>
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
-                <el-badge is-dot class="message">
-                    <el-icon :size="20" style="margin-left: 10px;"><ChatSquare /></el-icon>
+                <el-badge is-dot class="item">
+                    <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
                 </el-badge>
             </section>
             <ChatWindow
@@ -126,7 +126,8 @@ import {
     PingPong,
     Position,
     IsSwitchFriend,
-    Judge
+    Judge,
+    Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
@@ -1098,6 +1099,24 @@ function handleLoaded(chat_id: string) {
             imgLoadList.value.splice(fdidx, 1)
         }
     }
+}
+
+// 模拟消息
+function handleTips() {
+    console.log('模拟消息')
+    const user_id = sessionStorage.getItem('user_id') || ''
+    const ws = websocket.value as WebSocket
+    // const tips_send: Tips = {
+    //     to_id: user_id,
+    //     tips: 'addFriend',
+    //     tipsBody: { data: '这是测试用的信息1'}
+    // }
+    // ws.send(JSON.stringify(tips_send))
+    const tips: Tips = {
+        to_id: user_id,
+        tips: 'clear'
+    }
+    ws.send(JSON.stringify(tips))
 }
 
 </script>
