@@ -112,6 +112,15 @@ interface Position {
     // }
 }
 
+// 消息体
+type tipType = 'addFriend' | 'clear' | 'withdrew'
+interface Tips {
+    to_id: string,
+    tips: tipType,
+    tipsBody?: any,
+    // tipsType?: string
+}
+
 enum IsSwitchFriend {
     Yes,
     No
@@ -134,5 +143,6 @@ export {
     Tip,
     Position,
     IsSwitchFriend,
-    Judge
+    Judge,
+    Tips
 }

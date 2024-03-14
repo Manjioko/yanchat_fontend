@@ -126,7 +126,8 @@ import {
     PingPong,
     Position,
     IsSwitchFriend,
-    Judge
+    Judge,
+    Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
@@ -1103,18 +1104,19 @@ function handleLoaded(chat_id: string) {
 // 模拟消息
 function handleTips() {
     console.log('模拟消息')
-    const user_id = sessionStorage.getItem('user_id')
+    const user_id = sessionStorage.getItem('user_id') || ''
     const ws = websocket.value as WebSocket
-    // ws.send(JSON.stringify({
+    // const tips_send: Tips = {
     //     to_id: user_id,
-    //     tips: 'tipsMessages',
-    //     tipsBody: { data: '这是测试用的信息1'},
-    //     tipsType: 'addFriend'
-    // }))
-    ws.send(JSON.stringify({
+    //     tips: 'addFriend',
+    //     tipsBody: { data: '这是测试用的信息1'}
+    // }
+    // ws.send(JSON.stringify(tips_send))
+    const tips: Tips = {
         to_id: user_id,
-        tips: 'clear',
-    }))
+        tips: 'clear'
+    }
+    ws.send(JSON.stringify(tips))
 }
 
 </script>
