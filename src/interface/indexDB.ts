@@ -3,7 +3,8 @@ export interface DbOpenOptions {
     version?: number
     indexList?: any[]
     tableNameList?: string[]
-    oldDb?: IDBDatabase | null
+    oldDb?: IDBDatabase | null,
+    newTables?: any[] // 用于新增拓展的表
 }
 
 export enum DESC {

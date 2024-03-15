@@ -4,6 +4,7 @@ import test from './storeTest'
 import dataBase from './dataBase'
 import chatWindow from './chatWindow'
 import footSend from './footSend'
+import global from './global'
 
 export default createStore({
     modules: {
@@ -11,6 +12,7 @@ export default createStore({
         test,
         dataBase,
         chatWindow,
-        footSend
+        footSend,
+        global
     }, // 这里可以添加其他模块
 }) as Store<any>

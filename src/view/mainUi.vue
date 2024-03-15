@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
-                <el-badge is-dot class="item">
+                <el-badge is-dot class="badge-item">
                     <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
                 </el-badge>
             </section>
@@ -165,6 +165,9 @@ let refreshTokenTime: number | null | undefined = null
 const store = useStore()
 const showGotoBottom :ComputedRef<boolean>= computed(() => store.state.footSend.goToBottom)
 const scrollData: ComputedRef<ScrollData> = computed(() => store.state.chatWindow.scrollData)
+
+// 把 websokcket 挂到 vuex 去用
+store.commit('global/setWs', websocket)
 
 // const route = useRoute()
 onMounted(async () => {
@@ -843,7 +846,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
     chatBox.value.unshift(...resChatData)
     await nextTick()
-    console.log('scroll -> ',  scrollData.value.el.scrollHeight, scrollData.value.el.clientHeight, chatData[chatData.length - 1].id, lastId)
+    // console.log('scroll -> ',  scrollData.value.el.scrollHeight, scrollData.value.el.clientHeight, chatData[chatData.length - 1].id, lastId)
     // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
     if (
         scrollData.value.el.scrollHeight === scrollData.value.el.clientHeight
@@ -1286,7 +1289,9 @@ function handleTips() {
     }
 
 }
-.message {
+.badge-item {
     display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

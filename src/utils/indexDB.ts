@@ -6,7 +6,8 @@ import typeIs from './type'
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 
     // const store = useStore()
-    const { dbName, version = 1, indexList = [], tableNameList = [], oldDb = null } = options
+    const { dbName, indexList = [], tableNameList = [], oldDb = null, newTables = [] } = options
+    const version = localStorage.getItem('dbVersion') ? JSON.parse(localStorage.getItem('dbVersion') as string) : 1
     return new Promise((resolve, reject) => {
         let newVersion: number | null = null
         if (oldDb) {
@@ -30,6 +31,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
                 dbName: dbName,
                 dbVersion: newVersion || version,
             })
+            localStorage.setItem('dbVersion', JSON.stringify(result.version))
             resolve(result)
         }
         request.onupgradeneeded = event => {
@@ -37,12 +39,24 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
             const result = (event.target as IDBOpenDBRequest).result
             const db = result
             tableNameList.forEach((table: string) => {
-                const store = db.createObjectStore(table, { keyPath: 'id' })
-                console.log('store -> ', store)
-                indexList.forEach((item: { name: string, unique: boolean }) => {
-                    store.createIndex(item.name, item.name, { unique: item.unique })
-                })
+                if (!db.objectStoreNames.contains(table)) {
+                    const store = db.createObjectStore(table, { keyPath: 'id' })
+                    // console.log('store -> ', store)
+                    indexList.forEach((item: { name: string, unique: boolean }) => {
+                        store.createIndex(item.name, item.name, { unique: item.unique })
+                    })
+                }
             })
+            newTables.forEach((table: any) => {
+                if (!db.objectStoreNames.contains(table.name)) {
+                    const store = db.createObjectStore(table.name, { autoIncrement: true })
+                    table.indexList.forEach((item: { name: string, unique: boolean }) => {
+                        store.createIndex(item.name, item.name, { unique: item.unique })
+                    })
+                }
+            })
+            
+            localStorage.setItem('dbVersion', JSON.stringify(result.version))
         }
     })
 }

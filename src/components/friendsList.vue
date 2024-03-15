@@ -76,17 +76,15 @@
 </template>
 <script setup lang="ts">
 import { ref, defineProps, onMounted, defineEmits, watch, Ref } from 'vue'
+import { useStore } from 'vuex'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { dbOpen, dbAdd } from '@/utils/indexDB'
-import { Box, Friend, RefreshMessage, Tip, UserInfo } from '@/interface/global'
+import { Box, Friend, RefreshMessage, Tip, UserInfo, Tips } from '@/interface/global'
+const store =  useStore()
 // import { RefreshMessage } from '@/interface/global'
-// // 打开数据库
-// dbOpen({
-    
-// })
 const props = defineProps({
     friends: String,
     refreshChatDataOb: Object as () => RefreshMessage,
@@ -132,7 +130,10 @@ onMounted(() => {
 })
 
 // 数据库操作
-function handleDdOperate(userInfo: UserInfo) {
+function handleDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase) {
+    if (oldDB) {
+        console.log('准备更新版本号, 更新数据库 -> ', oldDB)
+    }
     const friends = JSON.parse(userInfo.friends) || []
     const indexList = [
         { name: 'user_id', unique: false },
@@ -142,11 +143,34 @@ function handleDdOperate(userInfo: UserInfo) {
         { name: 'phone_number', unique: false },
     ]
     const tableNameList = friends.map((item: Friend) => item.chat_table)
+    // 新增一个用于存储消息的系统表
+    // tableNameList.push('tips_messages')
+    // 新表通用
+    const newTable =  {
+        name: 'tips_messages',
+        indexList: [
+            {
+                name: 'messages_id',
+                unique: true
+            },
+            {
+                name: 'messages_box',
+                unique: false
+            },
+            {
+                name: 'messages_type',
+                unique: false
+            }
+        ]
+    }
     console.log('friends -> ', friends)
+    console.log('store -> ', store)
     dbOpen({
         dbName: user_info.user_id,
         tableNameList,
-        indexList
+        indexList,
+        oldDb: oldDB,
+        newTables: [newTable]
     }).then(() => {
         // 处理未读信息
         handleUnread()
@@ -191,10 +215,39 @@ async function addFriend() {
         return
     }
     let phone_number = user_info.phone_number
+    const [uerr, udata] = await to(request({
+        method: 'post',
+        url: api.getUserInfoByPhone,
+        data: {
+            phone_number: friend_phone_number.value
+        }
+    }))
+    if (uerr) {
+        console.log('获取用户信息错误: ', uerr)
+        return
+    }
+    // console.log('获取用户信息成功 -> ', udata)
+    if (udata.data && udata.data[0]) {
+        console.log('用户存在 -> ', udata.data, store.state.global.ws)
+        const to_id = udata.data[0].user_id || ''
+        const tips: Tips = {
+            to_id,
+            tips: 'addFriend',
+            tipsBody: {
+                msg: `${udata.data[0].user} 想添加你为好友`,
+                friend_phone_number: friend_phone_number.value,
+                friendName: udata.data[0].user,
+                friend_user_id: user_id,
+                to_user_id: udata.data[0].user_id
+            }
+        }
+        store.state.global.ws.send(JSON.stringify(tips))
+        return
+    }
     const [err, res] = await to(request({
         method: 'post',
-        // url: api.addFri,
-        url: api.addFriTest, // 好友添加功能更改,这里是测试用的 API
+        url: api.addFri,
+        // url: api.addFriTest, // 好友添加功能更改,这里是测试用的 API
         data: {
             phone_number: phone_number,
             friend_phone_number: friend_phone_number.value
@@ -205,7 +258,7 @@ async function addFriend() {
         return
     }
     console.log('好友请求回来了 -> ', res, res?.data)
-    if (res.data) return // 注意这里,测试完成后需要解开 return
+    // if (res.data) return // 注意这里,测试完成后需要解开 return
     if (res.data === 'miss') {
         missFri.value = false
         delayToShowErr()
@@ -242,6 +295,15 @@ async function addFriend() {
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
     dShow.value = false
+    
+
+    // 更改版本号,重新更新数据库
+    handleDdOperate(getUserInfo, store.state.dataBase.db)
+    // const tips: Tips = {
+    //     to_id: getUserInfo.user_id,
+    //     tips: 'addFriend'
+    // }
+    // store.state.global.ws.value.send(JSON.stringify(tips))
 }
 
 // 更新好友信息

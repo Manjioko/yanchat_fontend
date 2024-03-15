@@ -86,6 +86,7 @@ function connectWebSocket(params: WsConnectParams) {
                 break
             case 'tips':
                 console.log('这是消息系统发来的消息 -> ', chatData)
+                handleTips(chatData)
                 break
             default:
                 centerFn(chatData, 'received')
@@ -128,6 +129,24 @@ function connectWebSocket(params: WsConnectParams) {
 
     ws.value.onerror = function () {
         console.log('WebSocket错误发生')
+    }
+}
+
+// 处理消息通知
+function handleTips(tips: any) {
+    console.log(tips)
+    // const { to_user_id } = tips.data
+    if (!tips.data || !Array.isArray(tips.data)) return
+    for (const item of tips.data) {
+        console.log('item -> ', item)
+        const to_user_id = JSON.parse(item.messages_box || '{}').to_user_id || ''
+        if (!to_user_id) continue
+        dbAdd(`tips_messages`, [{...item}])
+        .then(res => {
+            console.log('消息存入数据库成功了 -> ', res)
+        }).catch(err => {
+            console.log('消息存入数据库失败了 -> ', err)
+        })
     }
 }
 

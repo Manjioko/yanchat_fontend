@@ -74,5 +74,6 @@ export const api = {
     source: '/source', // 文件资源
     verifyAuth: '/verifyAuth', // 用于更新 token
     joinFile: '/joinFile', // 确认合并文件
-    clearDir: 'clearDir' // 清空文件夹
+    clearDir: 'clearDir', // 清空文件夹
+    getUserInfoByPhone: 'getUserInfoByPhone' // 根据手机号获取用户
 }
