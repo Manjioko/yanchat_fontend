@@ -135,22 +135,12 @@ function connectWebSocket(params: WsConnectParams) {
 
 // 处理消息通知
 function handleTips(tips: any) {
-    // console.log(tips, store)
-    // const { to_user_id } = tips.data
     if (!tips.data || !Array.isArray(tips.data)) return
     store.commit('global/clearTips')
     for (const item of tips.data) {
-        // store.commit('global/addTips', item)
-        // console.log('item -> ', item)
         const to_user_id = JSON.parse(item.messages_box || '{}').to_user_id || ''
         if (!to_user_id) continue
         store.commit('global/addTips', item)
-        // dbAdd(`tips_messages`, [{...item}])
-        // .then(res => {
-        //     console.log('消息存入数据库成功了 -> ', res)
-        // }).catch(err => {
-        //     console.log('消息存入数据库失败了 -> ', err)
-        // })
     }
 }
 

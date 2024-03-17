@@ -17,6 +17,7 @@ declare module 'vue' {
     ElImage: typeof import('element-plus/es')['ElImage']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElOption: typeof import('element-plus/es')['ElOption']
+    ElPopover: typeof import('element-plus/es')['ElPopover']
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
@@ -27,6 +28,7 @@ declare module 'vue' {
     SendFile: typeof import('./src/components/sendFile.vue')['default']
     SendFoot: typeof import('./src/components/sendFoot.vue')['default']
     SendMedia: typeof import('./src/components/sendMedia.vue')['default']
+    TipsMessages: typeof import('./src/components/tipsMessages.vue')['default']
     VideoCallAnwserer: typeof import('./src/components/videoCallAnwserer.vue')['default']
     VideoCallOfferer: typeof import('./src/components/videoCallOfferer.vue')['default']
   }

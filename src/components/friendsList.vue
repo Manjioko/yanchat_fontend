@@ -85,6 +85,7 @@ import { dbOpen, dbAdd } from '@/utils/indexDB'
 import { Box, Friend, RefreshMessage, Tip, UserInfo, Tips } from '@/interface/global'
 const store =  useStore()
 // import { RefreshMessage } from '@/interface/global'
+// const storeTips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
 const props = defineProps({
     friends: String,
     refreshChatDataOb: Object as () => RefreshMessage,
@@ -174,6 +175,8 @@ function handleDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase) {
     }).then(() => {
         // 处理未读信息
         handleUnread()
+        // 这里可以开始处理消息体了
+        // handleTips()
     })
 }
 
@@ -234,7 +237,7 @@ async function addFriend() {
             to_id,
             tips: 'addFriend',
             tipsBody: {
-                msg: `${udata.data[0].user} 想添加你为好友`,
+                msg: `${userInfo.value.user} 想添加你为好友`,
                 friend_phone_number: friend_phone_number.value,
                 friendName: udata.data[0].user,
                 friend_user_id: user_id,
@@ -389,6 +392,25 @@ async function handleUnread() {
     })
     chatDataOb.value = setTipData
 }
+
+
+// 消息处理
+// function handleTips() {
+
+//     watchEffect(() => {
+//         if (storeTips.value.length) {
+//             // console.log('tips2 -> ', [...JSON.parse(JSON.stringify(storeTips.value))])
+//             dbAdd('tips_messages', [...JSON.parse(JSON.stringify(storeTips.value))])
+//             .then(() => {
+//                 console.log('成功将 Tips 信息保存到数据库中！')
+//             })
+//             .catch((err: string) => {
+//                 console.log('将 Tips 信息保存到数据库中失败了 -> ', err)
+//             })
+//             store.commit('global/setTips', [])
+//         }
+//     })
+// }
 
 // 处理未读信息(文字部分)
 function handleUnreadMsg(unreadOb: Tip): string {

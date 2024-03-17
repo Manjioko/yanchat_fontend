@@ -61,7 +61,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
     })
 }
 
-export function dbAdd(tableName: String, data: Box[]):Promise<string> {
+export function dbAdd<T>(tableName: String, data: T[]):Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
@@ -148,9 +148,9 @@ export function dbRead(tableName: String, field: string, searchStr: string | num
     })
 }
 
-export function dbReadAll(tableName: string): Promise<Box[]> {
+export function dbReadAll<T>(tableName: string): Promise<T[]> {
     return new Promise((resolve, reject) => {
-        // if (!vstore.state.dataBase.db || !tableName) return
+        if (!vstore.state.dataBase.db) return
         const store = vstore.state.dataBase.db
             .transaction([tableName], 'readonly')
             .objectStore(tableName)

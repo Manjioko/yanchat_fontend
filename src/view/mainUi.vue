@@ -22,9 +22,10 @@
                     </div>
                 </div>
                 <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
-                <el-badge is-dot class="badge-item">
+                <!-- <el-badge is-dot class="badge-item">
                     <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
-                </el-badge>
+                </el-badge> -->
+                <tipsMessages />
             </section>
             <ChatWindow
                 v-if="activeFriend"
@@ -102,9 +103,10 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote.vue'
 import { ElNotification, NotificationHandle } from 'element-plus'
-import { ChatSquare } from '@element-plus/icons-vue'
+// import { ChatSquare } from '@element-plus/icons-vue'
 import videoCallOfferer from '@/components/videoCallOfferer.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
+import tipsMessages from '@/components/tipsMessages.vue'
 // import localforage from 'localforage'
 import {
     dbAdd,
@@ -127,7 +129,7 @@ import {
     Position,
     IsSwitchFriend,
     Judge,
-    Tips
+    // Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
@@ -1105,22 +1107,22 @@ function handleLoaded(chat_id: string) {
 }
 
 // 模拟消息
-function handleTips() {
-    console.log('模拟消息')
-    const user_id = sessionStorage.getItem('user_id') || ''
-    const ws = websocket.value as WebSocket
-    // const tips_send: Tips = {
-    //     to_id: user_id,
-    //     tips: 'addFriend',
-    //     tipsBody: { data: '这是测试用的信息1'}
-    // }
-    // ws.send(JSON.stringify(tips_send))
-    const tips: Tips = {
-        to_id: user_id,
-        tips: 'clear'
-    }
-    ws.send(JSON.stringify(tips))
-}
+// function handleTips() {
+//     console.log('模拟消息')
+//     const user_id = sessionStorage.getItem('user_id') || ''
+//     const ws = websocket.value as WebSocket
+//     // const tips_send: Tips = {
+//     //     to_id: user_id,
+//     //     tips: 'addFriend',
+//     //     tipsBody: { data: '这是测试用的信息1'}
+//     // }
+//     // ws.send(JSON.stringify(tips_send))
+//     const tips: Tips = {
+//         to_id: user_id,
+//         tips: 'clear'
+//     }
+//     ws.send(JSON.stringify(tips))
+// }
 
 </script>
 

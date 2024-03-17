@@ -6,17 +6,17 @@ export default {
         }
     },
     mutations: {
-        increment(state) {
+        increment(state: any) {
             state.count++
         }
     },
     getters: {
-        doubleCount(state) {
+        doubleCount(state: any) {
             return state.count * 2
         }
     },
     actions: {
-        increment({ commit }) {
+        increment({ commit = (params: any) => {} }) {
             setTimeout(() => {
                 commit('increment')
             }, 3000);
