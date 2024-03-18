@@ -1,6 +1,6 @@
 import vstore from '@/store'
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
-import { Box, UserInfo, Friend } from '@/interface/global'
+import { Box, UserInfo, Friend, Tips } from '@/interface/global'
 import typeIs from './type'
 
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
@@ -204,7 +204,7 @@ export function dbReadSome(tableName: string, offset: number = 0, oldOffset:numb
 }
 
 // 精准搜索
-export function dbReadByIndex(tableName: string, indexName: string, searchStr: string | number) {
+export function dbReadByIndex<T>(tableName: string, indexName: string, searchStr: string | number): Promise<T> {
     return new Promise((resolve, reject) => {
         const transaction = vstore.state.dataBase.db.transaction([tableName], 'readonly')
         const store = transaction.objectStore(tableName)
@@ -212,11 +212,12 @@ export function dbReadByIndex(tableName: string, indexName: string, searchStr: s
         const request = index.get(searchStr)
 
         request.onsuccess = (e: Event) => {
-            const { result } = e.target as IDBOpenDBRequest
-            // console.log('result -> ', result)
-            if (result) {
-                resolve(result)
-            }
+            // const { result } = e.target as IDBOpenDBRequest
+            // // console.log('result -> ', result)
+            // if (result) {
+            //     resolve(request.result)
+            // }
+            resolve(request.result)
         }
         request.onerror = (err: Event) => {
             reject(err.type)
@@ -369,6 +370,36 @@ export function dbDelete(tableName: string, key: number) {
             resolve(res.type)
         }
         request.onerror = (err: Event) => {
+            reject(err.type)
+        }
+    })
+}
+
+export function dbDeleteByIndex(tableName: string, indexName: string, searchStr: string) {
+    return new Promise((resolve, reject) => {
+        if (!vstore.state.dataBase.db || !indexName) return
+        // console.log('dbDeleteByIndex -> ', res)
+        // if (!res || res.length === 0) return reject(`无法查找到对应的数据 -> ${searchStr}`)
+        const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
+        const sto = tran.objectStore(tableName)
+        const index = sto.index(indexName)
+        const getRequest = index.get(searchStr)
+        getRequest.onsuccess = function (res: Event) {
+            // resolve(res.type)
+            const target = res.target as IDBRequest
+            if (target.result) {
+                console.log('sto -> ', target.result)
+                const request = sto.delete(target.result[indexName])
+                request.onsuccess = function (res: Event) {
+                    console.log('ers -> ', res)
+                    resolve(res.type)
+                }
+                request.onerror = (err: Event) => {
+                    reject(err.type)
+                }
+            }
+        }
+        getRequest.onerror = (err: Event) => {
             reject(err.type)
         }
     })

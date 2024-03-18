@@ -13,7 +13,7 @@
                     <div v-if="item.messages_type === 'addFriend'" class="tips-list">
                         <div class="tips-title">{{ item.messages_box.msg }}</div>
                         <div>
-                            <el-button type="primary" link size="small" @click="handleAddFriend(item)">同意</el-button>
+                            <el-button type="primary" link size="small" @click="handleAddFriend(item, idx)">同意</el-button>
                             <el-button type="danger" link size="small" @click="handleDelete(item)">拒绝</el-button>
                         </div>
                     </div>
@@ -27,7 +27,8 @@
 import { ChatSquare } from '@element-plus/icons-vue'
 import { useStore } from 'vuex'
 import { computed, ComputedRef, watchEffect, ref, Ref } from 'vue'
-import { dbAdd, dbReadAll } from '@/utils/indexDB'
+import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
+import { addFriend } from '@/utils/friends'
 // import { Tips } from '@/interface/global'
 const store = useStore()
 
@@ -89,8 +90,23 @@ watchEffect(() => {
 })
 
 // 同意添加好友
-function handleAddFriend(item: any) {
+function handleAddFriend(item: any, idx: number) {
     console.log('同意添加好友 -> ', item)
+    addFriend(item.messages_box)
+    .then(() => {
+        dbDeleteByIndex('tips_messages', 'messages_id', item.messages_id)
+        .then(() => {
+            console.log('删除 tips_messages 数据库成功！')
+        })
+        .catch((err: string) => {
+            console.log('删除 tips_messages 数据库失败 -> ', err)
+        })
+        .finally(() => {
+            tipsShowList.value.splice(idx, 1)
+        })
+        // tipsShowList.value.splice(idx, 1)
+        
+    })
 }
 
 // 拒绝添加好友

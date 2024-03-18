@@ -135,7 +135,7 @@ onMounted(() => {
         //     chat_table: item.chat_table,
         //     phone_number
         // })
-        store.commit('friendsList/addFriend', {
+        store.commit('friendsList/addFriendsList', {
             name: item.name || item.user as string,
             user_id: item.user_id,
             time: '',
@@ -257,9 +257,9 @@ async function addFriend() {
             tips: 'addFriend',
             tipsBody: {
                 msg: `${userInfo.value.user} 想添加你为好友`,
-                friend_phone_number: friend_phone_number.value,
-                friendName: udata.data[0].user,
-                friend_user_id: user_id,
+                friend_phone_number: userInfo.value.phone_number,
+                friendName: userInfo.value.user,
+                friend_user_id: userInfo.value.user_id,
                 to_user_id: udata.data[0].user_id
             }
         }
