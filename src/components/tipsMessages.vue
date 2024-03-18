@@ -31,9 +31,9 @@ import { dbAdd, dbReadAll } from '@/utils/indexDB'
 // import { Tips } from '@/interface/global'
 const store = useStore()
 
-// const ws = store.state.global.ws
-const dbName:ComputedRef<any> = computed(() => store.state.dataBase.dbname)
-const tips:ComputedRef<any[]> = computed(() => store.state.global.tips)
+const ws: ComputedRef<any> = computed(() => store.state.global.ws)
+const dbName: ComputedRef<any> = computed(() => store.state.dataBase.dbname)
+const tips: ComputedRef<any[]> = computed(() => store.state.global.tips)
 const tipsShowList: Ref<any[]> = ref([])
 watchEffect(() => {
     if (dbName.value) {
@@ -46,6 +46,9 @@ watchEffect(() => {
                     tipsShowList.value.push(item)
                 }
             })
+        })
+        .catch((err: string) => {
+            console.log('读取 tips_messages 数据库失败 -> ', err)
         })
 
         if (tips.value.length) {
@@ -72,13 +75,18 @@ watchEffect(() => {
                     console.log('读取 tips_messages 数据库失败 -> ', err)
                 })
                 store.commit('global/setTips', [])
+                const user_id = sessionStorage.getItem('user_id') || ''
+                console.log('ws -> ', ws)
+                // 清空消息
+                ws.value?.send(JSON.stringify({
+                    tips: 'clear',
+                    to_id: user_id
+                }))
             })
         }
         // store.commit('global/setTips', [])
     }
 })
-
-// 模拟消息
 
 // 同意添加好友
 function handleAddFriend(item: any) {

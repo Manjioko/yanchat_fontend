@@ -1,6 +1,6 @@
 import vstore from '@/store'
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
-import { Box } from '@/interface/global'
+import { Box, UserInfo, Friend } from '@/interface/global'
 import typeIs from './type'
 
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
@@ -150,19 +150,22 @@ export function dbRead(tableName: String, field: string, searchStr: string | num
 
 export function dbReadAll<T>(tableName: string): Promise<T[]> {
     return new Promise((resolve, reject) => {
-        if (!vstore.state.dataBase.db) return
-        const store = vstore.state.dataBase.db
+        if (!vstore.state.dataBase.db) return reject('数据库报错: db 不存在')
+        try {
+            const store = vstore.state.dataBase.db
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
-
-        const request = store.getAll()
-        request.onsuccess = (res: Event) => {
-            const target = res.target as IDBRequest
-            // console.log('数据是 -> ', target.result)
-            resolve(target.result || [])
-        }
-        request.onerror = (err: Event) => {
-            reject(err.type)
+            if (!store) return
+            const request = store.getAll()
+            request.onsuccess = (res: Event) => {
+                const target = res.target as IDBRequest
+                resolve(target.result || [])
+            }
+            request.onerror = (err: Event) => {
+                reject(err.type)
+            }
+        } catch(err) {
+            reject(`数据库报错: ${err}`)
         }
     })
 }
@@ -391,5 +394,46 @@ export function dbUpdate(tableName: string, data: Box) {
             console.log('更新失败 -> ', error)
             reject(error.type)
         }
+    })
+}
+
+export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<IDBDatabase> {
+    if (oldDB) {
+        console.log('准备更新版本号, 更新数据库 -> ', oldDB)
+    }
+    const friends = JSON.parse(userInfo.friends) || []
+    const indexList = [
+        { name: 'user_id', unique: false },
+        { name: 'id', unique: true },
+        { name: 'table_id', unique: false },
+        { name: 'user', unique: false },
+        { name: 'phone_number', unique: false },
+    ]
+    const tableNameList = friends.map((item: Friend) => item.chat_table)
+    // 新增一个用于存储消息的系统表
+    // 新表通用
+    const newTable =  {
+        name: 'tips_messages',
+        indexList: [
+            {
+                name: 'messages_id',
+                unique: true
+            },
+            {
+                name: 'messages_box',
+                unique: false
+            },
+            {
+                name: 'messages_type',
+                unique: false
+            }
+        ]
+    }
+    return dbOpen({
+        dbName: userInfo.user_id,
+        tableNameList,
+        indexList,
+        oldDb: oldDB,
+        newTables: [newTable]
     })
 }

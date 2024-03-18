@@ -75,13 +75,13 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, defineProps, onMounted, defineEmits, watch, Ref } from 'vue'
+import { ref, defineProps, onMounted, defineEmits, watch, Ref, ComputedRef, computed } from 'vue'
 import { useStore } from 'vuex'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import { dbOpen, dbAdd } from '@/utils/indexDB'
+import { dbAdd, initDdOperate } from '@/utils/indexDB'
 import { Box, Friend, RefreshMessage, Tip, UserInfo, Tips } from '@/interface/global'
 const store =  useStore()
 // import { RefreshMessage } from '@/interface/global'
@@ -95,13 +95,21 @@ const props = defineProps({
 })
 const emit = defineEmits(['handleActiveFriend'])
 
-const friendsList:Ref<Friend[]> = ref([])
+// const friendsList:Ref<Friend[]> = ref([])
+const friendsList:ComputedRef<Friend[]> = computed(() => store.state.friendsList.friendsList)
+
+// watch(() => friendsList.value, () => {
+//     store.commit('friendsList/updateFriendsList', friendsList)
+// })
+console.log('store -> ', store)
 
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info') || '')
 console.log('用户信息 -》 ', user_info)
-handleDdOperate(user_info)
-// console.log('user_info -> ', friends)
+initDdOperate(user_info)
+.then(() => {
+    handleUnread()
+})
 const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
@@ -116,7 +124,18 @@ onMounted(() => {
     // console.log('f -> ', f)
     const baseUrl = sessionStorage.getItem('baseUrl')
     f?.forEach((item: Friend) => {
-        friendsList.value.push({
+        // friendsList.value.push({
+        //     name: item.name || item.user as string,
+        //     user_id: item.user_id,
+        //     time: '',
+        //     message: '',
+        //     avatar_url: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
+        //     active: false,
+        //     searchActive: true,
+        //     chat_table: item.chat_table,
+        //     phone_number
+        // })
+        store.commit('friendsList/addFriend', {
             name: item.name || item.user as string,
             user_id: item.user_id,
             time: '',
@@ -131,54 +150,54 @@ onMounted(() => {
 })
 
 // 数据库操作
-function handleDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase) {
-    if (oldDB) {
-        console.log('准备更新版本号, 更新数据库 -> ', oldDB)
-    }
-    const friends = JSON.parse(userInfo.friends) || []
-    const indexList = [
-        { name: 'user_id', unique: false },
-        { name: 'id', unique: true },
-        { name: 'table_id', unique: false },
-        { name: 'user', unique: false },
-        { name: 'phone_number', unique: false },
-    ]
-    const tableNameList = friends.map((item: Friend) => item.chat_table)
-    // 新增一个用于存储消息的系统表
-    // tableNameList.push('tips_messages')
-    // 新表通用
-    const newTable =  {
-        name: 'tips_messages',
-        indexList: [
-            {
-                name: 'messages_id',
-                unique: true
-            },
-            {
-                name: 'messages_box',
-                unique: false
-            },
-            {
-                name: 'messages_type',
-                unique: false
-            }
-        ]
-    }
-    console.log('friends -> ', friends)
-    console.log('store -> ', store)
-    dbOpen({
-        dbName: user_info.user_id,
-        tableNameList,
-        indexList,
-        oldDb: oldDB,
-        newTables: [newTable]
-    }).then(() => {
-        // 处理未读信息
-        handleUnread()
-        // 这里可以开始处理消息体了
-        // handleTips()
-    })
-}
+// function handleDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase) {
+//     if (oldDB) {
+//         console.log('准备更新版本号, 更新数据库 -> ', oldDB)
+//     }
+//     const friends = JSON.parse(userInfo.friends) || []
+//     const indexList = [
+//         { name: 'user_id', unique: false },
+//         { name: 'id', unique: true },
+//         { name: 'table_id', unique: false },
+//         { name: 'user', unique: false },
+//         { name: 'phone_number', unique: false },
+//     ]
+//     const tableNameList = friends.map((item: Friend) => item.chat_table)
+//     // 新增一个用于存储消息的系统表
+//     // tableNameList.push('tips_messages')
+//     // 新表通用
+//     const newTable =  {
+//         name: 'tips_messages',
+//         indexList: [
+//             {
+//                 name: 'messages_id',
+//                 unique: true
+//             },
+//             {
+//                 name: 'messages_box',
+//                 unique: false
+//             },
+//             {
+//                 name: 'messages_type',
+//                 unique: false
+//             }
+//         ]
+//     }
+//     console.log('friends -> ', friends)
+//     console.log('store -> ', store)
+//     dbOpen({
+//         dbName: user_info.user_id,
+//         tableNameList,
+//         indexList,
+//         oldDb: oldDB,
+//         newTables: [newTable]
+//     }).then(() => {
+//         // 处理未读信息
+//         handleUnread()
+//         // 这里可以开始处理消息体了
+//         // handleTips()
+//     })
+// }
 
 let dShow = ref(false)
 const oldIdx:Ref<number|null> = ref(null)
@@ -207,17 +226,17 @@ function handleSelect(idx:number, row:Friend) {
 const friend_phone_number = ref('')
 const missFri = ref(false)
 const repFri = ref(false)
-let delayToShowErr = antiShake(() => {
-    missFri.value = true
-}, 200)
-let delayToShowRepeatErr = antiShake(() => {
-    repFri.value = true
-}, 200)
+// let delayToShowErr = antiShake(() => {
+//     missFri.value = true
+// }, 200)
+// let delayToShowRepeatErr = antiShake(() => {
+//     repFri.value = true
+// }, 200)
 async function addFriend() {
     if (!friend_phone_number.value) {
         return
     }
-    let phone_number = user_info.phone_number
+    // let phone_number = user_info.phone_number
     const [uerr, udata] = await to(request({
         method: 'post',
         url: api.getUserInfoByPhone,
@@ -247,66 +266,64 @@ async function addFriend() {
         store.state.global.ws.send(JSON.stringify(tips))
         return
     }
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.addFri,
-        // url: api.addFriTest, // 好友添加功能更改,这里是测试用的 API
-        data: {
-            phone_number: phone_number,
-            friend_phone_number: friend_phone_number.value
-        }
-    }))
-    if (err) {
-        console.log('添加好友错误: ', err)
-        return
-    }
-    console.log('好友请求回来了 -> ', res, res?.data)
-    // if (res.data) return // 注意这里,测试完成后需要解开 return
-    if (res.data === 'miss') {
-        missFri.value = false
-        delayToShowErr()
-    } else {
-        missFri.value = false
-    }
+    // const [err, res] = await to(request({
+    //     method: 'post',
+    //     url: api.addFri,
+    //     // url: api.addFriTest, // 好友添加功能更改,这里是测试用的 API
+    //     data: {
+    //         phone_number: phone_number,
+    //         friend_phone_number: friend_phone_number.value
+    //     }
+    // }))
+    // if (err) {
+    //     console.log('添加好友错误: ', err)
+    //     return
+    // }
+    // console.log('好友请求回来了 -> ', res, res?.data)
+    // // if (res.data) return // 注意这里,测试完成后需要解开 return
+    // if (res.data === 'miss') {
+    //     missFri.value = false
+    //     delayToShowErr()
+    // } else {
+    //     missFri.value = false
+    // }
 
-    if (res.data === 'exist') {
-        repFri.value = false
-        delayToShowRepeatErr()
-    } else {
-        repFri.value = false
-    }
-    // 返回错误
-    if (!res?.data?.friends) return
+    // if (res.data === 'exist') {
+    //     repFri.value = false
+    //     delayToShowRepeatErr()
+    // } else {
+    //     repFri.value = false
+    // }
+    // // 返回错误
+    // if (!res?.data?.friends) return
 
-    friendsList.value.length = 0
-    const baseUrl = sessionStorage.getItem('baseUrl')
-    res.data.friends.forEach((item:Friend) => {
-        friendsList.value.push({
-            name: item.name || item.user as string,
-            user_id: item.user_id,
-            time: '',
-            message: '',
-            avatar_url:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
-            active: false,
-            searchActive: true,
-            chat_table: item.chat_table,
-            phone_number: item.phone_number,
-            user: item.user
-        })
-    })
-    const getUserInfo: UserInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}')
-    getUserInfo.friends = JSON.stringify(res.data.friends)
-    sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
-    dShow.value = false
+    // friendsList.value.length = 0
+    // const baseUrl = sessionStorage.getItem('baseUrl')
+    // res.data.friends.forEach((item:Friend) => {
+    //     friendsList.value.push({
+    //         name: item.name || item.user as string,
+    //         user_id: item.user_id,
+    //         time: '',
+    //         message: '',
+    //         avatar_url:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
+    //         active: false,
+    //         searchActive: true,
+    //         chat_table: item.chat_table,
+    //         phone_number: item.phone_number,
+    //         user: item.user
+    //     })
+    // })
+    // const getUserInfo: UserInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}')
+    // getUserInfo.friends = JSON.stringify(res.data.friends)
+    // sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
+    // dShow.value = false
     
 
-    // 更改版本号,重新更新数据库
-    handleDdOperate(getUserInfo, store.state.dataBase.db)
-    // const tips: Tips = {
-    //     to_id: getUserInfo.user_id,
-    //     tips: 'addFriend'
-    // }
-    // store.state.global.ws.value.send(JSON.stringify(tips))
+    // // 更改版本号,重新更新数据库
+    // initDdOperate(getUserInfo, store.state.dataBase.db)
+    // .then(() => {
+    //     handleUnread()
+    // })
 }
 
 // 更新好友信息
@@ -316,9 +333,6 @@ watch(chatDataOb, (val) => {
     sessionStorage.setItem('chatDataOb', JSON.stringify(val))
 },
 { deep: true })
-// onMounted(() => {
-//     handleUnread()
-// })
 watch(() => props.tryToRefreshChatOb!.chat, (chat: Box) => {
     const { to_table } = chat
     // console.log('更新 chat -> ', chat, chatDataOb.value[to_table])

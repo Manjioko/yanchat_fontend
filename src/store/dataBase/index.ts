@@ -2,7 +2,7 @@ export default {
     namespaced: true,
     state() {
         return {
-            db: null || IDBDatabase,
+            db: null,
             dbname: null,
             dbversion: null,
         }

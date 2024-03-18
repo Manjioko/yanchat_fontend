@@ -28,7 +28,7 @@
                 <tipsMessages />
             </section>
             <ChatWindow
-                v-if="activeFriend"
+                v-if="activeFriend.chat_table"
                 ref="chatWindow"
                 :chatBox="chatBox"
                 :avatarRefresh="avatarRefresh"
@@ -45,7 +45,7 @@
             <section style="position: relative;">
                 <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" @close="handleQuoteClose" />
                 <SendFoot
-                v-if="activeFriend"
+                v-if="activeFriend.chat_table"
                 :upload-disable="!!activeFriend"
                 :quote="comment"
                 @center="Center"

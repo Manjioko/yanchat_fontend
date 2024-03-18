@@ -1,5 +1,5 @@
 import { Store, createStore } from 'vuex'
-import friendList from './friendList'
+import friendsList from './friendsList'
 import test from './storeTest'
 import dataBase from './dataBase'
 import chatWindow from './chatWindow'
@@ -8,7 +8,7 @@ import global from './global'
 
 export default createStore({
     modules: {
-        friendList,
+        friendsList,
         test,
         dataBase,
         chatWindow,
