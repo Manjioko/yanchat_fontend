@@ -3,8 +3,9 @@ import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box, UserInfo, Friend, Tips } from '@/interface/global'
 import typeIs from './type'
 
-export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 
+// indexDB 打开数据库
+export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
     // const store = useStore()
     const { dbName, indexList = [], tableNameList = [], oldDb = null, newTables = [] } = options
     const version = localStorage.getItem('dbVersion') ? JSON.parse(localStorage.getItem('dbVersion') as string) : 1
@@ -61,6 +62,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
     })
 }
 
+// 数据库新增数据
 export function dbAdd<T>(tableName: String, data: T[]):Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
@@ -113,14 +115,14 @@ export function dbAdd<T>(tableName: String, data: T[]):Promise<string> {
 }
 
 // 默认搜索是模糊搜索
-export function dbRead(tableName: String, field: string, searchStr: string | number) {
+export function dbRead<T>(tableName: String, field: string, searchStr: string | number): Promise<T[]> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !tableName) return
         const store = vstore.state.dbbase.db
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
 
-        const data:Box[] = []
+        const data:T[] = []
         const reg = new RegExp(`${searchStr.toString()}`)
         const cursorEvent = store.openCursor()
         cursorEvent.onsuccess = (res: Event) => {
@@ -148,6 +150,7 @@ export function dbRead(tableName: String, field: string, searchStr: string | num
     })
 }
 
+// 读取所有数据
 export function dbReadAll<T>(tableName: string): Promise<T[]> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db) return reject('数据库报错: db 不存在')
@@ -170,7 +173,8 @@ export function dbReadAll<T>(tableName: string): Promise<T[]> {
     })
 }
 
-export function dbReadSome(tableName: string, offset: number = 0, oldOffset:number = 0): Promise<Box[]> {
+// 默认搜索是模糊搜索
+export function dbReadSome(tableName: string, offset: number = 0): Promise<Box[]> {
     return new Promise((resolve, reject) => {
         const store = vstore.state.dataBase.db
             .transaction([tableName], 'readonly')
@@ -225,6 +229,7 @@ export function dbReadByIndex<T>(tableName: string, indexName: string, searchStr
     })
 }
 
+// 精确指定 offset 读取 10 条数据(可以指定从头读还是从尾读)
 export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC.UP, size:number = 10): Promise<Box[]> {
     console.log('获取数据 参数 -> ', desc, offset)
     return new Promise((resolve, reject) => {
@@ -257,7 +262,7 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC
     })
 }
 
-// 范围数据
+// 范围数据(通过 offset 区间读取数据)
 export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperOffset: number): Promise<Box[]> {
     return new Promise((resolve, reject) => {
         if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
@@ -285,6 +290,7 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
     })
 }
 
+// 不通过 offset 获取数据(默认获取最新的 10 条)
 export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, size: number = 10): Promise<Box[]> {
     return new Promise((resolve,reject) => {
         if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
@@ -335,6 +341,7 @@ export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, si
     })
 }
 
+// 获取最后一条数据 key
 export function dbGetLastPrimaryKey(tableName: string): Promise<number | undefined> {
     return new Promise((resolve, reject) => {
         if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
@@ -358,8 +365,8 @@ export function dbGetLastPrimaryKey(tableName: string): Promise<number | undefin
     })
 }
 
-// 删除数据库字段
-export function dbDelete(tableName: string, key: number) {
+// 通过 key 删除数据库字段
+export function dbDeleteByKey(tableName: string, key: number): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dbbase.db || !key) return
         const request = vstore.state.dbbase.db
@@ -375,14 +382,15 @@ export function dbDelete(tableName: string, key: number) {
     })
 }
 
-export function dbDeleteByIndex(tableName: string, indexName: string, searchStr: string) {
+// 通过 index 来删除字段
+export function dbDeleteByIndex(tableName: string, indexName: string, searchStr: string): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !indexName) return
-        const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
-        const sto = tran.objectStore(tableName)
-        const cursor = sto.openCursor()
+        const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite') as IDBTransaction
+        const sto = tran.objectStore(tableName) as IDBObjectStore
+        const cursor = sto.openCursor() as IDBRequest
         cursor.onsuccess = () => {
-            const cur = cursor.result
+            const cur = cursor.result as IDBCursorWithValue
             if (cur) {
                 if (cur.value[indexName] === searchStr) {
                     const request = sto.delete(cur.key)
@@ -405,7 +413,7 @@ export function dbDeleteByIndex(tableName: string, indexName: string, searchStr:
 }
 
 // 更新数据库字段
-export function dbUpdate(tableName: string, data: Box) {
+export function dbUpdate(tableName: string, data: Box): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
 
