@@ -378,28 +378,27 @@ export function dbDelete(tableName: string, key: number) {
 export function dbDeleteByIndex(tableName: string, indexName: string, searchStr: string) {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !indexName) return
-        // console.log('dbDeleteByIndex -> ', res)
-        // if (!res || res.length === 0) return reject(`无法查找到对应的数据 -> ${searchStr}`)
         const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
         const sto = tran.objectStore(tableName)
-        const index = sto.index(indexName)
-        const getRequest = index.get(searchStr)
-        getRequest.onsuccess = function (res: Event) {
-            // resolve(res.type)
-            const target = res.target as IDBRequest
-            if (target.result) {
-                console.log('sto -> ', target.result)
-                const request = sto.delete(target.result[indexName])
-                request.onsuccess = function (res: Event) {
-                    console.log('ers -> ', res)
-                    resolve(res.type)
+        const cursor = sto.openCursor()
+        cursor.onsuccess = () => {
+            const cur = cursor.result
+            if (cur) {
+                if (cur.value[indexName] === searchStr) {
+                    const request = sto.delete(cur.key)
+                    request.onsuccess = (res: Event) => {
+                        resolve(res.type)
+                    }
+                    request.onerror = (err: Event) => {
+                        reject(err.type)
+                    }
                 }
-                request.onerror = (err: Event) => {
-                    reject(err.type)
-                }
+                cur.continue()
+            } else {
+                resolve('success')
             }
         }
-        getRequest.onerror = (err: Event) => {
+        cursor.onerror = (err: Event) => {
             reject(err.type)
         }
     })
