@@ -7,7 +7,7 @@ import typeIs from './type'
 // indexDB 打开数据库
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
     // const store = useStore()
-    const { dbName, indexList = [], tableNameList = [], oldDb = null, newTables = [] } = options
+    const { dbName,  oldDb = null, config } = options
     const version = localStorage.getItem('dbVersion') ? JSON.parse(localStorage.getItem('dbVersion') as string) : 1
     return new Promise((resolve, reject) => {
         let newVersion: number | null = null
@@ -39,18 +39,10 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 
             const result = (event.target as IDBOpenDBRequest).result
             const db = result
-            tableNameList.forEach((table: string) => {
-                if (!db.objectStoreNames.contains(table)) {
-                    const store = db.createObjectStore(table, { keyPath: 'id' })
-                    // console.log('store -> ', store)
-                    indexList.forEach((item: { name: string, unique: boolean }) => {
-                        store.createIndex(item.name, item.name, { unique: item.unique })
-                    })
-                }
-            })
-            newTables.forEach((table: any) => {
+            config.forEach((table: any) => {
                 if (!db.objectStoreNames.contains(table.name)) {
-                    const store = db.createObjectStore(table.name, { autoIncrement: true })
+                    const store = db.createObjectStore(table, table.key ? { keyPath: table.key } : { autoIncrement: true })
+                    // console.log('store -> ', store)
                     table.indexList.forEach((item: { name: string, unique: boolean }) => {
                         store.createIndex(item.name, item.name, { unique: item.unique })
                     })
@@ -447,31 +439,21 @@ export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },
     ]
-    const tableNameList = friends.map((item: Friend) => item.chat_table)
-    // 新增一个用于存储消息的系统表
-    // 新表通用
-    const newTable =  {
+    // 消息系统表结构
+    const tipsTable =  {
         name: 'tips_messages',
+        key: null,
         indexList: [
-            {
-                name: 'messages_id',
-                unique: true
-            },
-            {
-                name: 'messages_box',
-                unique: false
-            },
-            {
-                name: 'messages_type',
-                unique: false
-            }
+            { name: 'messages_id',unique: true },
+            { name: 'messages_box', unique: false },
+            { name: 'messages_type', unique: false }
         ]
     }
+    const initConfig = friends.map((item: Friend) => ({ name: item.chat_table, key: 'id', indexList }))
+    initConfig.push(tipsTable)
     return dbOpen({
         dbName: userInfo.user_id,
-        tableNameList,
-        indexList,
+        config: initConfig,
         oldDb: oldDB,
-        newTables: [newTable]
     })
 }

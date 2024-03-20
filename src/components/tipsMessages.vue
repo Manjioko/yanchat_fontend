@@ -14,7 +14,7 @@
                         <div class="tips-title">{{ item.messages_box.msg }}</div>
                         <div>
                             <el-button type="primary" link size="small" @click="handleAddFriend(item, idx)">同意</el-button>
-                            <el-button type="danger" link size="small" @click="handleDelete(item)">拒绝</el-button>
+                            <el-button type="danger" link size="small" @click="handleDelete(item, idx)">拒绝</el-button>
                         </div>
                     </div>
                 </section>
@@ -110,8 +110,18 @@ function handleAddFriend(item: any, idx: number) {
 }
 
 // 拒绝添加好友
-function handleDelete(item: any) {
+function handleDelete(item: any, idx: number) {
     console.log('拒绝添加好友 -> ', item)
+    dbDeleteByIndex('tips_messages', 'messages_id', item.messages_id)
+    .then(() => {
+        console.log('删除 tips_messages 数据库成功！')
+    })
+    .catch((err: string) => {
+        console.log('删除 tips_messages 数据库失败 -> ', err)
+    })
+    .finally(() => {
+        tipsShowList.value.splice(idx, 1)
+    })
 }
 </script>
 

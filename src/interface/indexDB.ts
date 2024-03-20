@@ -1,10 +1,8 @@
 export interface DbOpenOptions {
     dbName: string
     version?: number
-    indexList?: any[]
-    tableNameList?: string[]
     oldDb?: IDBDatabase | null,
-    newTables?: any[] // 用于新增拓展的表
+    config: any[]
 }
 
 export enum DESC {
