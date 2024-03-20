@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
@@ -9,6 +10,8 @@ import { request, api } from '@/utils/api'
 // const op = {dbName: 'dddd', version: 1}
 // dbOpen(op)
 // dbOpen({})
+
+const store = useStore()
 let router = ref()
 // 用户输入的电话号码
 let phone = ref('')
@@ -74,11 +77,15 @@ async function login() {
             sessionStorage.setItem('user_info', JSON.stringify(user_data))
             // 保存 user_id 到 sessionStorage
             sessionStorage.setItem('user_id', user_data.user_id)
+            // 重置好友栏
+            store.commit('friendsList/clearFriendsList')
+            // 重置消息
+            store.commit('global/clearTips')
             router.value.push({ name: 'Chat' })
             // showloginErr.value = false
 
             // 将电话号码保存起来, 测试用
-            sessionStorage.setItem('phone', phone.value)
+            // sessionStorage.setItem('phone', phone.value)
             return
 
         }
@@ -150,6 +157,11 @@ async function login() {
                 message: `${phone.value} 已经成功注册！`,
                 type: 'success',
             })
+
+            // 重置好友栏
+            store.commit('friendsList/clearFriendsList')
+            // 重置消息
+            store.commit('global/clearTips')
 
             router.value.push({ name: 'Chat' })
         }

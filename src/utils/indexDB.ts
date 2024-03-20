@@ -8,7 +8,7 @@ import typeIs from './type'
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
     // const store = useStore()
     const { dbName,  oldDb = null, config } = options
-    const version = localStorage.getItem('dbVersion') ? JSON.parse(localStorage.getItem('dbVersion') as string) : 1
+    const version = localStorage.getItem('dbVersion') ? JSON.parse(localStorage.getItem('dbVersion') as string) : 2
     return new Promise((resolve, reject) => {
         let newVersion: number | null = null
         if (oldDb) {
@@ -21,7 +21,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
         }
         const request = window.indexedDB.open(dbName, newVersion || version)
         request.onerror = event => {
-            console.log('错误 -> ', event)
+            console.log('错误 -> ', event, dbName, newVersion || version)
             reject(event)
         }
         request.onsuccess = event => {
@@ -40,8 +40,9 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
             const result = (event.target as IDBOpenDBRequest).result
             const db = result
             config.forEach((table: any) => {
+                console.log('table -> ', table, db.objectStoreNames)
                 if (!db.objectStoreNames.contains(table.name)) {
-                    const store = db.createObjectStore(table, table.key ? { keyPath: table.key } : { autoIncrement: true })
+                    const store = db.createObjectStore(table.name, table.key ? { keyPath: table.key } : { autoIncrement: true })
                     // console.log('store -> ', store)
                     table.indexList.forEach((item: { name: string, unique: boolean }) => {
                         store.createIndex(item.name, item.name, { unique: item.unique })
