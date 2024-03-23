@@ -8,6 +8,8 @@ export default {
     mutations: {
         updateFriendsList(state: any, payload: any) {
             if (Array.isArray(payload)) {
+                console.log('state 更新好友列表 -> ', payload)
+                state.friendsList = payload
                 state.friendsList = payload
             }
         },

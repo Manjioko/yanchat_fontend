@@ -29,19 +29,20 @@ import { useStore } from 'vuex'
 import { computed, ComputedRef, watchEffect, ref, Ref } from 'vue'
 import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
 import { addFriend } from '@/utils/friends'
+import { Tips } from '@/interface/global'
 // import { Tips } from '@/interface/global'
 const store = useStore()
 
-const ws: ComputedRef<any> = computed(() => store.state.global.ws)
-const dbName: ComputedRef<any> = computed(() => store.state.dataBase.dbname)
-const tips: ComputedRef<any[]> = computed(() => store.state.global.tips)
-const tipsShowList: Ref<any[]> = ref([])
+const ws: ComputedRef<WebSocket | null> = computed(() => store.state.global.ws)
+const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname)
+const tips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
+const tipsShowList: Ref<Tips[]> = ref([])
 watchEffect(() => {
     if (dbName.value) {
         dbReadAll('tips_messages')
         .then((res: any) => {
-            res?.forEach((item: any) => {
-                const exist = tipsShowList.value.find((v: any) => v.messages_id === item.messages_id)
+            res?.forEach((item: Tips) => {
+                const exist = tipsShowList.value.find((v: Tips) => v.messages_id === item.messages_id)
                 if (!exist) {
                     item.messages_box = JSON.parse(item.messages_box)
                     tipsShowList.value.push(item)
@@ -64,7 +65,7 @@ watchEffect(() => {
                 dbReadAll('tips_messages')
                 .then((res: any) => {
                     // console.log('tips_messages2 -> ', res)
-                    res?.forEach((item: any) => {
+                    res?.forEach((item: Tips) => {
                         const exist = tipsShowList.value.find((v: any) => v.messages_id === item.messages_id)
                         if (!exist) {
                             item.messages_box = JSON.parse(item.messages_box)
@@ -90,11 +91,17 @@ watchEffect(() => {
 })
 
 // 同意添加好友
-function handleAddFriend(item: any, idx: number) {
+function handleAddFriend(item: Tips, idx: number) {
     console.log('同意添加好友 -> ', item)
     addFriend(item.messages_box)
     .then(() => {
-        dbDeleteByIndex('tips_messages', 'messages_id', item.messages_id)
+        const params: Tips = {
+            messages_type: 'addFriendRecieved',
+            messages_box: item.messages_box,
+            to_id: item.messages_box.friend_user_id
+        }
+        ws.value?.send(JSON.stringify(params))
+        dbDeleteByIndex('tips_messages', 'messages_id', item.messages_id || '')
         .then(() => {
             console.log('删除 tips_messages 数据库成功！')
         })
@@ -110,9 +117,9 @@ function handleAddFriend(item: any, idx: number) {
 }
 
 // 拒绝添加好友
-function handleDelete(item: any, idx: number) {
+function handleDelete(item: Tips, idx: number) {
     console.log('拒绝添加好友 -> ', item)
-    dbDeleteByIndex('tips_messages', 'messages_id', item.messages_id)
+    dbDeleteByIndex('tips_messages', 'messages_id', item.messages_id || '')
     .then(() => {
         console.log('删除 tips_messages 数据库成功！')
     })

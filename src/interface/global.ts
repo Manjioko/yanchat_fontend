@@ -113,12 +113,16 @@ interface Position {
 }
 
 // 消息体
-type tipType = 'addFriend' | 'clear' | 'withdrew'
+type tipType = 'addFriend' | 'clear' | 'withdrew' | 'addFriendRecieved'
 interface Tips {
-    to_id: string,
-    tips: tipType,
-    tipsBody?: any,
+    // to_id: string,
+    // tips: tipType,
+    // tipsBody?: any,
     // tipsType?: string
+    messages_id?: string,
+    messages_box: any,
+    messages_type: tipType,
+    to_id?: string
 }
 
 enum IsSwitchFriend {

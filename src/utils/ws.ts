@@ -1,4 +1,5 @@
-import { PingPong, WsConnectParams } from "@/interface/global"
+import { PingPong, Tips, WsConnectParams } from "@/interface/global"
+import { updateUserInfo } from '@/utils/friends'
 import { dbAdd } from "./indexDB"
 import store from '@/store'
 const MAX_RETRIES = 10
@@ -136,12 +137,33 @@ function connectWebSocket(params: WsConnectParams) {
 // 处理消息通知
 function handleTips(tips: any) {
     if (!tips.data || !Array.isArray(tips.data)) return
+    // 添加好友信息到通知栏，并存入数据库中
+    const addFriendsList = tips.data.filter((item: any) => item.messages_type === 'addFriend')
     store.commit('global/clearTips')
-    for (const item of tips.data) {
+    for (const item of addFriendsList) {
         const to_user_id = JSON.parse(item.messages_box || '{}').to_user_id || ''
         if (!to_user_id) continue
         store.commit('global/addTips', item)
     }
+
+    // 处理其他即时消息，不做长久存储
+    const otherList = tips.data.filter((item: any) => item.messages_type !== 'addFriend')
+    console.log('其他消息 -> ', otherList)
+    for (const item of otherList) {
+        switch (item.messages_type) {
+            case 'withdrew':
+                // store.commit('global/withdrewTips', item)
+                break
+            case 'addFriendRecieved':
+                console.log('好友确认更新 ->', item)
+                // store.commit('global/addFriendRecievedTips', item)
+                updateUserInfo()
+                break
+            default:
+                break
+        }
+    }
+    
 }
 
 export default connectWebSocket

@@ -84,6 +84,7 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { dbAdd, initDdOperate } from '@/utils/indexDB'
 import { Box, Friend, RefreshMessage, Tip, UserInfo, Tips } from '@/interface/global'
+import typeIs from '@/utils/type'
 const store =  useStore()
 // import { RefreshMessage } from '@/interface/global'
 // const storeTips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
@@ -96,15 +97,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['handleActiveFriend'])
 
-// const route = useRoute()
-// const router = useRouter()
-
-// const friendsList:Ref<Friend[]> = ref([])
 const friendsList:ComputedRef<Friend[]> = computed(() => store.state.friendsList.friendsList)
 
-// watch(() => friendsList.value, () => {
-//     store.commit('friendsList/updateFriendsList', friendsList)
-// })
 console.log('store -> ', store)
 
 // 用户信息
@@ -123,9 +117,12 @@ watch(() => props.avatarRefresh, (val) => {
 
 onMounted(() => {
     if (!props.friends) return
-    const f = JSON.parse(props.friends)
+    let f = JSON.parse(props.friends)
     const phone_number = user_info.phone_number
-    // console.log('f -> ', f)
+    // console.log('f -> ', f, typeIs(f))
+    if (typeIs(f) === 'String') {
+        f = JSON.parse(f || '[]')
+    }
     const baseUrl = sessionStorage.getItem('baseUrl')
     f?.forEach((item: Friend) => {
         store.commit('friendsList/addFriendsList', {
@@ -197,8 +194,8 @@ async function addFriend() {
         const to_id = udata.data[0].user_id || ''
         const tips: Tips = {
             to_id,
-            tips: 'addFriend',
-            tipsBody: {
+            messages_type: 'addFriend',
+            messages_box: {
                 msg: `${userInfo.value.user} 想添加你为好友`,
                 friend_phone_number: userInfo.value.phone_number,
                 friendName: userInfo.value.user,

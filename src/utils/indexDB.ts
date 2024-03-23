@@ -40,7 +40,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
             const result = (event.target as IDBOpenDBRequest).result
             const db = result
             config.forEach((table: any) => {
-                console.log('table -> ', table, db.objectStoreNames)
+                // console.log('table -> ', table, db.objectStoreNames)
                 if (!db.objectStoreNames.contains(table.name)) {
                     const store = db.createObjectStore(table.name, table.key ? { keyPath: table.key } : { autoIncrement: true })
                     // console.log('store -> ', store)
@@ -432,7 +432,13 @@ export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<
     if (oldDB) {
         console.log('准备更新版本号, 更新数据库 -> ', oldDB)
     }
-    const friends = JSON.parse(userInfo.friends) || []
+    
+    let friends = JSON.parse(userInfo.friends)
+    if (typeIs(friends) == 'String') {
+        // console.log('好友列表 字符串 -> ', friends)
+        friends = JSON.parse(friends)
+    }
+    // 好友系统表结构
     const indexList = [
         { name: 'user_id', unique: false },
         { name: 'id', unique: true },
