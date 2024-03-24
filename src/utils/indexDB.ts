@@ -26,7 +26,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
         }
         request.onsuccess = event => {
             const result = (event.target as IDBOpenDBRequest).result
-            console.log('数据库打开成功', result)
+            // console.log('数据库打开成功', result)
             vstore.commit('dataBase/setDb', {
                 db: result,
                 dbName: dbName,
@@ -456,7 +456,7 @@ export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<
             { name: 'messages_type', unique: false }
         ]
     }
-    const initConfig = friends.map((item: Friend) => ({ name: item.chat_table, key: 'id', indexList }))
+    const initConfig = friends?.map((item: Friend) => ({ name: item.chat_table, key: 'id', indexList })) || []
     initConfig.push(tipsTable)
     return dbOpen({
         dbName: userInfo.user_id,

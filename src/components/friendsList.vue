@@ -99,11 +99,11 @@ const emit = defineEmits(['handleActiveFriend'])
 
 const friendsList:ComputedRef<Friend[]> = computed(() => store.state.friendsList.friendsList)
 
-console.log('store -> ', store)
+// console.log('store -> ', store)
 
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info') || '')
-console.log('用户信息 -》 ', user_info)
+// console.log('用户信息 -》 ', user_info)
 initDdOperate(user_info)
 .then(() => {
     handleUnread()
@@ -206,6 +206,7 @@ async function addFriend() {
         store.state.global.ws.send(JSON.stringify(tips))
         return
     }
+    dShow.value = false
 }
 
 // 更新好友信息

@@ -41,7 +41,6 @@ export async function addFriend(friData: any) {
     })
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
-
     // 更改版本号,重新更新数据库
     initDdOperate(getUserInfo, store.state.dataBase.db)
 }

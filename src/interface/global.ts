@@ -113,14 +113,14 @@ interface Position {
 }
 
 // 消息体
-type tipType = 'addFriend' | 'clear' | 'withdrew' | 'addFriendRecieved'
+type tipType = 'addFriend' | 'clear' | 'withdrew' | 'addFriendRecieved' | 'withdraw'
 interface Tips {
     // to_id: string,
     // tips: tipType,
     // tipsBody?: any,
     // tipsType?: string
     messages_id?: string,
-    messages_box: any,
+    messages_box?: any,
     messages_type: tipType,
     to_id?: string
 }

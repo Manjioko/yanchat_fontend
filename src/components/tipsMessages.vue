@@ -77,13 +77,6 @@ watchEffect(() => {
                     console.log('读取 tips_messages 数据库失败 -> ', err)
                 })
                 store.commit('global/setTips', [])
-                const user_id = sessionStorage.getItem('user_id') || ''
-                console.log('ws -> ', ws)
-                // 清空消息
-                ws.value?.send(JSON.stringify({
-                    tips: 'clear',
-                    to_id: user_id
-                }))
             })
         }
         // store.commit('global/setTips', [])

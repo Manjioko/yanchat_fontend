@@ -4,7 +4,8 @@ export default {
     state() {
         return {
             ws: null,
-            tips: []
+            tips: [],
+            centerFn: null,
         }
     },
     mutations: {
@@ -19,6 +20,9 @@ export default {
         },
         clearTips(state: any) {
             state.tips = []
+        },
+        setCenterFn(state: any, payload: any) {
+            state.centerFn = payload
         }
     }
 }

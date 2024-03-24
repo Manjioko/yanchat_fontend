@@ -129,12 +129,14 @@ import {
     Position,
     IsSwitchFriend,
     Judge,
+    Tips,
     // Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
 import { DESC } from '@/interface/indexDB'
 import { ScrollData } from '@/interface/chatWindow'
+import { deleteLocalDataBaseData } from '@/utils/withdraw'
 
 
 // 测试数据
@@ -200,7 +202,11 @@ onBeforeUnmount(() => {
     if (refreshTokenTime) {
         clearInterval(refreshTokenTime)
     }
+    store.commit('global/setCenterFn', null)
 })
+
+// 将 center 挂载到 vuex
+store.commit('global/setCenterFn', Center)
 
 // 刷新 refreshToken
 function getRefreshToken() {
@@ -843,7 +849,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
         chatData.push(...data)
     }
     const lastId = await dbGetLastPrimaryKey(chat_table)
-    console.log('获取聊天记录 首次获取 ->', chatData)
+    // console.log('获取聊天记录 首次获取 ->', chatData)
     const resChatData = handleChatData(chatData || [])
 
     chatBox.value.unshift(...resChatData)
@@ -1045,9 +1051,12 @@ async function handleDeleted(idx: number) {
     }
     if (res?.data !== 'err') {
         console.log('删除成功 -> ', res)
-        chatBox.value.splice(idx, 1)
-        chat.text = '[已删除一条信息]'
-        trytoRfChat.value = { chat }
+        deleteLocalDataBaseData(chatBox.value[idx])
+        .then(() => {
+            chatBox.value.splice(idx, 1)
+            chat.text = '[已删除一条信息]'
+            trytoRfChat.value = { chat }
+        })
     } else {
         console.log('删除失败 -> ', res.data)
     }
@@ -1055,27 +1064,40 @@ async function handleDeleted(idx: number) {
 
 // windowChat 撤回回调
 async function handleWithdraw (idx: number) {
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.deleteChat,
-        data: {
-            chat: {
-                ...chatBox.value[idx],
-                thumbnail: '', // 缩略图可能很大,撤回并不需要带那么大的东西会后台
-            },
-        }
-    }))
-    if (err) {
-        console.log('撤回失败 -> ', err)
-        return
-    }
+    // const [err, res] = await to(request({
+    //     method: 'post',
+    //     url: api.deleteChat,
+    //     data: {
+    //         chat: {
+    //             ...chatBox.value[idx],
+    //             thumbnail: '', // 缩略图可能很大,撤回并不需要带那么大的东西回后台
+    //         },
+    //     }
+    // }))
+    // if (err) {
+    //     console.log('撤回失败 -> ', err)
+    //     return
+    // }
     
-    if (res.data === 'ok') {
-        console.log('撤回成功 -> ', res)
-        centerDeleted(chatBox.value[idx])
-    } else {
-        console.log('撤回失败 -> ', res.data)
+    // if (res.data === 'ok') {
+    //     console.log('撤回成功 -> ', res)
+    //     centerDeleted(chatBox.value[idx])
+    // } else {
+    //     console.log('撤回失败 -> ', res.data)
+    // }
+    deleteLocalDataBaseData(chatBox.value[idx])
+    .then(() => {
+        chatBox.value[idx].text = '[撤回一条信息]'
+        trytoRfChat.value = { chat: chatBox.value[idx] }
+        chatBox.value.splice(idx, 1)
+    })
+    const ws = websocket.value as WebSocket
+    const tipsParams: Tips = {
+        messages_type: 'withdraw',
+        messages_box: chatBox.value[idx],
+        to_id: activeFriend.value.user_id
     }
+    ws.send(JSON.stringify(tipsParams))
 }
 
 // windowChat 引用回调
@@ -1106,23 +1128,6 @@ function handleLoaded(chat_id: string) {
     }
 }
 
-// 模拟消息
-// function handleTips() {
-//     console.log('模拟消息')
-//     const user_id = sessionStorage.getItem('user_id') || ''
-//     const ws = websocket.value as WebSocket
-//     // const tips_send: Tips = {
-//     //     to_id: user_id,
-//     //     tips: 'addFriend',
-//     //     tipsBody: { data: '这是测试用的信息1'}
-//     // }
-//     // ws.send(JSON.stringify(tips_send))
-//     const tips: Tips = {
-//         to_id: user_id,
-//         tips: 'clear'
-//     }
-//     ws.send(JSON.stringify(tips))
-// }
 
 </script>
 
