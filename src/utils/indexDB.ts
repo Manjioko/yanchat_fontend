@@ -60,7 +60,7 @@ export function dbAdd<T>(tableName: String, data: T[]):Promise<string> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !data) return
         if (Array.isArray(data)) {
-            console.log('tablename -> ', tableName)
+            // console.log('tablename -> ', tableName)
             const tran = vstore.state.dataBase.db.transaction([tableName], 'readwrite')
             const store = tran.objectStore(tableName)
 
@@ -196,7 +196,7 @@ export function dbReadSome(tableName: string, offset: number = 0): Promise<Box[]
         const reOffset = offset - 1 // 为什么要减去 1？ 因为 offset 值已经取过了，正确的取值应该从 offset 之前的一位开始
         const offsetLimit = reOffset! - 10 > 0 ? reOffset! - 10 : 0
         handler(offsetLimit, reOffset!)
-        console.log('offset ->', reOffset, offsetLimit)
+        // console.log('offset ->', reOffset, offsetLimit)
     })
 }
 
@@ -263,7 +263,7 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
         const box:Box[] = []
-        console.log('offset -> ', lowerOffset, upperOffset)
+        // console.log('offset -> ', lowerOffset, upperOffset)
         const lower = lowerOffset >= 0 ? lowerOffset : 0
         const upper = upperOffset >= 0 ? upperOffset : 0
         const curReq = store.openCursor(IDBKeyRange.bound(lower, upper, false, false))

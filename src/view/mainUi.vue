@@ -1,33 +1,35 @@
 <template>
     <main class="main" @contextmenu.prevent>
-        <friendsList
-            :friends="userInfo.friends"
-            :refreshChatDataOb="newChatData"
-            :tryToRefreshChatOb="trytoRfChat"
-            :signal="signal"
-            :avatarRefresh="avatarRefresh"
-            @handleActiveFriend="handleActiveFriend"
-        />
+        <friendsList :friends="userInfo.friends" :refreshChatDataOb="newChatData" :tryToRefreshChatOb="trytoRfChat"
+            :signal="signal" :avatarRefresh="avatarRefresh" @handleActiveFriend="handleActiveFriend" />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
                     <span>{{ activeFriend.name }}</span>
-                    <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
-                    <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
+                    <span v-if="signal === 0" class="reconnect">{{
+            '正在重连中...'
+        }}</span>
+                    <span v-if="signal === 2" class="disconnect">{{
+            '已经断线,请检测网络环境是否可用'
+        }}</span>
                 </div>
                 <div class="default-avatar" v-else>
-                    <div style="width: 100%; height: 40px;">
-                        <span v-if="signal === 0" class="reconnect">{{ '正在重连中...' }}</span>
-                        <span v-if="signal === 2" class="disconnect">{{ '已经断线,请检测网络环境是否可用' }}</span>
+                    <div style="width: 100%; height: 40px">
+                        <span v-if="signal === 0" class="reconnect">{{
+            '正在重连中...'
+        }}</span>
+                        <span v-if="signal === 2" class="disconnect">{{
+            '已经断线,请检测网络环境是否可用'
+        }}</span>
                     </div>
                 </div>
-                <img src="../assets/setting.png" alt="setting" @click="showSettingDialog">
+                <img src="../assets/setting.png" alt="setting" @click="showSettingDialog" />
                 <!-- <el-badge is-dot class="badge-item">
                     <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
                 </el-badge> -->
                 <tipsMessages />
             </section>
-            <ChatWindow
+            <ChatWindow 
                 v-if="activeFriend.chat_table"
                 ref="chatWindow"
                 :chatBox="chatBox"
@@ -39,45 +41,25 @@
                 @quote="handleQuote"
                 @loaded="handleLoaded"
             />
-            <section class="zero-friend" v-else>
-                还未选择聊天好友
-            </section>
-            <section style="position: relative;">
+            <section class="zero-friend" v-else>还未选择聊天好友</section>
+            <section style="position: relative">
                 <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" @close="handleQuoteClose" />
                 <SendFoot
-                v-if="activeFriend.chat_table"
-                :upload-disable="!!activeFriend"
-                :quote="comment"
-                @center="Center"
-                @videoCallStart="handleVideoCallStart"
-                @gotoBottom="handleGotoBottom"
+                    v-if="activeFriend.chat_table"
+                    :upload-disable="!!activeFriend"
+                    :quote="comment"
+                    @center="Center" @videoCallStart="handleVideoCallStart" @gotoBottom="handleGotoBottom"
                 />
             </section>
         </section>
     </main>
-    <AppSetting
-        ref="appSetting"
-        @exit="handleExit"
-        @avaterChange="handleAvatarChange"
-        @nickNameChange="handleNickNameChange"
-        @isUseMarkdown="handleIsUseMarkdown"
-    />
+    <AppSetting ref="appSetting" @exit="handleExit" @avaterChange="handleAvatarChange"
+        @nickNameChange="handleNickNameChange" @isUseMarkdown="handleIsUseMarkdown" />
     <!-- 测试模式用 -->
-    <videoCallOfferer
-        v-if="activeFriend && showOfferer"
-        :friend="activeFriend"
-        :socket="websocket"
-        :anwser-data="videocallAnwserData"
-        @destroy="destroyVideoCallOfferer"
-        @center="Center"
-    />
-    <videoCallAnwserer
-        v-if="showAnwserer"
-        :friend="activeFriend"
-        :socket="websocket"
-        :offer-data="videocallOfferData"
-        @destroy="destroyVideoCallAnwserer"
-    />
+    <videoCallOfferer v-if="activeFriend && showOfferer" :friend="activeFriend" :socket="websocket"
+        :anwser-data="videocallAnwserData" @destroy="destroyVideoCallOfferer" @center="Center" />
+    <videoCallAnwserer v-if="showAnwserer" :friend="activeFriend" :socket="websocket" :offer-data="videocallOfferData"
+        @destroy="destroyVideoCallAnwserer" />
     <!-- 铃声 -->
     <!-- <audio class="audio"
         src="../assets/audio/call.mp3"
@@ -89,8 +71,17 @@
 </template>
 
 <script setup lang="ts">
-
-import { ref, onMounted, onBeforeUnmount, nextTick, watchEffect, h, Ref, computed, ComputedRef } from 'vue'
+import {
+    ref,
+    onMounted,
+    onBeforeUnmount,
+    nextTick,
+    watchEffect,
+    h,
+    Ref,
+    computed,
+    ComputedRef
+} from 'vue'
 import { useStore } from 'vuex'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws'
@@ -129,7 +120,7 @@ import {
     Position,
     IsSwitchFriend,
     Judge,
-    Tips,
+    Tips
     // Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
@@ -138,37 +129,40 @@ import { DESC } from '@/interface/indexDB'
 import { ScrollData } from '@/interface/chatWindow'
 import { deleteLocalDataBaseData } from '@/utils/withdraw'
 
-
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
 
-let chatBox:Ref<Box[]> = ref([])
+let chatBox: Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
-let boxScrolltop:Ref<number> = ref(0)
+let boxScrolltop: Ref<number> = ref(0)
 // 确保聊天页面可以滚动的安全长度
 let scrollSafeLength: Ref<number> = ref(10)
 // websocket 客户端
-let websocket:Ref<WebSocket | undefined> = ref(undefined)
-const userInfo:Ref<UserInfo> = ref({
+let websocket: Ref<WebSocket | undefined> = ref(undefined)
+const userInfo: Ref<UserInfo> = ref({
     friends: '[]',
     phone_number: '',
     user_id: '',
     user: ''
 })
 // 连接信号
-let signal:Ref<number> = ref(0)
+let signal: Ref<number> = ref(0)
 
 // 用户信息
 userInfo.value = JSON.parse(sessionStorage.getItem('user_info') || '')
 // 好友信息
-let userFriends:Friend[] = JSON.parse(userInfo.value.friends)
+let userFriends: Friend[] = JSON.parse(userInfo.value.friends)
 
 // 计时器
 let refreshTokenTime: number | null | undefined = null
 
 const store = useStore()
-const showGotoBottom :ComputedRef<boolean>= computed(() => store.state.footSend.goToBottom)
-const scrollData: ComputedRef<ScrollData> = computed(() => store.state.chatWindow.scrollData)
+const showGotoBottom: ComputedRef<boolean> = computed(
+    () => store.state.footSend.goToBottom
+)
+const scrollData: ComputedRef<ScrollData> = computed(
+    () => store.state.chatWindow.scrollData
+)
 
 // 把 websokcket 挂到 vuex 去用
 store.commit('global/setWs', websocket)
@@ -196,7 +190,7 @@ onBeforeUnmount(() => {
         if (websocket.value) {
             (websocket.value as WebSocket).close()
         }
-    } catch(err) {
+    } catch (err) {
         console.log('卸载 websocket 出错 -> ', err)
     }
     if (refreshTokenTime) {
@@ -213,14 +207,16 @@ function getRefreshToken() {
     const phone_number = userInfo.value.phone_number
     const user_id = userInfo.value.user_id
     refreshTokenTime = setInterval(async () => {
-        const [err, res] = await to(request({
-            url: api.refreshToken,
-            method: 'post',
-            data: {
-                phone_number,
-                user_id
-            }
-        }))
+        const [err, res] = await to(
+            request({
+                url: api.refreshToken,
+                method: 'post',
+                data: {
+                    phone_number,
+                    user_id
+                }
+            })
+        )
         if (!err) {
             // console.log('新 refreshToken -> ', res.data)
             sessionStorage.setItem('RefreshToken', res.data.refreshToken)
@@ -228,16 +224,15 @@ function getRefreshToken() {
     }, 1000 * 60 * 60)
 }
 
-let newChatData:Ref<RefreshMessage> = ref({
+let newChatData: Ref<RefreshMessage> = ref({
     chat: InitBox
 })
 
-let trytoRfChat:Ref<RefreshMessage> = ref({
+let trytoRfChat: Ref<RefreshMessage> = ref({
     chat: InitBox
 })
 
 function Center(chatData: Box, type?: string): void {
-
     // 发送消息
     if (type === 'sent') {
         console.log('发送信息 -> ', chatData)
@@ -282,7 +277,10 @@ function Center(chatData: Box, type?: string): void {
             })
         } else {
             pongSaveCacheData.push(chatData)
-            store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
+            store.commit(
+                'footSend/setPongSaveCacheData',
+                JSON.parse(JSON.stringify(pongSaveCacheData))
+            )
         }
         if (chatData.progress !== undefined) {
             const stop = watchEffect(() => {
@@ -311,13 +309,13 @@ function Center(chatData: Box, type?: string): void {
 
         // 等待 pong, 显示 loading 图标
         if (!('progress' in chatData)) {
-            chatData.loading = true   
+            chatData.loading = true
         } else {
             sendTipToFriendModel(0, chatData)
         }
         const stopLoading = watchEffect(() => {
             if (chatData.loading === false) {
-                console.log('stopLoading -> ', chatData)
+                // console.log('stopLoading -> ', chatData)
                 sendTipToFriendModel(0, chatData)
                 stopLoading()
             }
@@ -342,7 +340,10 @@ function Center(chatData: Box, type?: string): void {
                     chatBox.value.push(chatData)
                     store.commit('footSend/setGotoBottomState', true)
                     pongSaveCacheData.push(chatData)
-                    store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
+                    store.commit(
+                        'footSend/setPongSaveCacheData',
+                        JSON.parse(JSON.stringify(pongSaveCacheData))
+                    )
                 } else {
                     if (isLastChatList.value) {
                         chatBox.value.push(chatData)
@@ -352,14 +353,16 @@ function Center(chatData: Box, type?: string): void {
                         // scrollChatBoxToBottom()
                     } else {
                         pongSaveCacheData.push(chatData)
-                        store.commit('footSend/setPongSaveCacheData', JSON.parse(JSON.stringify(pongSaveCacheData)))
+                        store.commit(
+                            'footSend/setPongSaveCacheData',
+                            JSON.parse(JSON.stringify(pongSaveCacheData))
+                        )
                     }
                 }
                 sendTipToFriendModel(0, chatData)
             } else {
                 // 撤回信息不推送到好友栏
                 sendTipToFriendModel(1, chatData)
-
             }
             // 推送消息到桌面
             notifyToWindow(chatData)
@@ -382,7 +385,10 @@ function Center(chatData: Box, type?: string): void {
 // 滚动聊天框到底部
 function scrollChatBoxToBottom(start_sp?: number) {
     const end_sp = scrollData.value.chatListDiv?.scrollHeight
-    end_sp && scrollData.value.scrollBar.setScrollTop(start_sp ? end_sp - start_sp : end_sp)
+    end_sp &&
+        scrollData.value.scrollBar.setScrollTop(
+            start_sp ? end_sp - start_sp : end_sp
+        )
 }
 // 将信息发送到好友模块的提示栏中
 function sendTipToFriendModel(unread: number, chat: Box) {
@@ -391,9 +397,9 @@ function sendTipToFriendModel(unread: number, chat: Box) {
         isUnread: unread,
         chat: chat
     }
-} 
+}
 function PingPongCenter(data: PingPong, type?: string) {
-    console.log('pingpong -> ', data, type)
+    // console.log('pingpong -> ', data, type)
     if (type === 'pong') {
         centerPong(data)
     }
@@ -401,8 +407,8 @@ function PingPongCenter(data: PingPong, type?: string) {
 
 function VideoCenter(data: VideoConfig, type?: string) {
     console.log('data -> ', data, type)
-        // 视频通话 anwser 通信
-        if (type === 'videoCallAnwser') {
+    // 视频通话 anwser 通信
+    if (type === 'videoCallAnwser') {
         console.log('video call event1 -> ', type)
         centerVideoCallAnwser(data)
     }
@@ -451,30 +457,33 @@ function centerDeleted(chat: Box) {
 }
 
 // 接收消息回响
-const pongSaveCacheData:Box[] = []
+const pongSaveCacheData: Box[] = []
 
 function centerPong(data: PingPong) {
     if (activeFriend.value.chat_table === data.to_table) {
         if (isLastChatList.value) {
-            const boxIndex = chatBox.value.findIndex(chat => chat.chat_id === data.chat_id)
-            console.log(chatBox.value[boxIndex], chatBox, data)
+            const boxIndex = chatBox.value.findIndex(
+                chat => chat.chat_id === data.chat_id
+            )
+            // console.log(chatBox.value[boxIndex], chatBox, data)
             if (boxIndex !== -1) {
                 const chatData = chatBox.value[boxIndex]
                 if (chatData.loading) {
                     chatData.loading = false
                     chatData.id = data.id
                 }
-                dbAdd(chatData.to_table, [{...chatData, id: data.id}])
-                .then(res => {
-                    console.log('存入数据库成功了 -> ', res)
-                }).catch(err => {
-                    console.log('存入数据库失败了 -> ', err)
-                })
+                dbAdd(chatData.to_table, [{ ...chatData, id: data.id }])
+                    .then(res => {
+                        console.log('存入数据库成功了 -> ', res)
+                    })
+                    .catch(err => {
+                        console.log('存入数据库失败了 -> ', err)
+                    })
             } else {
                 console.log('发送呢消息，但是pond没有存储')
             }
         } else {
-            console.log(3)
+            // console.log(3)
             // 发送的消息，先滚动到最新的页面，再存入数据库
             handleGotoBottom()
             const index = pongSaveCacheData.findIndex(d => d.chat_id === data.chat_id)
@@ -485,21 +494,21 @@ function centerPong(data: PingPong) {
                 }
                 chatBox.value.push(pongSaveCacheData[index])
                 console.log(4)
-                dbAdd(data.to_table, [{...pongSaveCacheData[index], id: data.id}])
-                .then(res => {
-                    console.log('存入数据库成功了 -> ', res)
-                }).catch(err => {
-                    console.log('存入数据库失败了 -> ', err)
-                })
+                dbAdd(data.to_table, [{ ...pongSaveCacheData[index], id: data.id }])
+                    .then(res => {
+                        console.log('存入数据库成功了 -> ', res)
+                    })
+                    .catch(err => {
+                        console.log('存入数据库失败了 -> ', err)
+                    })
             }
         }
     }
 }
 
-
 // 开启视频通话
-const showAnwserer:Ref<boolean> = ref(false)
-const videocallOfferData:Ref<any> = ref(null)
+const showAnwserer: Ref<boolean> = ref(false)
+const videocallOfferData: Ref<any> = ref(null)
 function centerVideoCallOffer(chatData: VideoConfig) {
     // console.log('视频通话开始了 -> ', chatData)
     videocallOfferData.value = chatData
@@ -507,8 +516,8 @@ function centerVideoCallOffer(chatData: VideoConfig) {
 }
 
 const showOfferer = ref(false)
-const videocallAnwserData:Ref<VideoConfig> = ref(InitVideoConfig)
-function centerVideoCallAnwser(chatData:VideoConfig) {
+const videocallAnwserData: Ref<VideoConfig> = ref(InitVideoConfig)
+function centerVideoCallAnwser(chatData: VideoConfig) {
     // console.log('视频通话开始了 -> ', chatData)
     videocallAnwserData.value = chatData
     // showOfferer.value = true
@@ -522,14 +531,17 @@ function destroyVideoCallAnwserer() {
     showAnwserer.value = false
 }
 
-function centerVideoCallRequest(chatData:VideoConfig) {
+function centerVideoCallRequest(chatData: VideoConfig) {
     // videocallOfferData.value = chatData
     // showAnwserer.value = true
     console.log('请求数据是 ->', chatData)
     const id = chatData.user_id
-    const friends = JSON.parse(sessionStorage.getItem('user_info')|| '')?.friends ?? '[]'
+    const friends =
+        JSON.parse(sessionStorage.getItem('user_info') || '')?.friends ?? '[]'
     console.log('好友是 -》 ', friends)
-    const userName = JSON.parse(friends).find((i: { user_id: any }) => i.user_id === id)?.user ?? ''
+    const userName =
+        JSON.parse(friends).find((i: { user_id: any }) => i.user_id === id)?.user ??
+        ''
     const rejectfn = (notify: NotificationHandle) => {
         videocallOfferData.value = {
             ...chatData,
@@ -537,40 +549,51 @@ function centerVideoCallRequest(chatData:VideoConfig) {
             reject: true
         }
         showAnwserer.value = true
-        
+
         notify?.close()
     }
     const notify = ElNotification({
         message: h('div', { class: 'custom-notification' }, [
-            h('div', {class: 'custom-notification-title'}, `好友 ${userName} 请求与你视频通话`),
-            h('div', {class: 'custom-notification-box'}, [
-                h('a', {
-                    class: 'custom-notification-button-confirm',
-                    onClick: () => {
-                        // sendRequestConfig.data = 'ok'
-                        // props.socket.send(JSON.stringify(sendRequestConfig))
-                        console.log('ok')
-                        videocallOfferData.value = chatData
-                        showAnwserer.value = true
-                        notify.close()
-                    }
-                }, '确定'),
-                h('a', {
-                    class: 'custom-notification-button-cancel',
-                    onClick: () => {
-                        // videocallOfferData.value = {
-                        //     ...chatData,
-                        //     // 拒绝接通
-                        //     reject: true
-                        // }
-                        // showAnwserer.value = true
-                        
-                        // notify.close()
-                        rejectfn(notify)
-                    }
-                }, '取消'),
-            ]),
-            
+            h(
+                'div',
+                { class: 'custom-notification-title' },
+                `好友 ${userName} 请求与你视频通话`
+            ),
+            h('div', { class: 'custom-notification-box' }, [
+                h(
+                    'a',
+                    {
+                        class: 'custom-notification-button-confirm',
+                        onClick: () => {
+                            // sendRequestConfig.data = 'ok'
+                            // props.socket.send(JSON.stringify(sendRequestConfig))
+                            console.log('ok')
+                            videocallOfferData.value = chatData
+                            showAnwserer.value = true
+                            notify.close()
+                        }
+                    },
+                    '确定'
+                ),
+                h(
+                    'a',
+                    {
+                        class: 'custom-notification-button-cancel',
+                        onClick: () => {
+                            // videocallOfferData.value = {
+                            //     ...chatData,
+                            //     // 拒绝接通
+                            //     reject: true
+                            // }
+                            // showAnwserer.value = true
+
+                            // notify.close()
+                            rejectfn(notify)
+                        }
+                    },
+                    '取消'
+                )
+            ])
         ]),
         duration: 0,
         showClose: false,
@@ -579,7 +602,7 @@ function centerVideoCallRequest(chatData:VideoConfig) {
         icon: h('img', {
             src: require('../assets/video_notify.png'),
             class: 'notify-img'
-        }),
+        })
     })
 
     // 1 分钟后自动拒绝
@@ -603,8 +626,6 @@ function centerVideoCallLeave(chatData: VideoConfig) {
     videocallAnwserData.value = chatData
 }
 
-
-
 function handleVideoCallStart() {
     // console.log('点击了视频通话 -> ', data)
     showOfferer.value = true
@@ -619,23 +640,22 @@ function notifyToWindow(textOb: { text: any; user_id: any }) {
 
     if (Notification.permission === 'granted') {
         // console.log('新消息 -> ', userFriends)
-        const fr = userFriends?.find((f:Friend) => f.user_id === textOb.user_id)
+        const fr = userFriends?.find((f: Friend) => f.user_id === textOb.user_id)
         // console.log('fr', fr)
         const notification = new Notification(fr?.name || '新消息', {
-            body: textOb.text || '',
+            body: textOb.text || ''
             // 可选的通知图标
             // icon: require('../assets/avatar1.png'),
-        });
+        })
 
         notification.onclick = function () {
             // 点击通知时的操作
-        };
+        }
     }
-
 }
 
 // 选择好友
-const activeFriend:Ref<Friend> = ref({
+const activeFriend: Ref<Friend> = ref({
     name: '',
     user_id: '',
     phone_number: '',
@@ -643,11 +663,10 @@ const activeFriend:Ref<Friend> = ref({
     active: false,
     searchActive: false
 })
-const imgLoadList:Ref<string[]> = ref([])
+const imgLoadList: Ref<string[]> = ref([])
 
 // 点击好友（切换好友）
 async function handleActiveFriend(f: Friend) {
-
     // 切走之前,把数据保存到本地
     if (activeFriend.value.chat_table) {
         saveChatWindowPosition()
@@ -669,59 +688,66 @@ async function handleActiveFriend(f: Friend) {
 
 // 将好友聊天定位位置保存到 vuex 中
 function saveChatWindowPosition() {
-    const chatWindowRect = scrollData.value.scrollBar.wrapRef.getBoundingClientRect() 
+    const chatWindowRect =
+        scrollData.value.scrollBar.wrapRef.getBoundingClientRect()
     const children = scrollData.value.chatListDiv?.children
     if (!children) return
-    const chatDivList:HTMLElement[] = [...children] as HTMLElement[]
-    let canSaw:any[] = []
+    const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+    let canSaw: any[] = []
     chatDivList.forEach((div, idx) => {
         const rect = div.getBoundingClientRect()
-        if (rect.top >= chatWindowRect.top && rect.bottom <= chatWindowRect.bottom) {
+        if (
+            rect.top >= chatWindowRect.top &&
+            rect.bottom <= chatWindowRect.bottom
+        ) {
             canSaw.push({
                 index: idx,
-                id: chatBox.value[idx].id,
+                id: chatBox.value[idx].id
             })
         }
     })
     if (canSaw.length) {
         let extendFirst = canSaw.shift()
         let extendLast = canSaw.pop()
-    
+
         if (extendFirst?.id && extendLast?.id) {
-            const beforedata:{ [position_id: string]: Position } = JSON.parse(localStorage.getItem('Position') || '{}')
+            const beforedata: { [position_id: string]: Position } = JSON.parse(
+                localStorage.getItem('Position') || '{}'
+            )
             const af = activeFriend.value
-            const saveData:Position  = {
+            const saveData: Position = {
                 first: extendFirst.id - Math.ceil(scrollSafeLength.value / 2),
                 last: extendLast.id + Math.ceil(scrollSafeLength.value / 2),
-                use: extendFirst.id,
+                use: extendFirst.id
             }
             beforedata[activeFriend.value.user_id + af.chat_table] = saveData
             localStorage.setItem('Position', JSON.stringify(beforedata))
-            console.log('定位信息 -> ', saveData)
+            // console.log('定位信息 -> ', saveData)
         } else {
             console.log('extendFirst 或 extendLast 不存在')
         }
     } else {
-        console.log('cansaw 为空')
+        // console.log('cansaw 为空')
     }
 }
 
 function handleChatData(data: Box[]): Box[] {
-    return data.map((i:Box) => {
-        // const chatOb = JSON.parse(i.chat)
-        if (userInfo.value.user_id === i.user_id) {
-            i.user = 1
-        } else {
-            i.user = 0
-        }
+    return (
+        data.map((i: Box) => {
+            // const chatOb = JSON.parse(i.chat)
+            if (userInfo.value.user_id === i.user_id) {
+                i.user = 1
+            } else {
+                i.user = 0
+            }
 
-        return {
-            // ...i,
-            ...i
-        }
-    }) ?? []
+            return {
+                // ...i,
+                ...i
+            }
+        }) ?? []
+    )
 }
-
 
 // 接收到信息时信息栏滚动到底部
 const chatWindow = ref()
@@ -732,12 +758,15 @@ let isGetChatHistoryFromUp = true
 let isGetChatHistoryFromDown = true
 
 // 判断获取数据时候是最后一组了
-let isLastChatList:Ref<boolean> = ref(false)
+let isLastChatList: Ref<boolean> = ref(false)
 
 // 从服务器获取聊天记录
 // offsetOb 可以放置不同的 offset, 比如数据库的 offset, 和滚动距离的 offset
 // let offsetOb:{ [key: string]: offsetType  } = {}
-async function getChatFromServer(isSwitchFriend: IsSwitchFriend, rollingDeriction: DESC) {
+async function getChatFromServer(
+    isSwitchFriend: IsSwitchFriend,
+    rollingDeriction: DESC
+) {
     if (isSwitchFriend === IsSwitchFriend.Yes) {
         firstTimeGetChatData()
     } else {
@@ -751,9 +780,11 @@ async function firstTimeGetChatData() {
 }
 
 // 平常滚动获取数据
-async function normalGetChatData(rollingDeriction:DESC) {
+async function normalGetChatData(rollingDeriction: DESC) {
     // 看下之前的 定位记录存不存在
-    console.log(`向哪个方向处理 -> ${rollingDeriction === DESC.DOWN ? '向下' : '向上'}`)
+    console.log(
+        `向哪个方向处理 -> ${rollingDeriction === DESC.DOWN ? '向下' : '向上'}`
+    )
     if (rollingDeriction === DESC.DOWN) {
         handlePositionAfterGetChatDataFromDown()
     } else {
@@ -769,9 +800,9 @@ async function handlePositionAfterGetChatDataFromUp() {
     isGetChatHistoryFromUp = false
 
     const chat_table = activeFriend.value.chat_table
-    const offset =  chatBox.value[0].id
-    const chatData:Box[] = []
-    chatData.push(...await dbReadRange(chat_table, offset as number, DESC.UP))
+    const offset = chatBox.value[0].id
+    const chatData: Box[] = []
+    chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.UP)))
     console.log('获取聊天记录 向上 -> ', chatData)
 
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
@@ -790,11 +821,10 @@ async function handlePositionAfterGetChatDataFromUp() {
     isGetChatHistoryFromUp = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistoryFromUp = false 
+    if (chatData?.length === 0) isGetChatHistoryFromUp = false
 }
 
 async function handlePositionAfterGetChatDataFromDown() {
-
     if (!isGetChatHistoryFromDown) return
 
     // 从服务器拉取聊天记录
@@ -802,11 +832,11 @@ async function handlePositionAfterGetChatDataFromDown() {
     isGetChatHistoryFromDown = false
 
     const chat_table = activeFriend.value.chat_table
-    const offset =  chatBox.value[chatBox.value.length - 1].id
+    const offset = chatBox.value[chatBox.value.length - 1].id
     console.log('最后一个box数据 -> ', chatBox.value[chatBox.value.length - 1])
     const chatData: Box[] = []
     // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
-    chatData.push(...await dbReadRange(chat_table, offset as number, DESC.DOWN))
+    chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.DOWN)))
     const lastId = await dbGetLastPrimaryKey(chat_table)
     console.log('获取聊天记录 向下 -> ', chatData)
     const tmpScrollTopValue = boxScrolltop.value
@@ -817,8 +847,9 @@ async function handlePositionAfterGetChatDataFromDown() {
             scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
             console.log('chatData.length -> ', chatData.length)
             if (
-                !chatData.length || chatData.length < scrollSafeLength.value
-                || lastId === chatData[chatData.length - 1]?.id
+                !chatData.length ||
+                chatData.length < scrollSafeLength.value ||
+                lastId === chatData[chatData.length - 1]?.id
             ) {
                 console.log('donwn 到底了 ->', lastId)
                 isLastChatList.value = true
@@ -831,21 +862,31 @@ async function handlePositionAfterGetChatDataFromDown() {
     isGetChatHistoryFromDown = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistoryFromDown = false 
+    if (chatData?.length === 0) isGetChatHistoryFromDown = false
 }
 
 async function handlePositionAfterFirstTimeGetChatData() {
     // 这个置空的情况不希望触发滚动事件
     // 因为这样会导致重复执行 getChatFromServer 函数
     chatBox.value = []
-    const position:{ [postion_id: string]: Position } = JSON.parse(localStorage.getItem('Position') || '{}')
+    const position: { [postion_id: string]: Position } = JSON.parse(
+        localStorage.getItem('Position') || '{}'
+    )
     const chat_table = activeFriend.value.chat_table
-    const chatData:Box[] = []
+    const chatData: Box[] = []
     if (position[activeFriend.value.user_id + chat_table]) {
-        const data = await dbReadRangeByArea(chat_table, position[activeFriend.value.user_id + chat_table].first, position[activeFriend.value.user_id + chat_table].last)
+        const data = await dbReadRangeByArea(
+            chat_table,
+            position[activeFriend.value.user_id + chat_table].first,
+            position[activeFriend.value.user_id + chat_table].last
+        )
         chatData.push(...data)
     } else {
-        const data = await dbReadRangeNotOffset(chat_table, DESC.UP, scrollSafeLength.value)
+        const data = await dbReadRangeNotOffset(
+            chat_table,
+            DESC.UP,
+            scrollSafeLength.value
+        )
         chatData.push(...data)
     }
     const lastId = await dbGetLastPrimaryKey(chat_table)
@@ -857,35 +898,44 @@ async function handlePositionAfterFirstTimeGetChatData() {
     // console.log('scroll -> ',  scrollData.value.el.scrollHeight, scrollData.value.el.clientHeight, chatData[chatData.length - 1].id, lastId)
     // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
     if (
-        scrollData.value.el.scrollHeight === scrollData.value.el.clientHeight
-        && chatData.length
-        && chatData.length < scrollSafeLength.value
-        && chatData[chatData.length - 1].id !== lastId
+        scrollData.value.el.scrollHeight === scrollData.value.el.clientHeight &&
+        chatData.length &&
+        chatData.length < scrollSafeLength.value &&
+        chatData[chatData.length - 1].id !== lastId
     ) {
         scrollSafeLength.value += Math.ceil(scrollSafeLength.value / 2)
         localStorage.setItem('Position', JSON.stringify(position))
-        console.log('数量不够')
-        console.log('scrollData -> ', scrollData)
+        // console.log('数量不够')
+        // console.log('scrollData -> ', scrollData)
         return handlePositionAfterFirstTimeGetChatData()
     } else {
-        console.log('安全长度是多少 -> ', scrollSafeLength.value)
+        // console.log('安全长度是多少 -> ', scrollSafeLength.value)
     }
     if (position[activeFriend.value.user_id + chat_table]) {
-        const dataIndex = chatBox.value.findIndex(item => item.id === position[activeFriend.value.user_id + chat_table]?.use)
+        const dataIndex = chatBox.value.findIndex(
+            item => item.id === position[activeFriend.value.user_id + chat_table]?.use
+        )
         const children = scrollData.value.chatListDiv?.children
         if (!dataIndex || !children) return
-        const chatDivList:HTMLElement[] = [...children] as HTMLElement[]
-        const div:HTMLElement = chatDivList[dataIndex]
+        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+        const div: HTMLElement = chatDivList[dataIndex]
         if (div) {
             mediaDelayPosition(chatData, () => {
                 div.scrollIntoView()
                 // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
-                if (lastId && chatData.length && lastId === chatData[chatData.length - 1].id) {
-                    console.log('到底了 -> ', lastId)
+                if (
+                    lastId &&
+                    chatData.length &&
+                    lastId === chatData[chatData.length - 1].id
+                ) {
+                    // console.log('到底了 -> ', lastId)
                     // 向下锁 锁死ß
                     isGetChatHistoryFromDown = false
                     isLastChatList.value = true
-                    if (scrollData.value.el.scrollTop + scrollData.value.el.clientHeight < scrollData.value.el.scrollHeight - 10) {
+                    if (
+                        scrollData.value.el.scrollTop + scrollData.value.el.clientHeight <
+                        scrollData.value.el.scrollHeight - 10
+                    ) {
                         // 用于显示 "回到最新" Tip 按钮
                         store.commit('footSend/setGotoBottomState', true)
                     }
@@ -909,7 +959,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
     isGetChatHistoryFromUp = true
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistoryFromUp = false 
+    if (chatData?.length === 0) isGetChatHistoryFromUp = false
 }
 
 // 媒体文件延迟定位处理
@@ -921,10 +971,10 @@ function mediaDelayPosition(chatData: Box[], cb: Function) {
             }
         }
     })
-    
+
     if (imgLoadList.value.length) {
         const isAllLoadedStop = watchEffect(() => {
-        if (imgLoadList.value.length === 0) {
+            if (imgLoadList.value.length === 0) {
                 cb()
                 isAllLoadedStop()
             }
@@ -939,22 +989,23 @@ let receivedShowGotoBottom: Judge = Judge.NO
 watchEffect(() => {
     if (!scrollData.value?.el) return
     if (
-        scrollData.value.el.scrollTop + scrollData.value.el.clientHeight + 20
-        > scrollData.value.el.scrollHeight
+        scrollData.value.el.scrollTop + scrollData.value.el.clientHeight + 20 >
+        scrollData.value.el.scrollHeight
     ) {
         if (isLastChatList.value) {
             store.commit('footSend/setGotoBottomState', false)
             receivedShowGotoBottom = Judge.NO
         }
-        
     }
 
     if (
-        (scrollData.value.el.scrollHeight - scrollData.value.el.clientHeight - scrollData.value.el.scrollTop)
-        > scrollData.value.el.clientHeight * 1.5
+        scrollData.value.el.scrollHeight -
+        scrollData.value.el.clientHeight -
+        scrollData.value.el.scrollTop >
+        scrollData.value.el.clientHeight * 1.5
     ) {
         console.log('已经滚动超过一个聊天框的距离')
-        if (isLastChatList.value && !showGotoBottom.value ) {
+        if (isLastChatList.value && !showGotoBottom.value) {
             receivedShowGotoBottom = Judge.YES
         }
     }
@@ -967,7 +1018,7 @@ async function handleGotoBottom() {
         chatBox.value = []
         const chatData: Box[] = []
         const chat_table = activeFriend.value.chat_table
-        chatData.push(...await dbReadRangeNotOffset(chat_table))
+        chatData.push(...(await dbReadRangeNotOffset(chat_table)))
         const resChatData = handleChatData(chatData || [])
         chatBox.value.unshift(...resChatData)
         nextTick(() => {
@@ -990,8 +1041,9 @@ async function handleScroll(val: { scrollTop: number }) {
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.UP)
     }
     if (
-        val.scrollTop + scrollData.value.el.clientHeight + 5
-        >= scrollData.value.el.scrollHeight && isGetChatHistoryFromDown
+        val.scrollTop + scrollData.value.el.clientHeight + 5 >=
+        scrollData.value.el.scrollHeight &&
+        isGetChatHistoryFromDown
     ) {
         // console.log('滚到了底部，需要获取数据了')
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.DOWN)
@@ -1007,7 +1059,7 @@ function showSettingDialog() {
 function handleExit() {
     if (websocket.value) {
         const ws = websocket.value as WebSocket
-        ws.close(4001,'客户端关闭链接')
+        ws.close(4001, '客户端关闭链接')
     }
     // websocket?.value?.close(4001,'客户端关闭链接')
     sessionStorage.setItem('user_info', '')
@@ -1015,13 +1067,13 @@ function handleExit() {
 }
 
 // 头像更新
-const avatarRefresh:Ref<string> = ref('')
+const avatarRefresh: Ref<string> = ref('')
 function handleAvatarChange(url: string) {
     avatarRefresh.value = url
 }
 
 // 更新好友信息
-function handleNickNameChange(fri:any) {
+function handleNickNameChange(fri: any) {
     // console.log('好友信息 -> ', fri)
     userInfo.value = fri
     sessionStorage.setItem('user_info', JSON.stringify(fri))
@@ -1038,21 +1090,22 @@ function handleIsUseMarkdown(val: boolean) {
 async function handleDeleted(idx: number) {
     const user_id = sessionStorage.getItem('user_id')
     const chat = chatBox.value[idx]
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.deleteChat,
-        data: {
-            chat,
-            del_flag: user_id
-        }
-    }))
+    const [err, res] = await to(
+        request({
+            method: 'post',
+            url: api.deleteChat,
+            data: {
+                chat,
+                del_flag: user_id
+            }
+        })
+    )
     if (err) {
         console.log('删除失败 -> ', err)
     }
     if (res?.data !== 'err') {
         console.log('删除成功 -> ', res)
-        deleteLocalDataBaseData(chatBox.value[idx])
-        .then(() => {
+        deleteLocalDataBaseData(chatBox.value[idx]).then(() => {
             chatBox.value.splice(idx, 1)
             chat.text = '[已删除一条信息]'
             trytoRfChat.value = { chat }
@@ -1063,7 +1116,7 @@ async function handleDeleted(idx: number) {
 }
 
 // windowChat 撤回回调
-async function handleWithdraw (idx: number) {
+async function handleWithdraw(idx: number) {
     // const [err, res] = await to(request({
     //     method: 'post',
     //     url: api.deleteChat,
@@ -1078,7 +1131,7 @@ async function handleWithdraw (idx: number) {
     //     console.log('撤回失败 -> ', err)
     //     return
     // }
-    
+
     // if (res.data === 'ok') {
     //     console.log('撤回成功 -> ', res)
     //     centerDeleted(chatBox.value[idx])
@@ -1086,12 +1139,18 @@ async function handleWithdraw (idx: number) {
     //     console.log('撤回失败 -> ', res.data)
     // }
     deleteLocalDataBaseData(chatBox.value[idx])
-    .then(() => {
-        chatBox.value[idx].text = '[撤回一条信息]'
-        trytoRfChat.value = { chat: chatBox.value[idx] }
-        chatBox.value.splice(idx, 1)
-    })
+        .then(() => {
+            chatBox.value[idx].text = '[撤回一条信息]'
+            trytoRfChat.value = { chat: chatBox.value[idx] }
+            chatBox.value.splice(idx, 1)
+        })
+        .catch(err => {
+            console.log('撤回失败 uj -> ', err)
+        })
     const ws = websocket.value as WebSocket
+    if (chatBox.value[idx]?.thumbnail) {
+        delete chatBox.value[idx].thumbnail
+    }
     const tipsParams: Tips = {
         messages_type: 'withdraw',
         messages_box: chatBox.value[idx],
@@ -1103,7 +1162,7 @@ async function handleWithdraw (idx: number) {
 // windowChat 引用回调
 const showQuote = ref(false)
 const comment = ref('')
-async function handleQuote (idx: number) {
+async function handleQuote(idx: number) {
     showQuote.value = true
     if (chatBox.value[idx].type !== 'text') {
         comment.value = '[文件] ' + chatBox.value[idx].fileName
@@ -1127,8 +1186,6 @@ function handleLoaded(chat_id: string) {
         }
     }
 }
-
-
 </script>
 
 <style lang="scss" scoped>
@@ -1136,7 +1193,7 @@ function handleLoaded(chat_id: string) {
     background-image: url('../assets/login_bg.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    background-color: #F5F6FA;
+    background-color: #f5f6fa;
     width: 100vw;
     height: 100vh;
     display: flex;
@@ -1241,18 +1298,23 @@ function handleLoaded(chat_id: string) {
 .custom-notification-class {
     padding: 10px 0;
     align-items: center;
+
     .el-icon {
         width: 20%;
+
         .notify-img {
             width: 47px;
         }
     }
+
     .el-notification__group {
         flex: 1;
     }
+
     .custom-notification {
         display: flex;
         align-items: center;
+
         .custom-notification-title {
             font-size: 16px;
             font-weight: bold;
@@ -1262,11 +1324,13 @@ function handleLoaded(chat_id: string) {
             overflow: hidden;
             width: 40px;
         }
+
         .custom-notification-box {
             // width: 100%;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
+
             .custom-notification-button-confirm {
                 display: inline-block;
                 background: #0087ff;
@@ -1280,9 +1344,10 @@ function handleLoaded(chat_id: string) {
                 color: #fff;
                 cursor: pointer;
             }
+
             .custom-notification-button-cancel {
                 display: inline-block;
-                background: #E6E8EB;
+                background: #e6e8eb;
                 width: 52px;
                 text-align: center;
                 padding: 3px;
@@ -1294,8 +1359,8 @@ function handleLoaded(chat_id: string) {
             }
         }
     }
-
 }
+
 .badge-item {
     display: flex;
     align-items: center;

@@ -66,7 +66,7 @@ function connectWebSocket(params: WsConnectParams) {
                 centerFn(chatData, 'deleted')
                 break
             case 'pong':
-                console.log('对方确认收到', chatData)
+                console.log('对方确认收到')
                 pingPongFn(chatData, 'pong')
                 break
             case 'videoCallRequest':

@@ -69,7 +69,8 @@ function serverWithdraw(chatBox:Box): Promise<boolean | string> {
 export async function deleteLocalDataBaseData(chatBox:Box) {
     new Promise((resolve, reject) => {
         dbDeleteByIndex(chatBox.to_table, 'chat_id', chatBox.chat_id)
-        .then(() => {
+        .then((res) => {
+            console.log('res ---> ', res, chatBox.chat_id)
             resolve(true)
         })
         .catch(err => {

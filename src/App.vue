@@ -1,12 +1,17 @@
 <template>
-  <router-view></router-view>
+  <router-view :key="route.path"></router-view>
 </template>
 
 <script>
-
+import { useRoute } from 'vue-router'
 export default {
   name: 'App',
-  components: {
+  components: {},
+  setup () {
+    const route = useRoute()
+    return {
+      route
+    }
   }
 }
 </script>

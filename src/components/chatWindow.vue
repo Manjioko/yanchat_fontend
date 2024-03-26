@@ -7,51 +7,25 @@
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
                         <div class="quote-and-box-style-remote">
-                            <div
-                                class="chat-box-remote-message"
-                                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image')}"
-                            >
+                            <div class="chat-box-remote-message"
+                                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }">
                                 <span class="chat-box-remote-message-text">
-                                    <div
-                                        v-if="textObject.type === 'text'"
-                                        v-html="textToMarkdown(textObject.text)"
-                                        class="chat-text"
-                                        data-menu-text
-                                        data-target-other
-                                        :data-index="idx"
-                                    >
+                                    <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)"
+                                        class="chat-text" data-menu-text data-target-other :data-index="idx">
                                     </div>
                                     <sendMedia
                                         v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                                        :progress="textObject.progress"
-                                        :type="textObject.type"
-                                        :src="handleSendMediaSrc(textObject)"
-                                        :response="textObject.response"
-                                        :fileName="textObject.fileName"
-                                        :thumbnail="textObject.thumbnail"
-                                        :data-index="Number(idx)"
-                                        :destroy="textObject.destroy"
-                                        :user="textObject.user"
-                                        :chat-id="textObject.chat_id"
-                                        @withdraw="emitWithdraw"
-                                        @deleted="emitDeleted"
-                                        @quote="handleQuote"
-                                        @loaded="handleLoaded"
-                                    />
-                                    <sendFile
-                                        v-else
-                                        :progress="textObject.progress"
-                                        :type="textObject.type"
-                                        :fileName="textObject.fileName"
-                                        :size="textObject.size?.toString()"
-                                        :response="textObject.response"
-                                        :destroy="textObject.destroy"
-                                        :user="textObject.user"
-                                        :data-index="Number(idx)"
-                                        @withdraw="emitWithdraw"
-                                        @deleted="emitDeleted"
-                                        @quote="handleQuote"
-                                    />
+                                        :progress="textObject.progress" :type="textObject.type"
+                                        :src="handleSendMediaSrc(textObject)" :response="textObject.response"
+                                        :fileName="textObject.fileName" :thumbnail="textObject.thumbnail"
+                                        :data-index="Number(idx)" :destroy="textObject.destroy" :user="textObject.user"
+                                        :chat-id="textObject.chat_id" @withdraw="emitWithdraw" @deleted="emitDeleted"
+                                        @quote="handleQuote" @loaded="handleLoaded" />
+                                    <sendFile v-else :progress="textObject.progress" :type="textObject.type"
+                                        :fileName="textObject.fileName" :size="textObject.size?.toString()"
+                                        :response="textObject.response" :destroy="textObject.destroy"
+                                        :user="textObject.user" :data-index="Number(idx)" @withdraw="emitWithdraw"
+                                        @deleted="emitDeleted" @quote="handleQuote" />
                                 </span>
                             </div>
                             <comentQuote v-if="textObject.quote" :comment="textObject.quote" />
@@ -59,73 +33,43 @@
                     </div>
                     <div class="chat-box-local" v-else>
                         <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
-                        <img 
-                            v-if="textObject.loading"
-                            src="../assets/spinner1.svg"
-                            class="spinner-style"
-                            v-spinner="textObject"
-                        >
+                        <img v-if="textObject.loading" src="../assets/spinner1.svg" class="spinner-style"
+                            v-spinner="textObject">
                         <el-icon v-if="textObject.inaccessible" color="#f00" class="message-warning">
                             <WarningFilled />
                         </el-icon>
-                        
+
                         <div class="quote-and-box-style-local">
-                            <span
-                                class="chat-box-local-message"
-                                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image')}"
-                            >
-                                <div
-                                    v-if="textObject.type === 'text'"
-                                    v-html="textToMarkdown(textObject.text)"
-                                    class="chat-text"
-                                    data-menu-text
-                                    data-target-self
-                                    :data-index="idx"
-                                >
+                            <span class="chat-box-local-message"
+                                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }">
+                                <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)"
+                                    class="chat-text" data-menu-text data-target-self :data-index="idx">
                                 </div>
                                 <sendMedia
                                     v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                                    :progress="textObject.progress"
-                                    :type="textObject.type"
-                                    :src="handleSendMediaSrc(textObject)"
-                                    :response="textObject.response"
-                                    :fileName="textObject.fileName"
-                                    :thumbnail="textObject.thumbnail"
-                                    :data-index="Number(idx)"
-                                    :destroy="textObject.destroy"
-                                    :user="textObject.user"
-                                    :chat-id="textObject.chat_id"
-                                    @withdraw="emitWithdraw"
-                                    @deleted="emitDeleted"
-                                    @quote="handleQuote"
-                                    @loaded="handleLoaded"
-                                />
-                                <sendFile
-                                    v-else
-                                    :progress="textObject.progress"
-                                    :type="textObject.type"
-                                    :fileName="textObject.fileName"
-                                    :size="textObject.size?.toString()"
-                                    :response="textObject.response"
-                                    :data-index="Number(idx)"
-                                    :destroy="textObject.destroy"
-                                    :user="textObject.user"
-                                    @withdraw="emitWithdraw"
-                                    @deleted="emitDeleted"
-                                    @quote="handleQuote"
-                                />
+                                    :progress="textObject.progress" :type="textObject.type"
+                                    :src="handleSendMediaSrc(textObject)" :response="textObject.response"
+                                    :fileName="textObject.fileName" :thumbnail="textObject.thumbnail"
+                                    :data-index="Number(idx)" :destroy="textObject.destroy" :user="textObject.user"
+                                    :chat-id="textObject.chat_id" @withdraw="emitWithdraw" @deleted="emitDeleted"
+                                    @quote="handleQuote" @loaded="handleLoaded" />
+                                <sendFile v-else :progress="textObject.progress" :type="textObject.type"
+                                    :fileName="textObject.fileName" :size="textObject.size?.toString()"
+                                    :response="textObject.response" :data-index="Number(idx)"
+                                    :destroy="textObject.destroy" :user="textObject.user" @withdraw="emitWithdraw"
+                                    @deleted="emitDeleted" @quote="handleQuote" />
                             </span>
                             <comentQuote v-if="textObject.quote" :comment="textObject.quote" />
                         </div>
                         <img :src="avatarSrc" alt="其他" @error="handleSelfError">
                     </div>
                 </div>
-            </div>      
+            </div>
         </el-scrollbar>
     </div>
 </template>
 <script setup lang="ts">
-import { defineProps, defineExpose,ref, defineEmits, watch, provide, onMounted } from 'vue'
+import { defineProps, defineExpose, ref, defineEmits, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile.vue'
@@ -143,7 +87,7 @@ const props = defineProps({
     markdown: Boolean
 })
 const scrollBar = ref()
-let chatListDiv:HTMLElement | null = null
+let chatListDiv: HTMLElement | null = null
 provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
 const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded', 'quote'])
@@ -157,7 +101,7 @@ watch(() => props.avatarRefresh, (val) => {
     }
 })
 
-const store =  useStore()
+const store = useStore()
 // let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
 watch(() => props.chatBox?.length, () => {
@@ -178,7 +122,7 @@ onMounted(() => {
 // }
 
 const md = MarkdownIt({
-    langPrefix:   'hljs code-set language-', 
+    langPrefix: 'hljs code-set language-',
     html: true,
     highlight: function (str, lang) {
         if (lang && hljs.getLanguage(lang)) {
@@ -216,7 +160,7 @@ function handleScroll(e: any) {
 
 // 自定义加载事件
 const vSpinner = {
-    mounted(el:HTMLElement, binding:any) {
+    mounted(el: HTMLElement, binding: any) {
         binding.value.spinnerTime && clearTimeout(binding.value.spinnerTime)
         binding.value.spinnerTime = setTimeout(() => {
             if (binding.value.loading) {
@@ -237,7 +181,7 @@ function handleAvatar(ob: Box) {
         console.log('baseUrl 不存在')
     }
     // console.log(ob)
-    
+
 }
 
 function handleTime(idx: number) {
@@ -261,7 +205,7 @@ function handleSendMediaSrc(ob: Box) {
     return mediaUrl
 }
 
-function handleDataSet(node: any, targetNode?:any) {
+function handleDataSet(node: any, targetNode?: any) {
     for (let key in node.dataset) {
         if (key.includes('menu')) {
             if (key === 'menuText') {
@@ -272,49 +216,49 @@ function handleDataSet(node: any, targetNode?:any) {
             return targetNode
         }
     }
-    return handleDataSet(node.parentNode,targetNode)
+    return handleDataSet(node.parentNode, targetNode)
 }
-function handleMenu(e:any) {
+function handleMenu(e: any) {
     const node = handleDataSet(e.target)
     const menuText = [
-      { 
-        label: "复制", 
-        onClick: () => {
-            // console.log(window.getSelection().toString())
-            console.log(navigator)
-            const copyStr = window.getSelection()?.toString() || ''
-            // 使用Clipboard API复制文本到剪贴板(浏览器限制,必须是 https 或者 localhost 才可以使用)
-            navigator?.clipboard?.writeText(copyStr)
-            .catch((error) => {
-                console.log('复制失败 -> ', error);
-            })
-        }
-      },
-      {
-        label: '删除',
-        onClick: () => {
-            // 本地删除
-            const index = node.dataset.index
-            emit('deleted', index)
-            console.log('删除 -> ', index)
-        }
-    },
-    {
-        label: '撤回',
-        onClick: () => {
-            // 本地撤回
-            const index = node.dataset.index
-            emit('withdraw', index)
-        }
-    },
-    {
-        label: '引用',
-        onClick: () => {
-            console.log(' -> 引用')
-            const index = node.dataset.index
-            emit('quote', index)
-        }
-    },
+        {
+            label: "复制",
+            onClick: () => {
+                // console.log(window.getSelection().toString())
+                console.log(navigator)
+                const copyStr = window.getSelection()?.toString() || ''
+                // 使用Clipboard API复制文本到剪贴板(浏览器限制,必须是 https 或者 localhost 才可以使用)
+                navigator?.clipboard?.writeText(copyStr)
+                    .catch((error) => {
+                        console.log('复制失败 -> ', error);
+                    })
+            }
+        },
+        {
+            label: '删除',
+            onClick: () => {
+                // 本地删除
+                const index = node.dataset.index
+                emit('deleted', index)
+                console.log('删除 -> ', index)
+            }
+        },
+        {
+            label: '撤回',
+            onClick: () => {
+                // 本地撤回
+                const index = node.dataset.index
+                emit('withdraw', index)
+            }
+        },
+        {
+            label: '引用',
+            onClick: () => {
+                console.log(' -> 引用')
+                const index = node.dataset.index
+                emit('quote', index)
+            }
+        },
     ]
     if (Object.prototype.hasOwnProperty.call(node?.dataset ?? {}, 'targetOther')) {
         const shouldRemoveMenus = ['撤回']
@@ -326,21 +270,22 @@ function handleMenu(e:any) {
             }
         }
     }
-    
+
     if (node) {
-        menu(e, menuText) 
+        menu(e, menuText)
     }
 }
-function emitWithdraw (index: number) {
+function emitWithdraw(index: number) {
+    console.log('没撤回？？？？？？')
     emit('withdraw', index)
 }
 
-function emitDeleted (index: number) {
+function emitDeleted(index: number) {
     console.log('删除 -> ', index)
     emit('deleted', index)
 }
 
-function handleError(e:any) {
+function handleError(e: any) {
     e.target.src = require('../assets/default_avatar.png')
     // avatarSrc.value = require('../assets/default_avatar.png')
 }
@@ -348,7 +293,7 @@ function handleSelfError() {
     avatarSrc.value = require('../assets/default_avatar.png')
 }
 
-function handleQuote(idx:number) {
+function handleQuote(idx: number) {
     console.log('handleQuote')
     emit('quote', idx)
 }
@@ -383,6 +328,7 @@ function handleLoaded(chat_id: string) {
         user-select: text;
     }
 }
+
 .chat-text {
     margin: 0;
     // white-space: pre-wrap;
@@ -390,10 +336,12 @@ function handleLoaded(chat_id: string) {
     display: flex;
     flex-direction: column;
     max-width: 450px;
+
     :deep p {
         margin: 0;
         white-space: pre-line;
-        & > code {
+
+        &>code {
             background: #fff;
             box-sizing: border-box;
             padding: 4px 10px;
@@ -404,6 +352,7 @@ function handleLoaded(chat_id: string) {
             font-style: italic;
         }
     }
+
     :deep blockquote {
         position: relative;
         margin: 0;
@@ -413,6 +362,7 @@ function handleLoaded(chat_id: string) {
         box-sizing: border-box;
         padding: 10px;
         border-radius: 3px;
+
         &::after {
             content: "";
             width: 3px;
@@ -423,22 +373,32 @@ function handleLoaded(chat_id: string) {
             background-color: #7fc5d1;
         }
     }
-    :deep ul, :deep ol {
+
+    :deep ul,
+    :deep ol {
         margin: 0;
         margin: 0;
         padding-inline-start: 15px;
         margin-block: 0px;
         margin-inline: 0px;
     }
+
     :deep pre {
         margin: 8px 0;
         // margin-bottom: 0px;
     }
-    :deep h1, :deep h2, :deep h3, :deep h4, :deep h5,:deep h6 {
+
+    :deep h1,
+    :deep h2,
+    :deep h3,
+    :deep h4,
+    :deep h5,
+    :deep h6 {
         margin-block-start: 8px;
         margin-block-end: 8px;
     }
 }
+
 .chat-box-local {
     display: flex;
     align-items: flex-start;
@@ -470,21 +430,25 @@ function handleLoaded(chat_id: string) {
         user-select: text;
     }
 }
+
 // hljs 代码块设置背景色
 :deep .hljs {
     border-radius: 5px;
 }
+
 .text-show {
     flex: 1;
     overflow: hidden;
     position: relative;
 }
+
 .show-time {
     text-align: center;
     font-size: 12px;
     color: #7a7a7a;
     margin: 20px 0;
 }
+
 .quote-and-box-style-local {
     display: flex;
     flex-direction: column;
@@ -496,11 +460,13 @@ function handleLoaded(chat_id: string) {
     flex-direction: column;
     align-items: flex-start;
 }
+
 .message-warning {
     align-self: center;
     margin-right: 7px;
     width: 12px;
 }
+
 .not-padding {
     padding: 0 !important;
 }
