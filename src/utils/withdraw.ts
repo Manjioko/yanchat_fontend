@@ -17,13 +17,14 @@ export function handleWithdraw(data: Tips) {
                     const box: Box = JSON.parse(messages_box)
                     dbDeleteByIndex(box.to_table, 'chat_id', box.chat_id)
                     .then(() => {
-                        serverWithdraw(box)
-                        .then(() => {
-                            if (typeIs(store.state.global.centerFn) === 'Function') {
-                                console.log('处理下本地的数据 --> ', box)
-                                store.state.global.centerFn(box, 'deleted')
-                            }
-                        })
+                        // serverWithdraw(box)
+                        // .then(() => {
+                        //     if (typeIs(store.state.global.centerFn) === 'Function') {
+                        //         console.log('处理下本地的数据 --> ', box)
+                        //         store.state.global.centerFn(box, 'deleted')
+                        //     }
+                        // })
+                        store.state.global.centerFn(box, 'deleted')
                         resolve(true)
                     })
                     .catch(err => {
