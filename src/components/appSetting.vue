@@ -51,6 +51,7 @@ import { defineProps, ref, defineExpose, defineEmits, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
+import { getAvatarImage } from '@/utils/thumbnail'
 // import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
@@ -116,7 +117,11 @@ async function uploadAvatar(e: Event) {
     const user_id = sessionStorage.getItem('user_id') || ''
     formData.append('user_id', user_id)
     const target = e.target as HTMLInputElement
-    formData.append("avatar", target.files?.[0] || '')
+    if (!target.files?.[0]) return
+    const handledFile = await getAvatarImage(window.URL.createObjectURL(target.files[0]))
+    console.log('文件是什么 -> ', handledFile)
+    if (!handledFile) return
+    formData.append("avatar", handledFile || '')
     const [err, res] = await to(request({
         method: 'post',
         url: api.avatar,
@@ -136,6 +141,7 @@ async function uploadAvatar(e: Event) {
         })
         const baseUrl = sessionStorage.getItem('baseUrl') || ''
         avatarSrc.value = `${baseUrl}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`
+        console.log(' avatarSrc.value -> ', avatarSrc.value)
         emit('avaterChange', avatarSrc.value)
     }
     console.log('res -> ', res)
