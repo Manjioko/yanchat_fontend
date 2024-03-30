@@ -77,10 +77,8 @@ function getImageBase64(url: string, compressRatio = 0.3): Promise<string> {
 function getAvatarImage(url: string): Promise<File> {
     return new Promise ((resolve) => {
         let image: HTMLImageElement | null = new Image()
-        image.setAttribute("crossOrigin","anonymous")//处理跨域
+        image.setAttribute("crossOrigin","anonymous") // 处理跨域
         image.setAttribute("src",url)
-        // image.setAttribute("width",400)
-        // image.setAttribute("height",240)
         image.setAttribute("preload","auto")
         image.addEventListener("load",function () {
             const originalWidth = image?.width
@@ -90,11 +88,11 @@ function getAvatarImage(url: string): Promise<File> {
             const width = (originalWidth || 0) * 0.3
             const height = (originalHeight || 0) * 0.3
             
-            canvas.width = 200
-            canvas.height = 200
+            canvas.width = width
+            canvas.height = width
             const twoD = canvas.getContext("2d") as CanvasRenderingContext2D
             if (image) {
-                twoD.drawImage(image,0,0,width,height)//绘制
+                twoD.drawImage(image,0,0,width,height) // 绘制
             }
             
             canvas.toBlob((blob: any) => {
