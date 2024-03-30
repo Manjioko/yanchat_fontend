@@ -1,4 +1,13 @@
-export default {
+import { Module } from "vuex"
+import { RootState } from "../index"
+
+export interface ChatWindowState {
+    scrollBar: any
+    chatListEle: any
+    scrollData: any
+}
+
+const ChatWindow:Module<ChatWindowState, RootState> = {
     namespaced: true,
     state() {
         return {
@@ -19,3 +28,5 @@ export default {
         }
     }
 }
+
+export default ChatWindow

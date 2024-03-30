@@ -1,8 +1,16 @@
-export default {
+import { RootState } from "../index"
+import { Module } from "vuex"
+
+export interface FriendsListState {
+    friendsList: any[],
+    fresh: boolean
+}
+const FriendsList:Module<FriendsListState, RootState> = {
     namespaced: true,
     state() {
         return {
             friendsList: [],
+            fresh: false
         }
     },
     mutations: {
@@ -20,6 +28,11 @@ export default {
         },
         clearFriendsList(state: any) {
             state.friendsList = []
+        },
+        setRefreshFriendData(state: any, payload: boolean) {
+            state.fresh = payload
         }
     }
 }
+
+export default FriendsList

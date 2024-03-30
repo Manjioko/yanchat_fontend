@@ -1,18 +1,36 @@
-import { Store, createStore } from 'vuex'
-import friendsList from './friendsList'
-import test from './storeTest'
-import dataBase from './dataBase'
-import chatWindow from './chatWindow'
-import footSend from './footSend'
-import global from './global'
+import { Store, createStore, useStore as baseUseStore } from 'vuex'
+import friendsList, { FriendsListState } from './friendsList'
+// import test from './storeTest'
+import dataBase, { DataBaseState } from './dataBase'
+import chatWindow, { ChatWindowState } from './chatWindow'
+import footSend, { FootSendState } from './footSend'
+import global, { GlobalState } from './global'
+import { InjectionKey } from 'vue'
 
-export default createStore({
+
+export interface RootState {}
+
+export default createStore<RootState>({
     modules: {
         friendsList,
-        test,
+        // test,
         dataBase,
         chatWindow,
         footSend,
         global
     }, // 这里可以添加其他模块
-}) as Store<any>
+})
+
+type Module = {
+    global: GlobalState,
+    friendsList: FriendsListState,
+    dataBase: DataBaseState,
+    footSend: FootSendState,
+    chatWindow: ChatWindowState
+}
+
+export function useStore() {
+    return baseUseStore(key)
+} 
+
+export const key: InjectionKey<Store<RootState &  Module>> = Symbol()

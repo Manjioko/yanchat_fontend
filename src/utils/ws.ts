@@ -1,6 +1,8 @@
 import { PingPong, WsConnectParams } from "@/interface/global"
 import { dbAdd } from "./indexDB"
 import { handleTips } from "./tips"
+import { useStore } from '@/store'
+const store = useStore()
 const MAX_RETRIES = 10
 let retryCount = 0
 
@@ -18,7 +20,7 @@ function refreshConnectSocket(params: WsConnectParams) {
         setTimeout(() => {
             console.log('重连机制刷新 -> ', refreshCount)
             // eslint-disable-next-line prefer-rest-params
-            connectWebSocket(params)
+            connectWebSocket(params, true)
             refreshTime = refreshTime * perTime
         }, refreshTime * 1000 * 60)
 
@@ -28,7 +30,7 @@ function refreshConnectSocket(params: WsConnectParams) {
     // connectWebSocket(...arguments)
 }
 
-function connectWebSocket(params: WsConnectParams) {
+function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) {
     const { ws, url, centerFn, videoFn, pingPongFn, signal} = params
     // console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (retryCount >= MAX_RETRIES) {
@@ -49,6 +51,18 @@ function connectWebSocket(params: WsConnectParams) {
 
     ws.value.onopen = function () {
         // appendMessage('已连接到WebSocket服务端', 'received')
+        // 用于记录用户重连时需要刷新的状态
+        // 因为 websocket 可能会时不时断线重连，所以断线期间，如果用户不关闭这个窗口
+        // 就会出现客户端如果发送任何信息，该用户都会默认无法收到消息，直到用户刷新页面
+        if (isReconnect) {
+            if (store.state.friendsList.fresh) {
+                store.commit('friendsList/setRefreshFriendData', false)
+            }
+            store.commit('friendsList/setRefreshFriendData', true)
+            
+        }
+
+        console.log('WebSocket连接成功', store.state.friendsList.fresh)
         signal.value = 1
         retryCount = 0 // Reset retry count on successful connection
 

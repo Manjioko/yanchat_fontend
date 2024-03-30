@@ -1,7 +1,8 @@
-import store from '@/store'
+import {  useStore } from '@/store'
 import { updateUserInfo } from '@/utils/friends'
 import { Tips } from '@/interface/global'
 import { handleWithdraw } from '@/utils/withdraw'
+const store = useStore()
 // 处理消息通知
 export function handleTips(tips: { data: Tips[] }) {
     if (!tips.data || !Array.isArray(tips.data)) return

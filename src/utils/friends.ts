@@ -3,7 +3,9 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { UserInfo, Friend } from '@/interface/global'
 import { initDdOperate } from '@/utils/indexDB'
-import store from '@/store'
+import { useStore } from '@/store'
+const store = useStore()
+
 export async function addFriend(friData: any) {
     const getUserInfo: UserInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}')
     const [err, res] = await to(request({

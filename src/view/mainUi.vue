@@ -163,9 +163,17 @@ const showGotoBottom: ComputedRef<boolean> = computed(
 const scrollData: ComputedRef<ScrollData> = computed(
     () => store.state.chatWindow.scrollData
 )
-
 // 把 websokcket 挂到 vuex 去用
 store.commit('global/setWs', websocket)
+
+// 重连刷新内容
+// 这里只做了一件事，就是将 "回到最新" 的 tips 展示出来
+const reconnectFresh: ComputedRef<boolean> = computed(() => store.state.friendsList.reloadChatData)
+watchEffect(() => {
+    if (reconnectFresh.value && activeFriend.value.user_id) {
+        handleWsReconnect()
+    }
+})
 
 // const route = useRoute()
 onMounted(async () => {
@@ -197,6 +205,7 @@ onBeforeUnmount(() => {
         clearInterval(refreshTokenTime)
     }
     store.commit('global/setCenterFn', null)
+    store.commit('global/setActiveFriend', null)
 })
 
 // 将 center 挂载到 vuex
@@ -684,6 +693,7 @@ async function handleActiveFriend(f: Friend) {
     // 未显示内容需要重置
     store.commit('footSend/setPongSaveCacheData', [])
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
+    store.commit('global/setActiveFriend', f)
 }
 
 // 将好友聊天定位位置保存到 vuex 中
@@ -1185,6 +1195,18 @@ function handleLoaded(chat_id: string) {
             imgLoadList.value.splice(fdidx, 1)
         }
     }
+}
+
+// websocket 重连刷新
+function handleWsReconnect() {
+    store.commit('footSend/setGotoBottomState', true)
+    // 如果上锁了，就将锁解开，让它自由的获取到数据
+    if (!isGetChatHistoryFromDown) {
+        isGetChatHistoryFromDown = true
+    }
+
+    // 关掉 realoadChatData
+    store.commit('global/setReloadChatData', false)
 }
 </script>
 

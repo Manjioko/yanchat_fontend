@@ -1,7 +1,9 @@
-import vstore from '@/store'
+import { useStore } from '@/store'
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box, UserInfo, Friend, Tips } from '@/interface/global'
 import typeIs from './type'
+
+const vstore = useStore()
 
 
 // indexDB 打开数据库
@@ -111,7 +113,7 @@ export function dbAdd<T>(tableName: String, data: T[]):Promise<string> {
 export function dbRead<T>(tableName: String, field: string, searchStr: string | number): Promise<T[]> {
     return new Promise((resolve, reject) => {
         if (!vstore.state.dataBase.db || !tableName) return
-        const store = vstore.state.dbbase.db
+        const store = vstore.state.dataBase.db
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
 
@@ -361,8 +363,8 @@ export function dbGetLastPrimaryKey(tableName: string): Promise<number | undefin
 // 通过 key 删除数据库字段
 export function dbDeleteByKey(tableName: string, key: number): Promise<string> {
     return new Promise((resolve, reject) => {
-        if (!vstore.state.dbbase.db || !key) return
-        const request = vstore.state.dbbase.db
+        if (!vstore.state.dataBase.db || !key) return
+        const request = vstore.state.dataBase.db
             .transaction([tableName], 'readwrite')
             .objectStore(tableName)
             .delete(key)

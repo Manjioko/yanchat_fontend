@@ -108,7 +108,8 @@ import {
   RefreshMessage,
   Tip,
   UserInfo,
-  Tips
+  Tips,
+  Judge
 } from '@/interface/global'
 import typeIs from '@/utils/type'
 const store = useStore()
@@ -126,6 +127,13 @@ const emit = defineEmits(['handleActiveFriend'])
 const friendsList: ComputedRef<Friend[]> = computed(
   () => store.state.friendsList.friendsList
 )
+// 重连刷新内容
+const reconnectFresh: ComputedRef<boolean> = computed(() => store.state.friendsList.fresh)
+watch(() => reconnectFresh.value, val => {
+  if (val) {
+    handleUnread(Judge.YES)
+  }
+})
 
 // 用户信息
 const user_info = JSON.parse(sessionStorage.getItem('user_info') || '')
@@ -288,7 +296,7 @@ watch(
 )
 
 // 处理未读信息(红点提示部分)
-async function handleUnread() {
+async function handleUnread(isWsReconnect: Judge = Judge.NO) {
   // console.log('route -> ', route, router)
   // const c = sessionStorage.getItem('chatDataOb')
   // if (c) {
@@ -318,8 +326,21 @@ async function handleUnread() {
   // 处理一开始返回最后一条数据正好被用户删除时的情况
   Object.keys(unRead.data).forEach(key => {
     const len = unRead.data[key].chat.length
+    let setUnreadToBeZero = false
     console.log('len -> ', len, unRead.data[key])
     const lastChat = unRead.data[key].chat[len - 1 < 0 ? 0 : len - 1]
+    if (isWsReconnect === Judge.YES) {
+      if (store.state.global.activeFriend?.chat_table === key) {
+        setUnreadToBeZero = true
+        if (len) {
+          // 通知聊天页面，可以重新加载数据
+          store.commit('global/setReloadChatData', true)
+        }
+      }
+
+      // 关掉刷新好友开关，因为已经重新刷新了
+      store.commit('friendsList/setRefreshFriendData', false)
+    }
     dbAdd(key, unRead.data[key].chat)
       .then(() => {
         console.log('成功将未读信息保存到数据库中！')
@@ -334,7 +355,8 @@ async function handleUnread() {
     if (chatDataOb.value[key]?.unread) {
       unread = chatDataOb.value[key].unread
     }
-    setTipData[key] = { ...lastChat, unread: unRead.data[key].unread + unread }
+    // 如果是 ws 连接时，没有设置未读信息时，默认为 0
+    setTipData[key] = { ...lastChat, unread: setUnreadToBeZero ? 0 : unRead.data[key].unread + unread }
   })
   chatDataOb.value = setTipData
 }

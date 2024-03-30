@@ -1,4 +1,13 @@
-export default {
+import { Module } from "vuex"
+import { RootState } from "../index"
+
+export interface DataBaseState {
+    db: any,
+    dbname: string | null,
+    dbversion: string | null
+}
+
+const DataBase:Module<DataBaseState, RootState> = {
     namespaced: true,
     state() {
         return {
@@ -15,3 +24,5 @@ export default {
         }
     }
 }
+
+export default DataBase

@@ -1,5 +1,13 @@
+import { Module } from "vuex"
+import { RootState } from "../index"
+import { Box } from "@/interface/global"
+
 // import { Box } from "@/interface/global"
-export default {
+export interface FootSendState {
+    goToBottom: boolean
+    pongSaveCacheData: Box[]
+}
+const FootSend:Module<FootSendState, RootState> = {
     namespaced: true,
     state() {
         return {
@@ -8,11 +16,13 @@ export default {
         }
     },
     mutations: {
-        setGotoBottomState(state: any, payload: any) {
+        setGotoBottomState(state: FootSendState, payload: any) {
             state.goToBottom = payload
         },
-        setPongSaveCacheData(state: any, payload: Array<any>) {
+        setPongSaveCacheData(state: FootSendState, payload: Array<any>) {
             state.pongSaveCacheData = payload
         }
     }
 }
+
+export default FootSend
