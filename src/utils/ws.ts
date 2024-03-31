@@ -1,28 +1,31 @@
 import { PingPong, WsConnectParams } from "@/interface/global"
 import { dbAdd } from "./indexDB"
 import { handleTips } from "./tips"
-import { useStore } from '@/store'
-const store = useStore()
-const MAX_RETRIES = 10
-let retryCount = 0
+import { store } from '@/store'
 
 // 第一次再确认断开连接后,需要在 2 分钟后再重新尝试连接
-let refreshTime = 0.2
-let refreshCount = 0
-// 最多可以尝试 refresh 是 10 次
-const maxRefreshCount = 15
-// 每次 refresh 时间都是上次的 1.5 倍
-const perTime = 1.5
+interface RefreshConnectSocketConfig {
+    TIME: number
+    COUNT: number
+    readonly maxNumber: number
+    readonly perTime: number
+}
+const refreshConfig: RefreshConnectSocketConfig = {
+    TIME: 0.2, // 时间（单位/分钟）
+    COUNT: 0, // 次数
+    maxNumber: 15, // 最多可以尝试 refresh 是 10 次
+    perTime: 1.5 // 每次 refresh 时间都是上次的 1.5 倍
+}
 
 function refreshConnectSocket(params: WsConnectParams) {
-    if (refreshCount < maxRefreshCount) {
-        refreshCount++
+    if (refreshConfig.COUNT < refreshConfig.maxNumber) {
+        refreshConfig.COUNT++
         setTimeout(() => {
-            console.log('重连机制刷新 -> ', refreshCount)
+            console.log('重连机制刷新 -> ', refreshConfig.COUNT)
             // eslint-disable-next-line prefer-rest-params
             connectWebSocket(params, true)
-            refreshTime = refreshTime * perTime
-        }, refreshTime * 1000 * 60)
+            refreshConfig.TIME = refreshConfig.TIME * refreshConfig.perTime
+        }, refreshConfig.TIME * 1000 * 60)
 
         return true
     }
@@ -30,15 +33,25 @@ function refreshConnectSocket(params: WsConnectParams) {
     // connectWebSocket(...arguments)
 }
 
+// 连接 ws 不能无限制刷新连接，应当限制刷新次数
+interface ConnectSocketConfig {
+    readonly MAX_RETRIES: number
+    retryCount: number
+}
+const connectConfig: ConnectSocketConfig = {
+    MAX_RETRIES: 100,
+    retryCount: 0
+}
+
 function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) {
     const { ws, url, centerFn, videoFn, pingPongFn, signal} = params
     // console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
-    if (retryCount >= MAX_RETRIES) {
+    if (connectConfig.retryCount >= connectConfig.MAX_RETRIES) {
         console.log('超过重连次数...')
         const isHasRefresh = refreshConnectSocket(params)
         if (isHasRefresh) {
             signal.value = 0
-            retryCount = 0
+            connectConfig.retryCount = 0
             return
         } else {
             ws.value = undefined
@@ -50,25 +63,24 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
     ws.value = new WebSocket(url + `&token=${refreshToken}`)
 
     ws.value.onopen = function () {
+        // console.log('连接成功，重连模式为 -> ', isReconnect)
         // appendMessage('已连接到WebSocket服务端', 'received')
         // 用于记录用户重连时需要刷新的状态
         // 因为 websocket 可能会时不时断线重连，所以断线期间，如果用户不关闭这个窗口
         // 就会出现客户端如果发送任何信息，该用户都会默认无法收到消息，直到用户刷新页面
         if (isReconnect) {
-            if (store.state.friendsList.fresh) {
-                store.commit('friendsList/setRefreshFriendData', false)
-            }
             store.commit('friendsList/setRefreshFriendData', true)
+
+            // console.log('进入重刷模式', store?.state.friendsList.fresh)
             
         }
 
-        console.log('WebSocket连接成功', store.state.friendsList.fresh)
         signal.value = 1
-        retryCount = 0 // Reset retry count on successful connection
+        connectConfig.retryCount = 0 // Reset retry count on successful connection
 
         // 重置刷新机制
-        refreshTime = 0.2
-        refreshCount = 0
+        refreshConfig.TIME = 0.2
+        refreshConfig.COUNT = 0
     }
 
     ws.value.onmessage = function (event:any) {
@@ -137,9 +149,9 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
         }
         setTimeout(() => {
             console.log('正在重连 websocket ...')
-            retryCount++
-            connectWebSocket(params)
-        }, 500)
+            connectConfig.retryCount++
+            connectWebSocket(params, true)
+        }, 2000)
     }
 
     ws.value.onerror = function () {

@@ -25,7 +25,8 @@
 
 <script lang="ts" setup>
 import { ChatSquare } from '@element-plus/icons-vue'
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
+import { useStore } from '@/store'
 import { computed, ComputedRef, watchEffect, ref, Ref } from 'vue'
 import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
 import { addFriend } from '@/utils/friends'
@@ -34,7 +35,7 @@ import { Tips } from '@/interface/global'
 const store = useStore()
 
 const ws: ComputedRef<WebSocket | null> = computed(() => store.state.global.ws)
-const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname)
+const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname || '')
 const tips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
 const tipsShowList: Ref<Tips[]> = ref([])
 watchEffect(() => {

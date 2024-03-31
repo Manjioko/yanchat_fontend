@@ -1,11 +1,11 @@
-import { useStore } from '@/store'
+import { store, key, useStore } from '@/store'
+
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box, UserInfo, Friend, Tips } from '@/interface/global'
 import typeIs from './type'
 
-const vstore = useStore()
-
-
+const vstore = store
+  
 // indexDB 打开数据库
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
     // const store = useStore()
@@ -226,7 +226,7 @@ export function dbReadByIndex<T>(tableName: string, indexName: string, searchStr
 
 // 精确指定 offset 读取 10 条数据(可以指定从头读还是从尾读)
 export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC.UP, size:number = 10): Promise<Box[]> {
-    console.log('获取数据 参数 -> ', desc, offset)
+    // console.log('获取数据 参数 -> ', desc, offset)
     return new Promise((resolve, reject) => {
         if (typeIs(vstore.state.dataBase.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
         const store = (vstore.state.dataBase.db as IDBDatabase)

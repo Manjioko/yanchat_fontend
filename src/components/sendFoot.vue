@@ -48,7 +48,8 @@ import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
 import { Box } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
+import { useStore } from '@/store'
 
 const props = defineProps({
     chatBox: Object,

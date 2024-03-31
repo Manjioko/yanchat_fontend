@@ -148,14 +148,16 @@ watch(() => showVideo.value, (val) => {
 // emit 事件
 function loadEmit() {
     // console.log('src -> ', props.response)
-    const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect()
+    const chatWindowRect = scrollBar.value.wrapRef?.getBoundingClientRect()
+    if (!chatWindowRect) return
 
     // 为了解决视频和图片在加载之初与加载完成后高度不同，导致聊天记录位置定位错乱的问题
     // 使用 getBoundingClientRect 方法来获取元素的位置,然后与父元素的高度进行比较
     // 就可以确定元素是否在聊天框的可视范围之内,如果在可视范围指南,则需要将元素加载后的高度
     // 附加到父元素的 scrollTop 上，这样就可以解决定位错乱的问题
     if (props.type.includes('video')) {
-        const videoRect = video.value.getBoundingClientRect()
+        const videoRect = video?.value?.getBoundingClientRect()
+        if (!videoRect) return
         if (videoRect.top > chatWindowRect.top) {
             scrollBar.value.wrapRef.scrollTop += video.value.clientHeight
         }

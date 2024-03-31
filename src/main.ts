@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router/router.js'
-import store, { key } from '@/store'
+import { store, key } from '@/store'
 import 'element-plus/theme-chalk/index.css'
 import 'highlight.js/styles/github-dark.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'

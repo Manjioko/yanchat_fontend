@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
+import { useStore } from '@/store'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'

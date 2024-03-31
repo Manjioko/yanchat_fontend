@@ -8,9 +8,9 @@ import global, { GlobalState } from './global'
 import { InjectionKey } from 'vue'
 
 
-export interface RootState {}
+export interface RootState extends Module {}
 
-export default createStore<RootState>({
+export const store = createStore<RootState>({
     modules: {
         friendsList,
         // test,
@@ -21,7 +21,7 @@ export default createStore<RootState>({
     }, // 这里可以添加其他模块
 })
 
-type Module = {
+interface Module {
     global: GlobalState,
     friendsList: FriendsListState,
     dataBase: DataBaseState,

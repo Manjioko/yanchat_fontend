@@ -40,7 +40,7 @@ const Global:Module<GlobalState, RootState> =  {
             state.activeFriend = payload
         },
         setReloadChatData(state: GlobalState, payload: boolean) {
-            state.reloadChatData = true
+            state.reloadChatData = payload
         }
     }
 }

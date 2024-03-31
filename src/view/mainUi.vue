@@ -82,7 +82,8 @@ import {
     computed,
     ComputedRef
 } from 'vue'
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
+import { useStore } from '@/store'
 import ChatWindow from '@/components/chatWindow.vue'
 import ws from '@/utils/ws'
 import friendsList from '@/components/friendsList.vue'
@@ -136,7 +137,7 @@ let chatBox: Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
 let boxScrolltop: Ref<number> = ref(0)
 // 确保聊天页面可以滚动的安全长度
-let scrollSafeLength: Ref<number> = ref(10)
+let scrollSafeLength: Ref<number> = ref(15)
 // websocket 客户端
 let websocket: Ref<WebSocket | undefined> = ref(undefined)
 const userInfo: Ref<UserInfo> = ref({
@@ -168,9 +169,10 @@ store.commit('global/setWs', websocket)
 
 // 重连刷新内容
 // 这里只做了一件事，就是将 "回到最新" 的 tips 展示出来
-const reconnectFresh: ComputedRef<boolean> = computed(() => store.state.friendsList.reloadChatData)
+const reconnectFresh: ComputedRef<boolean> = computed(() => store.state.global.reloadChatData)
 watchEffect(() => {
-    if (reconnectFresh.value && activeFriend.value.user_id) {
+    if (!reconnectFresh.value) return
+    if (activeFriend?.value?.user_id) {
         handleWsReconnect()
     }
 })
@@ -340,7 +342,7 @@ function Center(chatData: Box, type?: string): void {
             } else {
                 chatData.user = 0
             }
-            console.log('activeFriend.value -> ', activeFriend.value)
+            // console.log('activeFriend.value -> ', activeFriend.value)
             if (chatData.user_id === activeFriend?.value?.user_id) {
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
@@ -699,9 +701,9 @@ async function handleActiveFriend(f: Friend) {
 // 将好友聊天定位位置保存到 vuex 中
 function saveChatWindowPosition() {
     const chatWindowRect =
-        scrollData.value.scrollBar.wrapRef.getBoundingClientRect()
+        scrollData.value.scrollBar?.wrapRef?.getBoundingClientRect()
     const children = scrollData.value.chatListDiv?.children
-    if (!children) return
+    if (!children || !chatWindowRect) return
     const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
     let canSaw: any[] = []
     chatDivList.forEach((div, idx) => {
@@ -721,9 +723,12 @@ function saveChatWindowPosition() {
         let extendLast = canSaw.pop()
 
         if (extendFirst?.id && extendLast?.id) {
-            const beforedata: { [position_id: string]: Position } = JSON.parse(
+            let beforedata: { [position_id: string]: Position } = JSON.parse(
                 localStorage.getItem('Position') || '{}'
             )
+            if (typeof beforedata === 'string') {
+                beforedata = JSON.parse(beforedata)
+            }
             const af = activeFriend.value
             const saveData: Position = {
                 first: extendFirst.id - Math.ceil(scrollSafeLength.value / 2),
@@ -811,6 +816,9 @@ async function handlePositionAfterGetChatDataFromUp() {
 
     const chat_table = activeFriend.value.chat_table
     const offset = chatBox.value[0].id
+    // console.log('chatBox -> ', chatBox.value)
+    // 没有定位信息，就不要拉数据了
+    if (!offset) return
     const chatData: Box[] = []
     chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.UP)))
     console.log('获取聊天记录 向上 -> ', chatData)
@@ -843,7 +851,7 @@ async function handlePositionAfterGetChatDataFromDown() {
 
     const chat_table = activeFriend.value.chat_table
     const offset = chatBox.value[chatBox.value.length - 1].id
-    console.log('最后一个box数据 -> ', chatBox.value[chatBox.value.length - 1])
+    // console.log('最后一个box数据 -> ', chatBox.value[chatBox.value.length - 1])
     const chatData: Box[] = []
     // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
     chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.DOWN)))
@@ -855,10 +863,10 @@ async function handlePositionAfterGetChatDataFromDown() {
     nextTick(() => {
         mediaDelayPosition(chatData, () => {
             scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
-            console.log('chatData.length -> ', chatData.length)
+            // console.log('chatData.length -> ', chatData.length)
+            //  chatData.length < scrollSafeLength.value ||
             if (
                 !chatData.length ||
-                chatData.length < scrollSafeLength.value ||
                 lastId === chatData[chatData.length - 1]?.id
             ) {
                 console.log('donwn 到底了 ->', lastId)
@@ -876,51 +884,8 @@ async function handlePositionAfterGetChatDataFromDown() {
 }
 
 async function handlePositionAfterFirstTimeGetChatData() {
-    // 这个置空的情况不希望触发滚动事件
-    // 因为这样会导致重复执行 getChatFromServer 函数
-    chatBox.value = []
-    const position: { [postion_id: string]: Position } = JSON.parse(
-        localStorage.getItem('Position') || '{}'
-    )
+    const { chatData, position, lastId }:FirstTimeGetChatDataFromDataBase  = await firstTimeGetChatDataFromDataBase()
     const chat_table = activeFriend.value.chat_table
-    const chatData: Box[] = []
-    if (position[activeFriend.value.user_id + chat_table]) {
-        const data = await dbReadRangeByArea(
-            chat_table,
-            position[activeFriend.value.user_id + chat_table].first,
-            position[activeFriend.value.user_id + chat_table].last
-        )
-        chatData.push(...data)
-    } else {
-        const data = await dbReadRangeNotOffset(
-            chat_table,
-            DESC.UP,
-            scrollSafeLength.value
-        )
-        chatData.push(...data)
-    }
-    const lastId = await dbGetLastPrimaryKey(chat_table)
-    // console.log('获取聊天记录 首次获取 ->', chatData)
-    const resChatData = handleChatData(chatData || [])
-
-    chatBox.value.unshift(...resChatData)
-    await nextTick()
-    // console.log('scroll -> ',  scrollData.value.el.scrollHeight, scrollData.value.el.clientHeight, chatData[chatData.length - 1].id, lastId)
-    // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
-    if (
-        scrollData.value.el.scrollHeight === scrollData.value.el.clientHeight &&
-        chatData.length &&
-        chatData.length < scrollSafeLength.value &&
-        chatData[chatData.length - 1].id !== lastId
-    ) {
-        scrollSafeLength.value += Math.ceil(scrollSafeLength.value / 2)
-        localStorage.setItem('Position', JSON.stringify(position))
-        // console.log('数量不够')
-        // console.log('scrollData -> ', scrollData)
-        return handlePositionAfterFirstTimeGetChatData()
-    } else {
-        // console.log('安全长度是多少 -> ', scrollSafeLength.value)
-    }
     if (position[activeFriend.value.user_id + chat_table]) {
         const dataIndex = chatBox.value.findIndex(
             item => item.id === position[activeFriend.value.user_id + chat_table]?.use
@@ -970,6 +935,90 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
     if (chatData?.length === 0) isGetChatHistoryFromUp = false
+}
+
+// 从数据库拿数据
+interface FirstTimeGetChatDataFromDataBase {
+    chatData: Box[]
+    position: { [postion_id: string]: Position }
+    lastId: number | undefined
+}
+async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<FirstTimeGetChatDataFromDataBase> {
+    // 将递归改成 for 方式，尽可能避免多次获取数据，导致内存溢出
+    const chat_table = activeFriend.value.chat_table
+    for (let i = 0; i < time; i++) {
+        // 这个置空的情况不希望触发滚动事件
+        // 因为这样会导致重复执行 getChatFromServer 函数
+        chatBox.value = []
+        const position: { [postion_id: string]: Position } = JSON.parse(
+            localStorage.getItem('Position') || '{}'
+        )
+        const chatData: Box[] = []
+        if (position[activeFriend.value.user_id + chat_table]) {
+            // 这里获取的数据可能为空，Position 记录的信息可能会被 `删除` `撤回` `数据库操作错误`
+            // 导致记录与实际情况有出入，所以这里获取为空时，需要尝试将 Position 信息删除，并从头获取
+            let data = []
+            data = await dbReadRangeByArea(
+                chat_table,
+                position[activeFriend.value.user_id + chat_table].first,
+                position[activeFriend.value.user_id + chat_table].last
+            )
+            // 如果数据为空，尝试从头获取
+            if (data.length === 0) {
+                localStorage.setItem('Position', JSON.stringify('{}'))
+                data = await dbReadRangeNotOffset(
+                    chat_table,
+                    DESC.UP,
+                    scrollSafeLength.value
+                )
+            }
+            // console.log('获取聊天记录 首次获取 1 ->', chatData, position[activeFriend.value.user_id + chat_table].first, position[activeFriend.value.user_id + chat_table].last)
+            chatData.push(...data)
+        } else {
+            const data = await dbReadRangeNotOffset(
+                chat_table,
+                DESC.UP,
+                scrollSafeLength.value
+            )
+            // console.log('获取聊天记录 首次获取 2 ->', chatData)
+            chatData.push(...data)
+        }
+        const lastId = await dbGetLastPrimaryKey(chat_table)
+        // console.log('获取聊天记录 首次获取 ->', chatData)
+        const resChatData = handleChatData(chatData || [])
+
+        chatBox.value.unshift(...resChatData)
+        await nextTick()
+        // console.log('scroll -> ',  scrollData.value.el.scrollHeight, scrollData.value.el.clientHeight, chatData[chatData.length - 1].id, lastId)
+        // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
+        if (
+            scrollData.value.el.scrollHeight === scrollData.value.el.clientHeight &&
+            chatData.length &&
+            chatData.length < scrollSafeLength.value &&
+            chatData[chatData.length - 1].id !== lastId
+        ) {
+            scrollSafeLength.value += Math.ceil(scrollSafeLength.value / 2)
+            localStorage.setItem('Position', JSON.stringify('{}'))
+            console.log('数量不够')
+        } else {
+            return {
+                chatData,
+                position,
+                lastId
+            }
+        }
+    }
+    const position: { [postion_id: string]: Position } = JSON.parse(
+            localStorage.getItem('Position') || '{}'
+        )
+    const lastId = await dbGetLastPrimaryKey(chat_table)
+
+    console.log('获取聊天记录 首次获取 空 ->')
+    return {
+        chatData: [],
+        position,
+        lastId
+    }
 }
 
 // 媒体文件延迟定位处理
@@ -1024,6 +1073,7 @@ watchEffect(() => {
 async function handleGotoBottom() {
     if (isLastChatList.value) {
         scrollChatBoxToBottom()
+        // console.log('直接到底部了')
     } else {
         chatBox.value = []
         const chatData: Box[] = []
@@ -1031,6 +1081,7 @@ async function handleGotoBottom() {
         chatData.push(...(await dbReadRangeNotOffset(chat_table)))
         const resChatData = handleChatData(chatData || [])
         chatBox.value.unshift(...resChatData)
+        // console.log('先加上，再到底部')
         nextTick(() => {
             mediaDelayPosition(chatData, () => {
                 scrollChatBoxToBottom()
@@ -1203,10 +1254,14 @@ function handleWsReconnect() {
     // 如果上锁了，就将锁解开，让它自由的获取到数据
     if (!isGetChatHistoryFromDown) {
         isGetChatHistoryFromDown = true
+        isLastChatList.value = false
     }
 
     // 关掉 realoadChatData
-    store.commit('global/setReloadChatData', false)
+    console.log('%c 开关以及关闭', 'color: blue')
+    nextTick(() => {
+        store.commit('global/setReloadChatData', false)
+    })
 }
 </script>
 

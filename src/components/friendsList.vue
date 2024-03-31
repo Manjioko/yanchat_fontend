@@ -96,7 +96,8 @@ import {
   computed
 } from 'vue'
 // import {  useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
+import { useStore } from '@/store'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
@@ -242,7 +243,7 @@ async function addFriend() {
         to_user_id: udata.data[0].user_id
       }
     }
-    store.state.global.ws.send(JSON.stringify(tips))
+    store.state.global.ws?.send(JSON.stringify(tips))
     return
   }
   dShow.value = false
@@ -315,39 +316,44 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
       }
     })
   )
+
+  // 错误处理
   if (err) {
     console.log('处理未读消息错误：', err)
     return
   }
-  console.log('unread -> ', unRead)
+  // console.log('unread -> ', unRead)
+
   if (unRead.status !== 200) return
   if (unRead.data === 'err') return
   const setTipData: { [key: string]: Tip } = {}
+
   // 处理一开始返回最后一条数据正好被用户删除时的情况
   Object.keys(unRead.data).forEach(key => {
     const len = unRead.data[key].chat.length
-    let setUnreadToBeZero = false
-    console.log('len -> ', len, unRead.data[key])
     const lastChat = unRead.data[key].chat[len - 1 < 0 ? 0 : len - 1]
-    if (isWsReconnect === Judge.YES) {
-      if (store.state.global.activeFriend?.chat_table === key) {
-        setUnreadToBeZero = true
-        if (len) {
-          // 通知聊天页面，可以重新加载数据
-          store.commit('global/setReloadChatData', true)
-        }
-      }
 
-      // 关掉刷新好友开关，因为已经重新刷新了
-      store.commit('friendsList/setRefreshFriendData', false)
-    }
-    dbAdd(key, unRead.data[key].chat)
+    if (unRead.data[key].unread !== 0) {
+      dbAdd(key, unRead.data[key].chat)
       .then(() => {
         console.log('成功将未读信息保存到数据库中！')
+        if (isWsReconnect === Judge.YES) {
+          if (store.state.global.activeFriend?.chat_table === key) {
+            if (len) {
+              // 通知聊天页面，可以重新加载数据
+              // store.commit('global/setReloadChatData', false)
+              store.commit('global/setReloadChatData', true)
+              console.log('%c readUnread 已经发出通知', 'color: red')
+            }
+          }
+          // 关掉刷新好友开关，因为已经重新刷新了
+          // store.commit('friendsList/setRefreshFriendData', false)
+        }
       })
       .catch((err: string) => {
         console.log('将未读信息保存到数据库中失败了 -> ', err)
       })
+    }
     if (lastChat.del_self || lastChat.del_other) {
       lastChat.text = '[已删除一条消息]'
     }
@@ -356,9 +362,17 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
       unread = chatDataOb.value[key].unread
     }
     // 如果是 ws 连接时，没有设置未读信息时，默认为 0
-    setTipData[key] = { ...lastChat, unread: setUnreadToBeZero ? 0 : unRead.data[key].unread + unread }
+    setTipData[key] = {
+      ...lastChat,
+      unread: store.state.global.activeFriend?.chat_table === key ?
+      0 :
+      unRead.data[key].unread + unread
+    }
   })
   chatDataOb.value = setTipData
+  if (isWsReconnect === Judge.YES) {
+    store.commit('friendsList/setRefreshFriendData', false)
+  }
 }
 
 // 消息处理

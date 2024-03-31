@@ -2,10 +2,7 @@ import { Tips, Box } from "@/interface/global"
 import { request, api } from "@/utils/api"
 import { dbDeleteByIndex } from "./indexDB"
 import { computed, ComputedRef, watchEffect } from "vue"
-import { useStore} from '@/store'
-// import typeIs from "./type"
-
-const store = useStore()
+import { store } from '@/store'
 
 export function handleWithdraw(data: Tips) {
     return new Promise((resolve, reject) => {
