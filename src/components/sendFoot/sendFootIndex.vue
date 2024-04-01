@@ -49,9 +49,10 @@ import { ElNotification } from 'element-plus'
 import { Box } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
 // import { useStore } from 'vuex'
-import { useStore } from '@/store'
+// import { useStore } from '@/store'
+import { sendFootStore } from './store'
 
-
+const sfStore = sendFootStore()
 const props = defineProps({
     chatBox: Object,
     uploadDisable: Boolean,
@@ -61,9 +62,9 @@ const props = defineProps({
     }
 })
 const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart', 'gotoBottom'])
-const store = useStore()
-const showGotoBottom = computed(() => store.state.footSend.goToBottom)
-const pongSaveCacheData = computed(() => store.state.footSend.pongSaveCacheData)
+// const store = useStore()
+const showGotoBottom = computed(() => sfStore.goToBottom)
+const pongSaveCacheData = computed(() => sfStore.pongSaveCacheData)
 
 const chatText = ref('')
 
