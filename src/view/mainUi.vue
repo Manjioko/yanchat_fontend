@@ -29,27 +29,14 @@
                 </el-badge> -->
                 <tipsMessages />
             </section>
-            <ChatWindow 
-                v-if="activeFriend.chat_table"
-                ref="chatWindow"
-                :chatBox="chatBox"
-                :avatarRefresh="avatarRefresh"
-                :markdown="isUseMd"
-                @scroll="handleScroll"
-                @deleted="handleDeleted"
-                @withdraw="handleWithdraw"
-                @quote="handleQuote"
-                @loaded="handleLoaded"
-            />
+            <ChatWindow v-if="activeFriend.chat_table" ref="chatWindow" :chatBox="chatBox"
+                :avatarRefresh="avatarRefresh" :markdown="isUseMd" @scroll="handleScroll" @deleted="handleDeleted"
+                @withdraw="handleWithdraw" @quote="handleQuote" @loaded="handleLoaded" />
             <section class="zero-friend" v-else>还未选择聊天好友</section>
             <section style="position: relative">
                 <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" @close="handleQuoteClose" />
-                <SendFoot
-                    v-if="activeFriend.chat_table"
-                    :upload-disable="!!activeFriend"
-                    :quote="comment"
-                    @center="Center" @videoCallStart="handleVideoCallStart" @gotoBottom="handleGotoBottom"
-                />
+                <SendFoot v-if="activeFriend.chat_table" :upload-disable="!!activeFriend" :quote="comment"
+                    @center="Center" @videoCallStart="handleVideoCallStart" @gotoBottom="handleGotoBottom" />
             </section>
         </section>
     </main>
@@ -89,7 +76,7 @@ import ws from '@/utils/ws'
 import friendsList from '@/components/friendsList.vue'
 import antiShake from '@/utils/antiShake'
 import AppSetting from '@/components/appSetting.vue'
-import SendFoot from '@/components/sendFoot.vue'
+import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
 import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
@@ -129,6 +116,7 @@ import { VideoConfig, InitVideoConfig } from '@/interface/video'
 import { DESC } from '@/interface/indexDB'
 import { ScrollData } from '@/interface/chatWindow'
 import { deleteLocalDataBaseData } from '@/utils/withdraw'
+import { sendFootStore } from '@/components/sendFoot/store'
 
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
@@ -158,8 +146,9 @@ let userFriends: Friend[] = JSON.parse(userInfo.value.friends)
 let refreshTokenTime: number | null | undefined = null
 
 const store = useStore()
+const footSendStore = sendFootStore()
 const showGotoBottom: ComputedRef<boolean> = computed(
-    () => store.state.footSend.goToBottom
+    () => footSendStore.goToBottom
 )
 const scrollData: ComputedRef<ScrollData> = computed(
     () => store.state.chatWindow.scrollData
@@ -169,7 +158,9 @@ store.commit('global/setWs', websocket)
 
 // 重连刷新内容
 // 这里只做了一件事，就是将 "回到最新" 的 tips 展示出来
-const reconnectFresh: ComputedRef<boolean> = computed(() => store.state.global.reloadChatData)
+const reconnectFresh: ComputedRef<boolean> = computed(
+    () => store.state.global.reloadChatData
+)
 watchEffect(() => {
     if (!reconnectFresh.value) return
     if (activeFriend?.value?.user_id) {
@@ -288,10 +279,11 @@ function Center(chatData: Box, type?: string): void {
             })
         } else {
             pongSaveCacheData.push(chatData)
-            store.commit(
-                'footSend/setPongSaveCacheData',
-                JSON.parse(JSON.stringify(pongSaveCacheData))
-            )
+            //   store.commit(
+            //     'footSend/setPongSaveCacheData',
+            //     JSON.parse(JSON.stringify(pongSaveCacheData))
+            //   )
+            footSendStore.pongSaveCacheData = JSON.parse(JSON.stringify(pongSaveCacheData))
         }
         if (chatData.progress !== undefined) {
             const stop = watchEffect(() => {
@@ -349,12 +341,14 @@ function Center(chatData: Box, type?: string): void {
                 // chatBox.value.push(chatData)
                 if (receivedShowGotoBottom === Judge.YES) {
                     chatBox.value.push(chatData)
-                    store.commit('footSend/setGotoBottomState', true)
+                    //   store.commit('footSend/setGotoBottomState', true)
+                    footSendStore.goToBottom = true
                     pongSaveCacheData.push(chatData)
-                    store.commit(
-                        'footSend/setPongSaveCacheData',
-                        JSON.parse(JSON.stringify(pongSaveCacheData))
-                    )
+                    //   store.commit(
+                    //     'footSend/setPongSaveCacheData',
+                    //     JSON.parse(JSON.stringify(pongSaveCacheData))
+                    //   )
+                    footSendStore.pongSaveCacheData = JSON.parse(JSON.stringify(pongSaveCacheData))
                 } else {
                     if (isLastChatList.value) {
                         chatBox.value.push(chatData)
@@ -364,10 +358,11 @@ function Center(chatData: Box, type?: string): void {
                         // scrollChatBoxToBottom()
                     } else {
                         pongSaveCacheData.push(chatData)
-                        store.commit(
-                            'footSend/setPongSaveCacheData',
-                            JSON.parse(JSON.stringify(pongSaveCacheData))
-                        )
+                        // store.commit(
+                        //   'footSend/setPongSaveCacheData',
+                        //   JSON.parse(JSON.stringify(pongSaveCacheData))
+                        // )
+                        footSendStore.pongSaveCacheData = JSON.parse(JSON.stringify(pongSaveCacheData))
                     }
                 }
                 sendTipToFriendModel(0, chatData)
@@ -691,9 +686,11 @@ async function handleActiveFriend(f: Friend) {
     // 记录的结尾标识也需要重置
     isLastChatList.value = false
     // 存在回到最新提示的也需要重置
-    store.commit('footSend/setGotoBottomState', false)
+    //   store.commit('footSend/setGotoBottomState', false)
+    footSendStore.goToBottom = false
     // 未显示内容需要重置
-    store.commit('footSend/setPongSaveCacheData', [])
+    // store.commit('footSend/setPongSaveCacheData', [])
+    footSendStore.pongSaveCacheData = []
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
     store.commit('global/setActiveFriend', f)
 }
@@ -865,10 +862,7 @@ async function handlePositionAfterGetChatDataFromDown() {
             scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
             // console.log('chatData.length -> ', chatData.length)
             //  chatData.length < scrollSafeLength.value ||
-            if (
-                !chatData.length ||
-                lastId === chatData[chatData.length - 1]?.id
-            ) {
+            if (!chatData.length || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
                 isLastChatList.value = true
                 isGetChatHistoryFromDown = false
@@ -884,7 +878,8 @@ async function handlePositionAfterGetChatDataFromDown() {
 }
 
 async function handlePositionAfterFirstTimeGetChatData() {
-    const { chatData, position, lastId }:FirstTimeGetChatDataFromDataBase  = await firstTimeGetChatDataFromDataBase()
+    const { chatData, position, lastId }: FirstTimeGetChatDataFromDataBase =
+        await firstTimeGetChatDataFromDataBase()
     const chat_table = activeFriend.value.chat_table
     if (position[activeFriend.value.user_id + chat_table]) {
         const dataIndex = chatBox.value.findIndex(
@@ -912,10 +907,12 @@ async function handlePositionAfterFirstTimeGetChatData() {
                         scrollData.value.el.scrollHeight - 10
                     ) {
                         // 用于显示 "回到最新" Tip 按钮
-                        store.commit('footSend/setGotoBottomState', true)
+                        // store.commit('footSend/setGotoBottomState', true)
+                        footSendStore.goToBottom = true
                     }
                 } else {
-                    store.commit('footSend/setGotoBottomState', true)
+                    // store.commit('footSend/setGotoBottomState', true)
+                    footSendStore.goToBottom = true
                 }
             })
         }
@@ -943,7 +940,9 @@ interface FirstTimeGetChatDataFromDataBase {
     position: { [postion_id: string]: Position }
     lastId: number | undefined
 }
-async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<FirstTimeGetChatDataFromDataBase> {
+async function firstTimeGetChatDataFromDataBase(
+    time: number = 5
+): Promise<FirstTimeGetChatDataFromDataBase> {
     // 将递归改成 for 方式，尽可能避免多次获取数据，导致内存溢出
     const chat_table = activeFriend.value.chat_table
     for (let i = 0; i < time; i++) {
@@ -1009,8 +1008,8 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
         }
     }
     const position: { [postion_id: string]: Position } = JSON.parse(
-            localStorage.getItem('Position') || '{}'
-        )
+        localStorage.getItem('Position') || '{}'
+    )
     const lastId = await dbGetLastPrimaryKey(chat_table)
 
     console.log('获取聊天记录 首次获取 空 ->')
@@ -1052,7 +1051,8 @@ watchEffect(() => {
         scrollData.value.el.scrollHeight
     ) {
         if (isLastChatList.value) {
-            store.commit('footSend/setGotoBottomState', false)
+            // store.commit('footSend/setGotoBottomState', false)
+            footSendStore.goToBottom = false
             receivedShowGotoBottom = Judge.NO
         }
     }
@@ -1250,7 +1250,8 @@ function handleLoaded(chat_id: string) {
 
 // websocket 重连刷新
 function handleWsReconnect() {
-    store.commit('footSend/setGotoBottomState', true)
+    // store.commit('footSend/setGotoBottomState', true)
+    footSendStore.goToBottom = true
     // 如果上锁了，就将锁解开，让它自由的获取到数据
     if (!isGetChatHistoryFromDown) {
         isGetChatHistoryFromDown = true
@@ -1258,7 +1259,7 @@ function handleWsReconnect() {
     }
 
     // 关掉 realoadChatData
-    console.log('%c 开关以及关闭', 'color: blue')
+    // console.log('%c 开关以及关闭', 'color: blue')
     nextTick(() => {
         store.commit('global/setReloadChatData', false)
     })

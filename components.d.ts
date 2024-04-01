@@ -26,7 +26,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SendFile: typeof import('./src/components/sendFile.vue')['default']
-    SendFoot: typeof import('./src/components/sendFoot.vue')['default']
+    SendFootIndex: typeof import('./src/components/sendFoot/sendFootIndex.vue')['default']
     SendMedia: typeof import('./src/components/sendMedia.vue')['default']
     TipsMessages: typeof import('./src/components/tipsMessages.vue')['default']
     VideoCallAnwserer: typeof import('./src/components/videoCallAnwserer.vue')['default']

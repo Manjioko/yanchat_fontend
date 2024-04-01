@@ -10,13 +10,13 @@
     <main>
         <section class="select-tab">
             <div class="video-call">
-                <img src="../assets/videoCall.png" alt="video-call" @click="videoCall">
+                <img src="../../assets/videoCall.png" alt="video-call" @click="videoCall">
             </div>
             <div class="call">
-                <img src="../assets/call.png" alt="call">
+                <img src="../../assets/call.png" alt="call">
             </div>
             <div class="upload">
-                <img src="../assets/folder.png" alt="upload">
+                <img src="../../assets/folder.png" alt="upload">
                 <input type="file" @change="uploadFile" v-if="uploadDisable">
             </div>
         </section>
@@ -32,7 +32,7 @@
             
             <button @click="sendMessage()" class="send-btn">
                 <span>发送</span>
-                <img src="../assets/send.png" alt="send">
+                <img src="../../assets/send.png" alt="send">
             </button>
         </div>
     </main>
@@ -50,6 +50,7 @@ import { Box } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
 // import { useStore } from 'vuex'
 import { useStore } from '@/store'
+
 
 const props = defineProps({
     chatBox: Object,

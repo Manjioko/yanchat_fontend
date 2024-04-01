@@ -6,6 +6,9 @@ import 'element-plus/theme-chalk/index.css'
 import 'highlight.js/styles/github-dark.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import VueDragResize from 'vue-drag-resize'
+import { createPinia } from 'pinia'
+
+const Pinia = createPinia()
 
 
 // sessionStorage.setItem('wsBaseUrl', 'wss://192.168.9.99')
@@ -20,6 +23,7 @@ const app = createApp(App)
 app.component('vue-drag-resize', VueDragResize)
 app.use(store, key)
 app.use(router)
+app.use(Pinia)
 // app.use(ContextMenu)
 app.mount('#app')
 
