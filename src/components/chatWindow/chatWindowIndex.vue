@@ -33,7 +33,7 @@
                     </div>
                     <div class="chat-box-local" v-else>
                         <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
-                        <img v-if="textObject.loading" src="../assets/spinner1.svg" class="spinner-style"
+                        <img v-if="textObject.loading" src="../../assets/spinner1.svg" class="spinner-style"
                             v-spinner="textObject">
                         <el-icon v-if="textObject.inaccessible" color="#f00" class="message-warning">
                             <WarningFilled />
@@ -72,12 +72,12 @@
 import { defineProps, defineExpose, ref, defineEmits, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
-import sendFile from '@/components/sendFile.vue'
-import sendMedia from '@/components/sendMedia.vue'
+import sendFile from '@/components/sendFile/sendFileIndex.vue'
+import sendMedia from '@/components/sendMedia/sendMediaIndex.vue'
 import menu from '@/utils/contextMenu'
-import comentQuote from './comentQuote.vue'
+import comentQuote from '../comentQuote/comentQuoteIndex.vue'
 // import { useStore } from 'vuex'
-import { useStore } from '@/store'
+import { ChatWindowStore } from './store'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { Box } from '@/interface/global'
 import { ScrollData } from '@/interface/chatWindow'
@@ -102,7 +102,7 @@ watch(() => props.avatarRefresh, (val) => {
     }
 })
 
-const store = useStore()
+const store = ChatWindowStore()
 // let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
 watch(() => props.chatBox?.length, () => {
@@ -111,9 +111,11 @@ watch(() => props.chatBox?.length, () => {
 })
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
-    store.commit('chatWindow/setScrollBar', scrollBar.value)
+    // store.commit('chatWindow/setScrollBar', scrollBar.value)
+    store.scrollBar = scrollBar.value
     chatListDiv = document.querySelector('[data-chat-list]')
-    store.commit('chatWindow/setChatListEle', chatListDiv)
+    // store.commit('chatWindow/setChatListEle', chatListDiv)
+    store.chatListEle = chatListDiv
     // console.log('scrollBar -> ', scrollBar.value)
     updatedScrollData()
 })
@@ -149,7 +151,8 @@ function updatedScrollData() {
             el: scrollBar.value.wrapRef,
             chatListDiv: chatListDiv
         }
-        store.commit('chatWindow/setScrollData', s)
+        // store.commit('chatWindow/setScrollData', s)
+        store.scrollData = s
     }
 
 }
@@ -287,11 +290,11 @@ function emitDeleted(index: number) {
 }
 
 function handleError(e: any) {
-    e.target.src = require('../assets/default_avatar.png')
+    e.target.src = require('../../assets/default_avatar.png')
     // avatarSrc.value = require('../assets/default_avatar.png')
 }
 function handleSelfError() {
-    avatarSrc.value = require('../assets/default_avatar.png')
+    avatarSrc.value = require('../../assets/default_avatar.png')
 }
 
 function handleQuote(idx: number) {

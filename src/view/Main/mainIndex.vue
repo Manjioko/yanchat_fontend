@@ -23,7 +23,7 @@
         }}</span>
                     </div>
                 </div>
-                <img src="../assets/setting.png" alt="setting" @click="showSettingDialog" />
+                <img src="../../assets/setting.png" alt="setting" @click="showSettingDialog" />
                 <!-- <el-badge is-dot class="badge-item">
                     <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
                 </el-badge> -->
@@ -43,9 +43,9 @@
     <AppSetting ref="appSetting" @exit="handleExit" @avaterChange="handleAvatarChange"
         @nickNameChange="handleNickNameChange" @isUseMarkdown="handleIsUseMarkdown" />
     <!-- 测试模式用 -->
-    <videoCallOfferer v-if="activeFriend && showOfferer" :friend="activeFriend" :socket="websocket"
+    <videoCallOfferer v-if="activeFriend && showOfferer" :friend="activeFriend" :socket="websocket || undefined"
         :anwser-data="videocallAnwserData" @destroy="destroyVideoCallOfferer" @center="Center" />
-    <videoCallAnwserer v-if="showAnwserer" :friend="activeFriend" :socket="websocket" :offer-data="videocallOfferData"
+    <videoCallAnwserer v-if="showAnwserer" :friend="activeFriend" :socket="websocket || undefined" :offer-data="videocallOfferData"
         @destroy="destroyVideoCallAnwserer" />
     <!-- 铃声 -->
     <!-- <audio class="audio"
@@ -66,26 +66,26 @@ import {
     watchEffect,
     h,
     Ref,
-    computed,
-    ComputedRef
+    // computed,
+    // ComputedRef
 } from 'vue'
 // import { useStore } from 'vuex'
-import { useStore } from '@/store'
-import ChatWindow from '@/components/chatWindow.vue'
-import ws from '@/utils/ws'
-import friendsList from '@/components/friendsList.vue'
+// import { useStore } from '@/store'
+import ChatWindow from '@/components/chatWindow/chatWindowIndex.vue'
+import wsInit from '@/utils/ws'
+import friendsList from '@/components/friendsList/friendsListIndex.vue'
 import antiShake from '@/utils/antiShake'
-import AppSetting from '@/components/appSetting.vue'
+import AppSetting from '@/components/appSetting/appSettingIndex.vue'
 import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
 import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import comentQuote from '@/components/comentQuote.vue'
+import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
 import { ElNotification, NotificationHandle } from 'element-plus'
 // import { ChatSquare } from '@element-plus/icons-vue'
-import videoCallOfferer from '@/components/videoCallOfferer.vue'
-import videoCallAnwserer from '@/components/videoCallAnwserer.vue'
-import tipsMessages from '@/components/tipsMessages.vue'
+import videoCallOfferer from '@/components/VideoCallOfferer/videoCallOffererIndex.vue'
+import videoCallAnwserer from '@/components/videoCallAnwserer/videoCallAnwsererIndex.vue'
+import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
 // import localforage from 'localforage'
 import {
     dbAdd,
@@ -114,9 +114,12 @@ import {
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 // import { offsetType } from '@/types/global'
 import { DESC } from '@/interface/indexDB'
-import { ScrollData } from '@/interface/chatWindow'
+// import { ScrollData } from '@/interface/chatWindow'
 import { deleteLocalDataBaseData } from '@/utils/withdraw'
 import { sendFootStore } from '@/components/sendFoot/store'
+import { storeToRefs } from 'pinia'
+import { MainStore } from './store'
+import { ChatWindowStore } from '@/components/chatWindow/store'
 
 // 测试数据
 // const phone = ref(sessionStorage.getItem('phone'))
@@ -127,7 +130,7 @@ let boxScrolltop: Ref<number> = ref(0)
 // 确保聊天页面可以滚动的安全长度
 let scrollSafeLength: Ref<number> = ref(15)
 // websocket 客户端
-let websocket: Ref<WebSocket | undefined> = ref(undefined)
+const { ws: websocket, reloadChatData:reconnectFresh }  = storeToRefs(MainStore())
 const userInfo: Ref<UserInfo> = ref({
     friends: '[]',
     phone_number: '',
@@ -145,22 +148,28 @@ let userFriends: Friend[] = JSON.parse(userInfo.value.friends)
 // 计时器
 let refreshTokenTime: number | null | undefined = null
 
-const store = useStore()
+// const store = useStore()
+const mainStore = MainStore()
+const chatWindowStore = ChatWindowStore()
+const { scrollData } = storeToRefs(chatWindowStore)
+
 const footSendStore = sendFootStore()
-const showGotoBottom: ComputedRef<boolean> = computed(
-    () => footSendStore.goToBottom
-)
-const scrollData: ComputedRef<ScrollData> = computed(
-    () => store.state.chatWindow.scrollData
-)
+const { goToBottom: showGotoBottom } = storeToRefs(footSendStore)
+// const showGotoBottom: ComputedRef<boolean> = computed(
+//     () => footSendStore.goToBottom
+// )
+// const scrollData: ComputedRef<ScrollData> = computed(
+//     () => chatWindowStore.scrollData
+// )
 // 把 websokcket 挂到 vuex 去用
-store.commit('global/setWs', websocket)
+// store.commit('global/setWs', ws)
+
 
 // 重连刷新内容
 // 这里只做了一件事，就是将 "回到最新" 的 tips 展示出来
-const reconnectFresh: ComputedRef<boolean> = computed(
-    () => store.state.global.reloadChatData
-)
+// const reconnectFresh: ComputedRef<boolean> = computed(
+//     () => store.state.global.reloadChatData
+// )
 watchEffect(() => {
     if (!reconnectFresh.value) return
     if (activeFriend?.value?.user_id) {
@@ -174,14 +183,13 @@ onMounted(async () => {
     const wsUrl = sessionStorage.getItem('wsBaseUrl')
     const url = `${wsUrl}?user_id=${user_id}`
     const wsParams: WsConnectParams = {
-        ws: websocket,
         url,
         centerFn: Center,
         pingPongFn: PingPongCenter,
         videoFn: VideoCenter,
         signal
     }
-    ws(wsParams)
+    wsInit(wsParams)
     getRefreshToken()
 })
 
@@ -197,12 +205,15 @@ onBeforeUnmount(() => {
     if (refreshTokenTime) {
         clearInterval(refreshTokenTime)
     }
-    store.commit('global/setCenterFn', null)
-    store.commit('global/setActiveFriend', null)
+    // store.commit('global/setCenterFn', null)
+    mainStore.setCenterFn(null)
+    // store.commit('global/setActiveFriend', null)
+    mainStore.setActiveFriend(null)
 })
 
 // 将 center 挂载到 vuex
-store.commit('global/setCenterFn', Center)
+// store.commit('global/setCenterFn', Center)
+mainStore.setCenterFn(Center)
 
 // 刷新 refreshToken
 function getRefreshToken() {
@@ -290,12 +301,13 @@ function Center(chatData: Box, type?: string): void {
                 if ((chatData.progress || 0) >= 100 && chatData.response) {
                     if (websocket.value) {
                         const ws = websocket.value as WebSocket
+                        console.log('mainUI 发送消息 -> ', chatData)
                         ws.send(JSON.stringify(chatData))
                     }
                     stop()
                 }
                 if (chatData.destroy) {
-                    // console.log('mainUI 上传失败提示!')
+                    console.log('mainUI 上传失败提示!')
                     if (websocket.value) {
                         const ws = websocket.value as WebSocket
                         ws.send(JSON.stringify(chatData))
@@ -306,7 +318,7 @@ function Center(chatData: Box, type?: string): void {
             if (websocket.value) {
                 const ws = websocket.value as WebSocket
                 ws.send(JSON.stringify(chatData))
-                // console.log('mainUI 发送消息!', chatData)
+                console.log('mainUI 发送消息!', chatData, ws)
             }
         }
 
@@ -606,7 +618,7 @@ function centerVideoCallRequest(chatData: VideoConfig) {
         customClass: 'custom-notification-class',
         position: 'bottom-right',
         icon: h('img', {
-            src: require('../assets/video_notify.png'),
+            src: require('../../assets/video_notify.png'),
             class: 'notify-img'
         })
     })
@@ -692,7 +704,8 @@ async function handleActiveFriend(f: Friend) {
     // store.commit('footSend/setPongSaveCacheData', [])
     footSendStore.pongSaveCacheData = []
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
-    store.commit('global/setActiveFriend', f)
+    // store.commit('global/setActiveFriend', f)
+    mainStore.setActiveFriend(f)
 }
 
 // 将好友聊天定位位置保存到 vuex 中
@@ -902,6 +915,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
                     // 向下锁 锁死ß
                     isGetChatHistoryFromDown = false
                     isLastChatList.value = true
+                    if (!scrollData?.value?.el) return
                     if (
                         scrollData.value.el.scrollTop + scrollData.value.el.clientHeight <
                         scrollData.value.el.scrollHeight - 10
@@ -991,7 +1005,7 @@ async function firstTimeGetChatDataFromDataBase(
         // console.log('scroll -> ',  scrollData.value.el.scrollHeight, scrollData.value.el.clientHeight, chatData[chatData.length - 1].id, lastId)
         // 为了防止获取到的数量不够滚动距离,这里做个递归处理,设置安全滚动距离
         if (
-            scrollData.value.el.scrollHeight === scrollData.value.el.clientHeight &&
+            scrollData?.value?.el?.scrollHeight === scrollData?.value?.el?.clientHeight &&
             chatData.length &&
             chatData.length < scrollSafeLength.value &&
             chatData[chatData.length - 1].id !== lastId
@@ -1045,7 +1059,10 @@ function mediaDelayPosition(chatData: Box[], cb: Function) {
 // 监听回到最新定位方法
 let receivedShowGotoBottom: Judge = Judge.NO
 watchEffect(() => {
-    if (!scrollData.value?.el) return
+    if (!scrollData.value?.el) {
+        console.log('scrollData 没值 -> ', scrollData.value)
+        return
+    }
     if (
         scrollData.value.el.scrollTop + scrollData.value.el.clientHeight + 20 >
         scrollData.value.el.scrollHeight
@@ -1058,7 +1075,7 @@ watchEffect(() => {
     }
 
     if (
-        scrollData.value.el.scrollHeight -
+        scrollData?.value?.el.scrollHeight -
         scrollData.value.el.clientHeight -
         scrollData.value.el.scrollTop >
         scrollData.value.el.clientHeight * 1.5
@@ -1096,8 +1113,13 @@ const scrollOffsetAntiShakeFn = antiShake(saveChatWindowPosition, 500)
 const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val: { scrollTop: number }) {
     // console.log('handleScroll isGetChatHistoryFromUp -> ', isGetChatHistoryFromUp)
+    if (!scrollData.value?.el) {
+        console.log('scrollData 没值2 -> ', scrollData.value)
+        return
+    }
     boxScrolltop.value = val.scrollTop
     scrollOffsetAntiShakeFn()
+    // if (!scrollData.value?.el) return
     if (Math.floor(val.scrollTop) === 0 && isGetChatHistoryFromUp) {
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.UP)
     }
@@ -1261,14 +1283,15 @@ function handleWsReconnect() {
     // 关掉 realoadChatData
     // console.log('%c 开关以及关闭', 'color: blue')
     nextTick(() => {
-        store.commit('global/setReloadChatData', false)
+        // store.commit('global/setReloadChatData', false)
+        mainStore.setReloadChatData(false)
     })
 }
 </script>
 
 <style lang="scss" scoped>
 .main {
-    background-image: url('../assets/login_bg.png');
+    background-image: url('../../assets/login_bg.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-color: #f5f6fa;

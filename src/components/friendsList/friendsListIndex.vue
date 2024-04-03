@@ -92,12 +92,13 @@ import {
   defineEmits,
   watch,
   Ref,
-  ComputedRef,
-  computed
+  // ComputedRef,
+  // computed
 } from 'vue'
 // import {  useRouter, useRoute } from 'vue-router'
 // import { useStore } from 'vuex'
-import { useStore } from '@/store'
+// import { useStore } from '@/store'
+import { FriendsListStore } from './store'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
@@ -113,7 +114,13 @@ import {
   Judge
 } from '@/interface/global'
 import typeIs from '@/utils/type'
-const store = useStore()
+import { MainStore } from '@/view/Main/store'
+import { storeToRefs } from 'pinia'
+// const store = useStore()
+const friendStore = FriendsListStore()
+const mainStore = MainStore()
+const { friendsList, fresh:reconnectFresh } = storeToRefs(friendStore)
+// const { }
 // import { RefreshMessage } from '@/interface/global'
 // const storeTips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
 const props = defineProps({
@@ -125,11 +132,11 @@ const props = defineProps({
 })
 const emit = defineEmits(['handleActiveFriend'])
 
-const friendsList: ComputedRef<Friend[]> = computed(
-  () => store.state.friendsList.friendsList
-)
+// const friendsList: ComputedRef<Friend[]> = computed(
+//   () => friendStore.friendsList
+// )
 // 重连刷新内容
-const reconnectFresh: ComputedRef<boolean> = computed(() => store.state.friendsList.fresh)
+// const reconnectFresh: ComputedRef<boolean> = computed(() => friendStore.fresh)
 watch(() => reconnectFresh.value, val => {
   if (val) {
     handleUnread(Judge.YES)
@@ -163,7 +170,18 @@ onMounted(() => {
   }
   const baseUrl = sessionStorage.getItem('baseUrl')
   f?.forEach((item: Friend) => {
-    store.commit('friendsList/addFriendsList', {
+    // store.commit('friendsList/addFriendsList', {
+    //   name: item.name || (item.user as string),
+    //   user_id: item.user_id,
+    //   time: '',
+    //   message: '',
+    //   avatar_url: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
+    //   active: false,
+    //   searchActive: true,
+    //   chat_table: item.chat_table,
+    //   phone_number
+    // })
+    friendStore.addFriendsList({
       name: item.name || (item.user as string),
       user_id: item.user_id,
       time: '',
@@ -230,7 +248,7 @@ async function addFriend() {
   }
   // console.log('获取用户信息成功 -> ', udata)
   if (udata.data && udata.data[0]) {
-    console.log('用户存在 -> ', udata.data, store.state.global.ws)
+    // console.log('用户存在 -> ', udata.data, store.state.global.ws)
     const to_id = udata.data[0].user_id || ''
     const tips: Tips = {
       to_id,
@@ -243,7 +261,8 @@ async function addFriend() {
         to_user_id: udata.data[0].user_id
       }
     }
-    store.state.global.ws?.send(JSON.stringify(tips))
+    // store.state.global.ws?.send(JSON.stringify(tips))
+    mainStore.ws?.send(JSON.stringify(tips))
     return
   }
   dShow.value = false
@@ -338,11 +357,12 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
       .then(() => {
         console.log('成功将未读信息保存到数据库中！')
         if (isWsReconnect === Judge.YES) {
-          if (store.state.global.activeFriend?.chat_table === key) {
+          // if (store.state.global.activeFriend?.chat_table === key) {
+          if (mainStore.activeFriend?.chat_table === key) {
             if (len) {
               // 通知聊天页面，可以重新加载数据
-              // store.commit('global/setReloadChatData', false)
-              store.commit('global/setReloadChatData', true)
+              // store.commit('global/setReloadChatData', true)
+              mainStore.reloadChatData = true
               console.log('%c readUnread 已经发出通知', 'color: red')
             }
           }
@@ -364,14 +384,16 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
     // 如果是 ws 连接时，没有设置未读信息时，默认为 0
     setTipData[key] = {
       ...lastChat,
-      unread: store.state.global.activeFriend?.chat_table === key ?
+      // unread: store.state.global.activeFriend?.chat_table === key ?
+      unread: mainStore.activeFriend?.chat_table === key ?
       0 :
       unRead.data[key].unread + unread
     }
   })
   chatDataOb.value = setTipData
   if (isWsReconnect === Judge.YES) {
-    store.commit('friendsList/setRefreshFriendData', false)
+    // store.commit('friendsList/setRefreshFriendData', false)
+    friendStore.fresh = false
   }
 }
 
@@ -445,10 +467,10 @@ const shake = antiShake(() => {
 }, 1000)
 watch(searchText, () => shake())
 function handleAvatarSelfErr() {
-  avatarSrc.value = require('../assets/default_avatar.png')
+  avatarSrc.value = require('../../assets/default_avatar.png')
 }
 function handleError(i: Friend) {
-  i.avatar_url = require('../assets/default_avatar.png')
+  i.avatar_url = require('../../assets/default_avatar.png')
 }
 </script>
 <style lang="scss" scoped>

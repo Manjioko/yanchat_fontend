@@ -1,7 +1,12 @@
 import { PingPong, WsConnectParams } from "@/interface/global"
 import { dbAdd } from "./indexDB"
 import { handleTips } from "./tips"
-import { store } from '@/store'
+// import { store } from '@/store'
+import { FriendsListStore } from "@/components/friendsList/store"
+import { MainStore } from "@/view/Main/store"
+
+const friendStore = FriendsListStore()
+const mainStore = MainStore()
 
 // 第一次再确认断开连接后,需要在 2 分钟后再重新尝试连接
 interface RefreshConnectSocketConfig {
@@ -44,7 +49,7 @@ const connectConfig: ConnectSocketConfig = {
 }
 
 function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) {
-    const { ws, url, centerFn, videoFn, pingPongFn, signal} = params
+    const { url, centerFn, videoFn, pingPongFn, signal} = params
     // console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (connectConfig.retryCount >= connectConfig.MAX_RETRIES) {
         console.log('超过重连次数...')
@@ -54,25 +59,24 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
             connectConfig.retryCount = 0
             return
         } else {
-            ws.value = undefined
+            // websocket = undefined
             signal.value = 2
             return
         }
     }
     const refreshToken = sessionStorage.getItem('RefreshToken')
-    ws.value = new WebSocket(url + `&token=${refreshToken}`)
-
-    ws.value.onopen = function () {
+    const websocket: WebSocket = new WebSocket(url + `&token=${refreshToken}`)
+    mainStore.ws = websocket
+    websocket.onopen = function () {
         // console.log('连接成功，重连模式为 -> ', isReconnect)
         // appendMessage('已连接到WebSocket服务端', 'received')
         // 用于记录用户重连时需要刷新的状态
         // 因为 websocket 可能会时不时断线重连，所以断线期间，如果用户不关闭这个窗口
         // 就会出现客户端如果发送任何信息，该用户都会默认无法收到消息，直到用户刷新页面
         if (isReconnect) {
-            store.commit('friendsList/setRefreshFriendData', true)
-
+            // store.commit('friendsList/setRefreshFriendData', true)
+            friendStore.setRefreshFriendData(true)
             // console.log('进入重刷模式', store?.state.friendsList.fresh)
-            
         }
 
         signal.value = 1
@@ -81,9 +85,10 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
         // 重置刷新机制
         refreshConfig.TIME = 0.2
         refreshConfig.COUNT = 0
+        
     }
 
-    ws.value.onmessage = function (event:any) {
+    websocket.onmessage = function (event:any) {
         // console.log('message -> ', event.data)
         const chatData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
 
@@ -127,7 +132,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                         id: chatData.id // 这里应该是服务器数据库响应的 id
                     }
                     // console.log('客户端响应 -> ', pong)
-                    ws.value?.send(JSON.stringify(pong))
+                    websocket?.send(JSON.stringify(pong))
                     dbAdd(chatData.to_table, chatData)
                     .then(() => {
                         // console.log('ws.ts 处保存数据到数据库成功')
@@ -140,7 +145,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
         }
     }
 
-    ws.value.onclose = function (res:any) {
+    websocket.onclose = function (res:any) {
         console.log('与WebSocket服务端的连接已关闭', 'received')
         signal.value = 0
         if (res.code && res.code == 4001) {
@@ -154,7 +159,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
         }, 2000)
     }
 
-    ws.value.onerror = function () {
+    websocket.onerror = function () {
         console.log('WebSocket错误发生')
     }
 }

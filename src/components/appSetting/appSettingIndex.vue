@@ -6,7 +6,7 @@
                 <div class="avatar-container">
                     <img :src="avatarSrc" alt="头像" class="avatar-show" @error="handleError">
                     <div class="avatar-edit">
-                        <img src="../assets/avatar_edit.png" alt="">
+                        <img src="../../assets/avatar_edit.png" alt="">
                         <input
                             type="file"
                             name="上传头像"
@@ -188,7 +188,7 @@ async function saveNickName() {
 
 function handleError() {
     // console.log('头像加载失败')
-    avatarSrc.value = require('../assets/default_avatar.png')
+    avatarSrc.value = require('../../assets/default_avatar.png')
 }
 </script>
 <style lang="scss" scoped>

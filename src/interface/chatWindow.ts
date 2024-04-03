@@ -1,5 +1,5 @@
 export interface ScrollData {
-    scrollBar: any,
-    el: HTMLElement,
-    chatListDiv: HTMLElement | null
+    scrollBar?: any,
+    el?: HTMLElement,
+    chatListDiv?: HTMLElement | null
 }

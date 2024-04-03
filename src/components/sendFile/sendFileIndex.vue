@@ -18,18 +18,18 @@
         </section>
         <section class="pr-container">
             <div v-if="type === 'application/x-zip-compressed'">
-                <img v-if="progress < 100" src="../assets/uploadingZipFile.png" alt="uploadingZipFile" width="49">
-                <img v-if="progress >= 100" src="../assets/uploadedZipFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress < 100" src="../../assets/uploadingZipFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress >= 100" src="../../assets/uploadedZipFile.png" alt="uploadingZipFile" width="49">
             </div>
             <div v-else>    
-                <img v-if="progress < 100" src="../assets/uploadingFile.png" alt="uploadingZipFile" width="49">
-                <img v-if="progress >= 100" src="../assets/uploadedFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress < 100" src="../../assets/uploadingFile.png" alt="uploadingZipFile" width="49">
+                <img v-if="progress >= 100" src="../../assets/uploadedFile.png" alt="uploadingZipFile" width="49">
             </div>
             <div class="progress" v-if="progress < 100">
                 <el-progress v-if="progress" type="circle" :percentage="progress || 0" color="#fff" :stroke-width="2" :width="22">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
-                            <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
+                            <img src="../../assets/startUpload.png" alt="uploadingZipFile" width="6">
                         </div>
                     </template>
                 </el-progress>

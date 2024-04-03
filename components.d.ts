@@ -7,9 +7,9 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    AppSetting: typeof import('./src/components/appSetting.vue')['default']
-    ChatWindow: typeof import('./src/components/chatWindow.vue')['default']
-    ComentQuote: typeof import('./src/components/comentQuote.vue')['default']
+    AppSettingIndex: typeof import('./src/components/appSetting/appSettingIndex.vue')['default']
+    ChatWindowIndex: typeof import('./src/components/chatWindow/chatWindowIndex.vue')['default']
+    ComentQuoteIndex: typeof import('./src/components/comentQuote/comentQuoteIndex.vue')['default']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElDialog: typeof import('element-plus/es')['ElDialog']
@@ -21,15 +21,15 @@ declare module 'vue' {
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
-    FriendsList: typeof import('./src/components/friendsList.vue')['default']
+    FriendsListIndex: typeof import('./src/components/friendsList/friendsListIndex.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SendFile: typeof import('./src/components/sendFile.vue')['default']
+    SendFileIndex: typeof import('./src/components/sendFile/sendFileIndex.vue')['default']
     SendFootIndex: typeof import('./src/components/sendFoot/sendFootIndex.vue')['default']
-    SendMedia: typeof import('./src/components/sendMedia.vue')['default']
-    TipsMessages: typeof import('./src/components/tipsMessages.vue')['default']
-    VideoCallAnwserer: typeof import('./src/components/videoCallAnwserer.vue')['default']
-    VideoCallOfferer: typeof import('./src/components/videoCallOfferer.vue')['default']
+    SendMediaIndex: typeof import('./src/components/sendMedia/sendMediaIndex.vue')['default']
+    TipsMessagesIndex: typeof import('./src/components/tipsMessages/tipsMessagesIndex.vue')['default']
+    VideoCallAnwsererIndex: typeof import('./src/components/videoCallAnwserer/videoCallAnwsererIndex.vue')['default']
+    VideoCallOffererIndex: typeof import('./src/components/VideoCallOfferer/videoCallOffererIndex.vue')['default']
   }
 }

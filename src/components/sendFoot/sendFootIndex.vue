@@ -38,7 +38,7 @@
     </main>
 </template>
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, reactive, computed } from 'vue'
+import { ref, defineProps, defineEmits, reactive } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
@@ -51,6 +51,7 @@ import { UploadCallback } from '@/interface/download'
 // import { useStore } from 'vuex'
 // import { useStore } from '@/store'
 import { sendFootStore } from './store'
+import { storeToRefs } from 'pinia'
 
 const sfStore = sendFootStore()
 const props = defineProps({
@@ -63,8 +64,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart', 'gotoBottom'])
 // const store = useStore()
-const showGotoBottom = computed(() => sfStore.goToBottom)
-const pongSaveCacheData = computed(() => sfStore.pongSaveCacheData)
+const { goToBottom: showGotoBottom, pongSaveCacheData } = storeToRefs(sfStore)
+// const showGotoBottom = computed(() => sfStore.goToBottom)
+// const pongSaveCacheData = computed(() => sfStore.pongSaveCacheData)
 
 const chatText = ref('')
 

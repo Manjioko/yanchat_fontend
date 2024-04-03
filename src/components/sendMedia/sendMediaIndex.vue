@@ -24,7 +24,7 @@
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
-                            <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
+                            <img src="../../assets/startUpload.png" alt="uploadingZipFile" width="6">
                         </div>
                     </template>
                 </el-progress>
@@ -38,7 +38,7 @@
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
-                            <img src="../assets/startUpload.png" alt="uploadingZipFile" width="6">
+                            <img src="../../assets/startUpload.png" alt="uploadingZipFile" width="6">
                         </div>
                     </template>
                 </el-progress>
@@ -377,7 +377,7 @@ function handleElImageErr() {
         // border-radius: 3px;
     }
     .stop-to-play {
-        background-image: url('../assets/play.png');
+        background-image: url('../../assets/play.png');
         background-repeat: no-repeat;
         background-size: 50px;
         width: 50px;
@@ -445,14 +445,14 @@ function handleElImageErr() {
         height: 70px;
         color: #ddd;
         cursor: not-allowed;
-        background-image: url('../assets/err_load.svg');
+        background-image: url('../../assets/err_load.svg');
         background-repeat: no-repeat;
         background-position: 50%;
         background-size: 70px;
     }
     .not-allow {
         cursor: not-allowed;
-        background-image: url('../assets/err_load.svg');
+        background-image: url('../../assets/err_load.svg');
         background-repeat: no-repeat;
         background-repeat: no-repeat;
         background-position: 50%;

@@ -87,7 +87,7 @@ interface PingPong {
 }
 
 interface WsConnectParams {
-    ws: Ref<WebSocket | undefined>
+    // ws: Ref<WebSocket | undefined>
     url: string
     centerFn(data: Box, type?: string): void
     videoFn(data: VideoConfig, type?: string): void

@@ -10,7 +10,7 @@
     >
         <div class="video-box">
             <div v-if="showStopIcon" style="z-index: 10;" class="stop-call" @click="stopToCall">
-                <img src="../assets/stop_call.png" class="stop-call-icon" alt="stop call">
+                <img src="../../assets/stop_call.png" class="stop-call-icon" alt="stop call">
             </div>
             <div class="vide-container">
                 <video id="local-video" autoplay playsinline></video>

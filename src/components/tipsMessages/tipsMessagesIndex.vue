@@ -32,11 +32,15 @@ import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
 import { addFriend } from '@/utils/friends'
 import { Tips } from '@/interface/global'
 // import { Tips } from '@/interface/global'
+import { MainStore } from '@/view/Main/store'
+import { storeToRefs } from 'pinia'
 const store = useStore()
+const mainStore = MainStore()
+const { ws, tips } = storeToRefs(mainStore)
 
-const ws: ComputedRef<WebSocket | null> = computed(() => store.state.global.ws)
+// const ws: ComputedRef<WebSocket | null> = computed(() => mainStore.ws)
 const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname || '')
-const tips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
+// const tips: ComputedRef<Tips[]> = computed(() => mainStore.tips)
 const tipsShowList: Ref<Tips[]> = ref([])
 watchEffect(() => {
     if (dbName.value) {
@@ -77,7 +81,8 @@ watchEffect(() => {
                 .catch((err: string) => {
                     console.log('读取 tips_messages 数据库失败 -> ', err)
                 })
-                store.commit('global/setTips', [])
+                // store.commit('global/setTips', [])
+                mainStore.tips = []
             })
         }
         // store.commit('global/setTips', [])
