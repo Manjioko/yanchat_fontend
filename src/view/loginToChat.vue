@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 // import { useStore } from 'vuex'
-import { useStore } from '@/store'
+// import { useStore } from '@/store'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
+import { MainStore } from './Main/store'
+import { FriendsListStore } from '@/components/friendsList/store'
+const mainStore = MainStore()
+const friendstore = FriendsListStore()
+// const store = useStore()
 // import { dbOpen } from '@/utils/indexDB'
 // const op = {dbName: 'dddd', version: 1}
 // dbOpen(op)
 // dbOpen({})
 
-const store = useStore()
+// const store = useStore()
 let router = ref()
 // 用户输入的电话号码
 let phone = ref('')
@@ -79,9 +84,11 @@ async function login() {
             // 保存 user_id 到 sessionStorage
             sessionStorage.setItem('user_id', user_data.user_id)
             // 重置好友栏
-            store.commit('friendsList/clearFriendsList')
+            // store.commit('friendsList/clearFriendsList')
+            friendstore.clearFriendsList()
             // 重置消息
-            store.commit('global/clearTips')
+            // store.commit('global/clearTips')
+            mainStore.clearTips()
             router.value.push({ name: 'Chat' })
             // showloginErr.value = false
 
@@ -160,9 +167,11 @@ async function login() {
             })
 
             // 重置好友栏
-            store.commit('friendsList/clearFriendsList')
+            // store.commit('friendsList/clearFriendsList')
+            friendstore.clearFriendsList()
             // 重置消息
-            store.commit('global/clearTips')
+            // store.commit('global/clearTips')
+            mainStore.clearTips()
 
             router.value.push({ name: 'Chat' })
         }

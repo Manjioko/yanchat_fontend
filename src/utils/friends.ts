@@ -3,7 +3,11 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { UserInfo, Friend } from '@/interface/global'
 import { initDdOperate } from '@/utils/indexDB'
-import { store } from '@/store'
+// import { store } from '@/store'
+import { MainStore } from '@/view/Main/store'
+import { FriendsListStore } from '@/components/friendsList/store'
+const mainstore = MainStore()
+const friendstore = FriendsListStore()
 // const store = useStore()
 
 export async function addFriend(friData: any) {
@@ -39,12 +43,13 @@ export async function addFriend(friData: any) {
             phone_number: item.phone_number,
             user: item.user
         }
-        store.commit('friendsList/addFriendsList', friendParams)
+        // store.commit('friendsList/addFriendsList', friendParams)
+        friendstore.addFriendsList(friendParams)
     })
     getUserInfo.friends = JSON.stringify(res.data.friends)
     sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
     // 更改版本号,重新更新数据库
-    initDdOperate(getUserInfo, store.state.dataBase.db)
+    initDdOperate(getUserInfo, mainstore.db)
 }
 
 export async function updateUserInfo() {
@@ -82,7 +87,8 @@ export async function updateUserInfo() {
                 phone_number: item.phone_number,
                 user: item.user
             }
-            store.commit('friendsList/addFriendsList', friendParams)
+            // store.commit('friendsList/addFriendsList', friendParams)
+            friendstore.addFriendsList(friendParams)
         })
 
         // 更新用户信息
@@ -90,6 +96,6 @@ export async function updateUserInfo() {
         sessionStorage.setItem('user_info', JSON.stringify(user_info))
 
         // 更改版本号,重新更新数据库
-        initDdOperate(user_info, store.state.dataBase.db)
+        initDdOperate(user_info, mainstore.db)
     }
 }

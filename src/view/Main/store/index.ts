@@ -1,22 +1,42 @@
 
-import { Friend, Tips } from "@/interface/global"
+import { Friend, Tips, Box } from "@/interface/global"
 import { defineStore } from "pinia"
 // import { Ref, ref } from "vue"
 
 export interface GlobalState {
     ws: WebSocket | null
+    chatBox: Box[], // 用户的聊天信息放在这里
     tips: Tips[]
     centerFn: Function | null
-    activeFriend: Friend | null,
-    reloadChatData: boolean
+    activeFriend: Friend,
+    reloadChatData: boolean,
+    scrollSafeLength: number,
+
+    db: any | null,
+    dbname: string | null,
+    dbversion: number | null,
+
 }
 export const MainStore = defineStore('view/Main', {
     state:(): GlobalState => ({
         ws: null,
+        chatBox: [],
         tips: [],
         centerFn: null,
-        activeFriend: null,
-        reloadChatData: false
+        activeFriend: {
+            name: '',
+            user_id: '',
+            phone_number: '',
+            chat_table: '',
+            active: false,
+            searchActive: false
+        },
+        reloadChatData: false,
+        scrollSafeLength: 15,
+
+        db: null,
+        dbname: null,
+        dbversion: null
     }),
     actions: {
         setWs(payload: WebSocket) {
@@ -34,11 +54,16 @@ export const MainStore = defineStore('view/Main', {
         setCenterFn(payload: Function | null) {
             this.centerFn = payload
         },
-        setActiveFriend(payload: Friend | null) {
+        setActiveFriend(payload: Friend) {
             this.activeFriend = payload
         },
         setReloadChatData(payload: boolean) {
             this.reloadChatData = payload
+        },
+        setDb(payload: any) {
+            this.db = payload.db
+            this.dbname = payload.dbName
+            this.dbversion = payload.dbVersion
         }
     }
 })

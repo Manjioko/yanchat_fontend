@@ -22,7 +22,6 @@ declare module 'vue' {
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     FriendsListIndex: typeof import('./src/components/friendsList/friendsListIndex.vue')['default']
-    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SendFileIndex: typeof import('./src/components/sendFile/sendFileIndex.vue')['default']

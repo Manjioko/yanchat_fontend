@@ -29,7 +29,7 @@
                 </el-badge> -->
                 <tipsMessages />
             </section>
-            <ChatWindow v-if="activeFriend.chat_table" ref="chatWindow" :chatBox="chatBox"
+            <ChatWindow v-if="activeFriend.chat_table" :chatBox="chatBox"
                 :avatarRefresh="avatarRefresh" :markdown="isUseMd" @scroll="handleScroll" @deleted="handleDeleted"
                 @withdraw="handleWithdraw" @quote="handleQuote" @loaded="handleLoaded" />
             <section class="zero-friend" v-else>还未选择聊天好友</section>
@@ -82,11 +82,10 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
 import { ElNotification, NotificationHandle } from 'element-plus'
-// import { ChatSquare } from '@element-plus/icons-vue'
 import videoCallOfferer from '@/components/VideoCallOfferer/videoCallOffererIndex.vue'
 import videoCallAnwserer from '@/components/videoCallAnwserer/videoCallAnwsererIndex.vue'
 import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
-// import localforage from 'localforage'
+import { saveChatWindowPosition } from './Methods/savePosition'
 import {
     dbAdd,
     dbReadRange,
@@ -112,25 +111,21 @@ import {
     // Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
-// import { offsetType } from '@/types/global'
 import { DESC } from '@/interface/indexDB'
-// import { ScrollData } from '@/interface/chatWindow'
 import { deleteLocalDataBaseData } from '@/utils/withdraw'
 import { sendFootStore } from '@/components/sendFoot/store'
 import { storeToRefs } from 'pinia'
 import { MainStore } from './store'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 
-// 测试数据
-// const phone = ref(sessionStorage.getItem('phone'))
-
-let chatBox: Ref<Box[]> = ref([])
+// let chatBox: Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
 let boxScrolltop: Ref<number> = ref(0)
 // 确保聊天页面可以滚动的安全长度
-let scrollSafeLength: Ref<number> = ref(15)
+// let scrollSafeLength: Ref<number> = ref(15)
+
 // websocket 客户端
-const { ws: websocket, reloadChatData:reconnectFresh }  = storeToRefs(MainStore())
+const { ws: websocket, reloadChatData:reconnectFresh, activeFriend, scrollSafeLength, chatBox }  = storeToRefs(MainStore())
 const userInfo: Ref<UserInfo> = ref({
     friends: '[]',
     phone_number: '',
@@ -155,21 +150,7 @@ const { scrollData } = storeToRefs(chatWindowStore)
 
 const footSendStore = sendFootStore()
 const { goToBottom: showGotoBottom } = storeToRefs(footSendStore)
-// const showGotoBottom: ComputedRef<boolean> = computed(
-//     () => footSendStore.goToBottom
-// )
-// const scrollData: ComputedRef<ScrollData> = computed(
-//     () => chatWindowStore.scrollData
-// )
-// 把 websokcket 挂到 vuex 去用
-// store.commit('global/setWs', ws)
 
-
-// 重连刷新内容
-// 这里只做了一件事，就是将 "回到最新" 的 tips 展示出来
-// const reconnectFresh: ComputedRef<boolean> = computed(
-//     () => store.state.global.reloadChatData
-// )
 watchEffect(() => {
     if (!reconnectFresh.value) return
     if (activeFriend?.value?.user_id) {
@@ -208,7 +189,14 @@ onBeforeUnmount(() => {
     // store.commit('global/setCenterFn', null)
     mainStore.setCenterFn(null)
     // store.commit('global/setActiveFriend', null)
-    mainStore.setActiveFriend(null)
+    mainStore.setActiveFriend({
+        name: '',
+        user_id: '',
+        phone_number: '',
+        chat_table: '',
+        active: false,
+        searchActive: false
+    })
 })
 
 // 将 center 挂载到 vuex
@@ -493,12 +481,14 @@ function centerPong(data: PingPong) {
                 dbAdd(chatData.to_table, [{ ...chatData, id: data.id }])
                     .then(res => {
                         console.log('存入数据库成功了 -> ', res)
+                        // 重新保存定位信息定位，防止位置丢失
+                        saveChatWindowPosition()
                     })
                     .catch(err => {
                         console.log('存入数据库失败了 -> ', err)
                     })
             } else {
-                console.log('发送呢消息，但是pond没有存储')
+                console.log('发送了消息，但是pond没有存储')
             }
         } else {
             // console.log(3)
@@ -672,15 +662,7 @@ function notifyToWindow(textOb: { text: any; user_id: any }) {
     }
 }
 
-// 选择好友
-const activeFriend: Ref<Friend> = ref({
-    name: '',
-    user_id: '',
-    phone_number: '',
-    chat_table: '',
-    active: false,
-    searchActive: false
-})
+// 图片加载完成后处理
 const imgLoadList: Ref<string[]> = ref([])
 
 // 点击好友（切换好友）
@@ -691,7 +673,8 @@ async function handleActiveFriend(f: Friend) {
     }
 
     // 设置好友信息
-    activeFriend.value = f
+    // activeFriend.value = f
+    mainStore.setActiveFriend(f)
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
     isGetChatHistoryFromUp = true
     isGetChatHistoryFromDown = true
@@ -705,55 +688,6 @@ async function handleActiveFriend(f: Friend) {
     footSendStore.pongSaveCacheData = []
     getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
     // store.commit('global/setActiveFriend', f)
-    mainStore.setActiveFriend(f)
-}
-
-// 将好友聊天定位位置保存到 vuex 中
-function saveChatWindowPosition() {
-    const chatWindowRect =
-        scrollData.value.scrollBar?.wrapRef?.getBoundingClientRect()
-    const children = scrollData.value.chatListDiv?.children
-    if (!children || !chatWindowRect) return
-    const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-    let canSaw: any[] = []
-    chatDivList.forEach((div, idx) => {
-        const rect = div.getBoundingClientRect()
-        if (
-            rect.top >= chatWindowRect.top &&
-            rect.bottom <= chatWindowRect.bottom
-        ) {
-            canSaw.push({
-                index: idx,
-                id: chatBox.value[idx].id
-            })
-        }
-    })
-    if (canSaw.length) {
-        let extendFirst = canSaw.shift()
-        let extendLast = canSaw.pop()
-
-        if (extendFirst?.id && extendLast?.id) {
-            let beforedata: { [position_id: string]: Position } = JSON.parse(
-                localStorage.getItem('Position') || '{}'
-            )
-            if (typeof beforedata === 'string') {
-                beforedata = JSON.parse(beforedata)
-            }
-            const af = activeFriend.value
-            const saveData: Position = {
-                first: extendFirst.id - Math.ceil(scrollSafeLength.value / 2),
-                last: extendLast.id + Math.ceil(scrollSafeLength.value / 2),
-                use: extendFirst.id
-            }
-            beforedata[activeFriend.value.user_id + af.chat_table] = saveData
-            localStorage.setItem('Position', JSON.stringify(beforedata))
-            // console.log('定位信息 -> ', saveData)
-        } else {
-            console.log('extendFirst 或 extendLast 不存在')
-        }
-    } else {
-        // console.log('cansaw 为空')
-    }
 }
 
 function handleChatData(data: Box[]): Box[] {
@@ -775,7 +709,7 @@ function handleChatData(data: Box[]): Box[] {
 }
 
 // 接收到信息时信息栏滚动到底部
-const chatWindow = ref()
+// const chatWindow = ref()
 
 // 查询锁 向上锁
 let isGetChatHistoryFromUp = true
@@ -1188,10 +1122,13 @@ async function handleDeleted(idx: number) {
     }
     if (res?.data !== 'err') {
         console.log('删除成功 -> ', res)
-        deleteLocalDataBaseData(chatBox.value[idx]).then(() => {
+        deleteLocalDataBaseData(chatBox.value[idx])
+        .then(() => {
             chatBox.value.splice(idx, 1)
             chat.text = '[已删除一条信息]'
             trytoRfChat.value = { chat }
+            // 重新保存定位信息
+            saveChatWindowPosition()
         })
     } else {
         console.log('删除失败 -> ', res.data)
@@ -1226,6 +1163,9 @@ async function handleWithdraw(idx: number) {
             chatBox.value[idx].text = '[撤回一条信息]'
             trytoRfChat.value = { chat: chatBox.value[idx] }
             chatBox.value.splice(idx, 1)
+
+            // 撤回或者删除后，需要重新设置定位信息
+            saveChatWindowPosition()
         })
         .catch(err => {
             console.log('撤回失败 uj -> ', err)

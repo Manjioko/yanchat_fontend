@@ -26,20 +26,20 @@
 <script lang="ts" setup>
 import { ChatSquare } from '@element-plus/icons-vue'
 // import { useStore } from 'vuex'
-import { useStore } from '@/store'
-import { computed, ComputedRef, watchEffect, ref, Ref } from 'vue'
+// import { useStore } from '@/store'
+import { watchEffect, ref, Ref } from 'vue'
 import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
 import { addFriend } from '@/utils/friends'
 import { Tips } from '@/interface/global'
 // import { Tips } from '@/interface/global'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
-const store = useStore()
+// const store = useStore()
 const mainStore = MainStore()
-const { ws, tips } = storeToRefs(mainStore)
+const { ws, tips, dbname:dbName } = storeToRefs(mainStore)
 
 // const ws: ComputedRef<WebSocket | null> = computed(() => mainStore.ws)
-const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname || '')
+// const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname || '')
 // const tips: ComputedRef<Tips[]> = computed(() => mainStore.tips)
 const tipsShowList: Ref<Tips[]> = ref([])
 watchEffect(() => {

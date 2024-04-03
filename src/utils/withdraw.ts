@@ -2,7 +2,9 @@ import { Tips, Box } from "@/interface/global"
 import { request, api } from "@/utils/api"
 import { dbDeleteByIndex } from "./indexDB"
 import { computed, ComputedRef, watchEffect } from "vue"
-import { store } from '@/store'
+// import { store } from '@/store'
+import { MainStore } from "@/view/Main/store"
+const mainstore = MainStore()
 
 export function handleWithdraw(data: Tips) {
     return new Promise((resolve, reject) => {
@@ -10,7 +12,7 @@ export function handleWithdraw(data: Tips) {
         console.log('撤回消息 -> ', data)
         const { messages_box } = data
         if (messages_box) {
-            const dbname: ComputedRef<string> = computed(() => store.state.dataBase.dbname || '')
+            const dbname: ComputedRef<string> = computed(() => mainstore.dbname || '')
             const stop = watchEffect(() => {
                 if (dbname.value) {
                     const box: Box = JSON.parse(messages_box)
@@ -23,7 +25,7 @@ export function handleWithdraw(data: Tips) {
                         //         store.state.global.centerFn(box, 'deleted')
                         //     }
                         // })
-                        store.state.global.centerFn?.(box, 'deleted')
+                        mainstore.centerFn?.(box, 'deleted')
                         resolve(true)
                     })
                     .catch(err => {
