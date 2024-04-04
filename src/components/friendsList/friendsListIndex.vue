@@ -301,7 +301,11 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
   //     return
   // }
   // 从服务器拉取未读信息
-  const flist = JSON.parse(userInfo.value.friends)
+  let flist = JSON.parse(userInfo.value.friends)
+  if (!flist) return
+  if (typeof flist === 'string') {
+    flist = JSON.parse(flist)
+  }
   const [err, unRead] = await to(
     request({
       method: 'post',
