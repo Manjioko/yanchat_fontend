@@ -2,9 +2,11 @@ import { Tips, Box } from "@/interface/global"
 import { request, api } from "@/utils/api"
 import { dbDeleteByIndex } from "./indexDB"
 import { computed, ComputedRef, watchEffect } from "vue"
+import { centerDeleted } from "@/view/Main/Methods/centerDeleted"
 // import { store } from '@/store'
 import { MainStore } from "@/view/Main/store"
 const mainstore = MainStore()
+
 
 export function handleWithdraw(data: Tips) {
     return new Promise((resolve, reject) => {
@@ -25,7 +27,8 @@ export function handleWithdraw(data: Tips) {
                         //         store.state.global.centerFn(box, 'deleted')
                         //     }
                         // })
-                        mainstore.centerFn?.(box, 'deleted')
+                        // mainstore.centerFn?.(box, 'deleted')
+                        centerDeleted(box)
                         resolve(true)
                     })
                     .catch(err => {

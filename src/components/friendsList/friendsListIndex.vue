@@ -91,13 +91,8 @@ import {
   onMounted,
   defineEmits,
   watch,
-  Ref,
-  // ComputedRef,
-  // computed
+  Ref
 } from 'vue'
-// import {  useRouter, useRoute } from 'vue-router'
-// import { useStore } from 'vuex'
-// import { useStore } from '@/store'
 import { FriendsListStore } from './store'
 import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
@@ -116,27 +111,18 @@ import {
 import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
-// const store = useStore()
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
-const { friendsList, fresh:reconnectFresh } = storeToRefs(friendStore)
-// const { }
-// import { RefreshMessage } from '@/interface/global'
-// const storeTips: ComputedRef<Tips[]> = computed(() => store.state.global.tips)
+const { friendsList, fresh:reconnectFresh, freshDeleteTextTip, freshTextTip } = storeToRefs(friendStore)
+
 const props = defineProps({
   friends: String,
-  refreshChatDataOb: Object as () => RefreshMessage,
   signal: Number,
   avatarRefresh: String,
-  tryToRefreshChatOb: Object as () => RefreshMessage
 })
 const emit = defineEmits(['handleActiveFriend'])
 
-// const friendsList: ComputedRef<Friend[]> = computed(
-//   () => friendStore.friendsList
-// )
 // 重连刷新内容
-// const reconnectFresh: ComputedRef<boolean> = computed(() => friendStore.fresh)
 watch(() => reconnectFresh.value, val => {
   if (val) {
     handleUnread(Judge.YES)
@@ -213,7 +199,6 @@ function handleSelect(idx: number, row: Friend) {
     item.active = false
   })
   if (!row.chat_table) return
-  // console.log(' chatDataOb.value -> ', chatDataOb.value)
   if (!chatDataOb.value[row.chat_table]) return
   chatDataOb.value[row.chat_table].unread = 0
 }
@@ -222,12 +207,6 @@ function handleSelect(idx: number, row: Friend) {
 const friend_phone_number = ref('')
 const missFri = ref(false)
 const repFri = ref(false)
-// let delayToShowErr = antiShake(() => {
-//     missFri.value = true
-// }, 200)
-// let delayToShowRepeatErr = antiShake(() => {
-//     repFri.value = true
-// }, 200)
 async function addFriend() {
   if (!friend_phone_number.value) {
     return
@@ -280,9 +259,9 @@ watch(
   },
   { deep: true }
 )
-watch(
-  () => props.tryToRefreshChatOb!.chat,
-  (chat: Box) => {
+
+watch(() => freshDeleteTextTip.value.chat!, (chat: Box) => {
+    if (!chat) return
     const { to_table } = chat
     // console.log('更新 chat -> ', chat, chatDataOb.value[to_table])
     if (!to_table || !chatDataOb.value[to_table]) return
@@ -297,10 +276,9 @@ watch(
   }
 )
 
-watch(
-  () => props.refreshChatDataOb!,
-  (ob: RefreshMessage) => {
+watch(() => freshTextTip.value, (ob: RefreshMessage) => {
     const { isUnread, chat } = ob
+    if (!chat) return
     if (!chatDataOb.value[chat.to_table]) {
       chatDataOb.value[chat.to_table] = {
         unread: isUnread ? 1 : 0,
@@ -312,8 +290,7 @@ watch(
       unread: isUnread ? chatDataOb.value[chat.to_table].unread + 1 : 0,
       ...chat
     }
-  }
-)
+})
 
 // 处理未读信息(红点提示部分)
 async function handleUnread(isWsReconnect: Judge = Judge.NO) {
@@ -366,8 +343,6 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
               console.log('%c readUnread 已经发出通知', 'color: red')
             }
           }
-          // 关掉刷新好友开关，因为已经重新刷新了
-          // store.commit('friendsList/setRefreshFriendData', false)
         }
       })
       .catch((err: string) => {
@@ -384,7 +359,6 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
     // 如果是 ws 连接时，没有设置未读信息时，默认为 0
     setTipData[key] = {
       ...lastChat,
-      // unread: store.state.global.activeFriend?.chat_table === key ?
       unread: mainStore.activeFriend?.chat_table === key ?
       0 :
       unRead.data[key].unread + unread
@@ -392,28 +366,9 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
   })
   chatDataOb.value = setTipData
   if (isWsReconnect === Judge.YES) {
-    // store.commit('friendsList/setRefreshFriendData', false)
     friendStore.fresh = false
   }
 }
-
-// 消息处理
-// function handleTips() {
-
-//     watchEffect(() => {
-//         if (storeTips.value.length) {
-//             // console.log('tips2 -> ', [...JSON.parse(JSON.stringify(storeTips.value))])
-//             dbAdd('tips_messages', [...JSON.parse(JSON.stringify(storeTips.value))])
-//             .then(() => {
-//                 console.log('成功将 Tips 信息保存到数据库中！')
-//             })
-//             .catch((err: string) => {
-//                 console.log('将 Tips 信息保存到数据库中失败了 -> ', err)
-//             })
-//             store.commit('global/setTips', [])
-//         }
-//     })
-// }
 
 // 处理未读信息(文字部分)
 function handleUnreadMsg(unreadOb: Tip): string {
@@ -448,7 +403,7 @@ function handleClose() {
 // 搜索好友
 const searchText = ref('')
 const shake = antiShake(() => {
-  console.log('friends filter -> ', searchText.value)
+  // console.log('friends filter -> ', searchText.value)
   const reg = new RegExp(`${searchText.value}`, 'ig')
 
   // 筛选好友，如果没有筛选中任意一个，就显示全部

@@ -1,13 +1,22 @@
 import { defineStore } from 'pinia'
+import { RefreshMessage } from '@/interface/global'
 
 export interface FriendsListState {
     friendsList: any[],
-    fresh: boolean
+    fresh: boolean,
+    freshTextTip: RefreshMessage,
+    freshDeleteTextTip: RefreshMessage
 }
 export const FriendsListStore = defineStore('components/friendsList', {
     state:(): FriendsListState => ({
         friendsList: [],
-        fresh: false
+        fresh: false,
+        freshTextTip: {
+            chat: null
+        },
+        freshDeleteTextTip: {
+            chat: null
+        }
     }),
     actions: {
         updateFriendsList(payload: any) {

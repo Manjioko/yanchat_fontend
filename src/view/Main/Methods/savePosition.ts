@@ -2,6 +2,8 @@ import { ChatWindowStore } from '@/components/chatWindow/store'
 import { MainStore } from '../store'
 // import { elementFilter } from './ElementFilter'
 import { Position } from '@/interface/global'
+import { jugeScrollOverScreen } from './jugeScrollOverScreen'
+import { cutChatBox } from './cutChatBox'
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 
@@ -13,12 +15,14 @@ export function saveChatWindowPosition() {
     const children = chatWindowStore.scrollData.chatListDiv?.children
     if (!children || !chatWindowRect || !chatWindowEl) return
     const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-    const canSaw: string[] = []
+    const canSaw: string | number [] = []
     const ary = elementFilter(chatDivList, chatWindowEl)
+    jugeScrollOverScreen(ary)
     ary.forEach((el) => {
-        const id = el.dataset.checkId
-        if (id) {
-            canSaw.push(id)
+        const idx = el.dataset.checkIndex
+        if (idx) {
+            const id = mainStore.chatBox[Number(idx)]?.id
+            id && canSaw.push(id)
         }
     })
 
@@ -47,6 +51,8 @@ export function saveChatWindowPosition() {
     beforedata[mainStore.activeFriend.user_id + af.chat_table] = saveData
     localStorage.setItem('Position', JSON.stringify(beforedata))
     console.log('定位信息 -> ', saveData)
+    // 计算多余的聊天记录，如果数量过多，需要裁掉一部分，节省内存
+    cutChatBox(ary)
 }
 
 

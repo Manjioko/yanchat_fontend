@@ -7,10 +7,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import { MainStore } from './Main/store'
-import { FriendsListStore } from '@/components/friendsList/store'
-const mainStore = MainStore()
-const friendstore = FriendsListStore()
+// import { MainStore } from './Main/store'
+// import { FriendsListStore } from '@/components/friendsList/store'
+// const mainStore = MainStore()
+// const friendstore = FriendsListStore()
 // const store = useStore()
 // import { dbOpen } from '@/utils/indexDB'
 // const op = {dbName: 'dddd', version: 1}
@@ -85,10 +85,10 @@ async function login() {
             sessionStorage.setItem('user_id', user_data.user_id)
             // 重置好友栏
             // store.commit('friendsList/clearFriendsList')
-            friendstore.clearFriendsList()
+            // friendstore.clearFriendsList()
             // 重置消息
             // store.commit('global/clearTips')
-            mainStore.clearTips()
+            // mainStore.clearTips()
             router.value.push({ name: 'Chat' })
             // showloginErr.value = false
 
@@ -168,10 +168,10 @@ async function login() {
 
             // 重置好友栏
             // store.commit('friendsList/clearFriendsList')
-            friendstore.clearFriendsList()
+            // friendstore.clearFriendsList()
             // 重置消息
             // store.commit('global/clearTips')
-            mainStore.clearTips()
+            // mainStore.clearTips()
 
             router.value.push({ name: 'Chat' })
         }
@@ -212,7 +212,7 @@ async function login() {
 
 <style lang="scss" scoped>
 .container {
-    background-image: url('../assets/login_bg.png');
+    background-image: url('../../assets/login_bg.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
     width: 100%;

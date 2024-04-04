@@ -1,6 +1,6 @@
 <template>
     <header>
-        <section v-if="showGotoBottom" style="position: relative;">
+        <section v-if="showGotoBottom === Judge.YES" style="position: relative;">
             <div class="goto-bottom" @click="handleGotoBottom">
                 <span>回到最新位置 {{ pongSaveCacheData.length ? pongSaveCacheData.length : ''}}</span>
                 <!-- <span>回到最新位置</span> -->
@@ -46,14 +46,12 @@ import { uploadSlice } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
-import { Box } from '@/interface/global'
+import { Box, Judge } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
-// import { useStore } from 'vuex'
-// import { useStore } from '@/store'
-import { sendFootStore } from './store'
+import { FootSendStore } from './store'
 import { storeToRefs } from 'pinia'
 
-const sfStore = sendFootStore()
+const sfStore = FootSendStore()
 const props = defineProps({
     chatBox: Object,
     uploadDisable: Boolean,
@@ -63,10 +61,7 @@ const props = defineProps({
     }
 })
 const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart', 'gotoBottom'])
-// const store = useStore()
 const { goToBottom: showGotoBottom, pongSaveCacheData } = storeToRefs(sfStore)
-// const showGotoBottom = computed(() => sfStore.goToBottom)
-// const pongSaveCacheData = computed(() => sfStore.pongSaveCacheData)
 
 const chatText = ref('')
 
@@ -86,8 +81,7 @@ function sendMessage(chatData?:Box) {
     const message = chatText.value
 
     if (!message) return
-
-    // websocket.value?.send(JSON.stringify(sendData))
+    
     const uuid = uuidv4()
     const dataOb:Box = reactive({
         type: 'text',

@@ -73,7 +73,7 @@ interface UserInfo {
 // 更新好友列表结构
 interface RefreshMessage {
     isUnread?: number,
-    chat: Box
+    chat: Box | null
 }
 
 // 回响形状
@@ -136,6 +136,11 @@ enum Judge {
     NO
 }
 
+enum Lock {
+    UnLock,
+    Locked
+}
+
 export {
     Box,
     InitBox,
@@ -148,5 +153,6 @@ export {
     Position,
     IsSwitchFriend,
     Judge,
-    Tips
+    Tips,
+    Lock
 }

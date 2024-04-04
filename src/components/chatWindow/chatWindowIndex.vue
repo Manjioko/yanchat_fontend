@@ -2,7 +2,7 @@
     <div class="text-show">
         <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
             <div @contextmenu.prevent="handleMenu" data-menu-stop data-chat-list>
-                <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id" :data-check-id="textObject.id">
+                <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id" :data-check-index="idx">
                     <div class="show-time">{{ handleTime(Number(idx)) }}</div>
                     <div class="chat-box-remote" v-if="textObject.user !== 1">
                         <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">

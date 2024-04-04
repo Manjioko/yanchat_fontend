@@ -52,6 +52,12 @@ import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { getAvatarImage } from '@/utils/thumbnail'
+
+import { MainStore } from '@/view/Main/store'
+import { storeToRefs } from 'pinia'
+import router from '@/router/router'
+import { ResetPinia } from '@/utils/resetAllPiniaStore'
+const { ws: websocket } = storeToRefs(MainStore())
 // import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
@@ -106,9 +112,18 @@ function showDialog(isShow: boolean) {
 
 // 处理退出登录
 function handleExit() {
-    emit('exit')
+    if (websocket.value) {
+        const ws = websocket.value as WebSocket
+        ws.close(4001, '客户端关闭链接')
+    }
+    sessionStorage.setItem('user_info', '')
+    const storeObject = ResetPinia()
+    storeObject.all()
+    router.go(-1)
+    
     dShow.value = false
 }
+
 
 // 上传头像
 async function uploadAvatar(e: Event) {

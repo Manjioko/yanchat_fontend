@@ -1,26 +1,22 @@
 <template>
     <main class="main" @contextmenu.prevent>
-        <friendsList :friends="userInfo.friends" :refreshChatDataOb="newChatData" :tryToRefreshChatOb="trytoRfChat"
-            :signal="signal" :avatarRefresh="avatarRefresh" @handleActiveFriend="handleActiveFriend" />
+        <friendsList
+            :friends="userInfo.friends"
+            :signal="signal"
+            :avatarRefresh="avatarRefresh"
+            @handleActiveFriend="handleActiveFriend"
+        />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
                     <span>{{ activeFriend.name }}</span>
-                    <span v-if="signal === 0" class="reconnect">{{
-            '正在重连中...'
-        }}</span>
-                    <span v-if="signal === 2" class="disconnect">{{
-            '已经断线,请检测网络环境是否可用'
-        }}</span>
+                    <span v-if="signal === 0" class="reconnect">{{'正在重连中...'}}</span>
+                    <span v-if="signal === 2" class="disconnect">{{'已经断线,请检测网络环境是否可用'}}</span>
                 </div>
                 <div class="default-avatar" v-else>
                     <div style="width: 100%; height: 40px">
-                        <span v-if="signal === 0" class="reconnect">{{
-            '正在重连中...'
-        }}</span>
-                        <span v-if="signal === 2" class="disconnect">{{
-            '已经断线,请检测网络环境是否可用'
-        }}</span>
+                        <span v-if="signal === 0" class="reconnect">{{'正在重连中...'}}</span>
+                        <span v-if="signal === 2" class="disconnect">{{'已经断线,请检测网络环境是否可用'}}</span>
                     </div>
                 </div>
                 <img src="../../assets/setting.png" alt="setting" @click="showSettingDialog" />
@@ -40,7 +36,7 @@
             </section>
         </section>
     </main>
-    <AppSetting ref="appSetting" @exit="handleExit" @avaterChange="handleAvatarChange"
+    <AppSetting ref="appSetting" @avaterChange="handleAvatarChange"
         @nickNameChange="handleNickNameChange" @isUseMarkdown="handleIsUseMarkdown" />
     <!-- 测试模式用 -->
     <videoCallOfferer v-if="activeFriend && showOfferer" :friend="activeFriend" :socket="websocket || undefined"
@@ -64,6 +60,7 @@ import {
     onBeforeUnmount,
     nextTick,
     watchEffect,
+    watch,
     h,
     Ref,
     // computed,
@@ -77,7 +74,6 @@ import friendsList from '@/components/friendsList/friendsListIndex.vue'
 import antiShake from '@/utils/antiShake'
 import AppSetting from '@/components/appSetting/appSettingIndex.vue'
 import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
-import router from '@/router/router'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
@@ -100,23 +96,27 @@ import {
     Box,
     Friend,
     UserInfo,
-    RefreshMessage,
-    InitBox,
     WsConnectParams,
     PingPong,
     Position,
     IsSwitchFriend,
     Judge,
-    Tips
+    Tips,
+    Lock
     // Tips
 } from '@/interface/global'
 import { VideoConfig, InitVideoConfig } from '@/interface/video'
 import { DESC } from '@/interface/indexDB'
 import { deleteLocalDataBaseData } from '@/utils/withdraw'
-import { sendFootStore } from '@/components/sendFoot/store'
+import { FootSendStore } from '@/components/sendFoot/store'
 import { storeToRefs } from 'pinia'
 import { MainStore } from './store'
 import { ChatWindowStore } from '@/components/chatWindow/store'
+import { FriendsListStore } from '@/components/friendsList/store'
+import { centerDeleted } from './Methods/centerDeleted'
+
+const friendsStore = FriendsListStore()
+const { freshTextTip, freshDeleteTextTip } = storeToRefs(friendsStore)
 
 // let chatBox: Ref<Box[]> = ref([])
 // 当前聊天框滚动的 scrollTop 值
@@ -148,17 +148,17 @@ const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 const { scrollData } = storeToRefs(chatWindowStore)
 
-const footSendStore = sendFootStore()
-const { goToBottom: showGotoBottom } = storeToRefs(footSendStore)
+const footSendStore = FootSendStore()
+const { isLastChatList, scrollUpLock, scrollDownLock } = storeToRefs(mainStore)
 
-watchEffect(() => {
-    if (!reconnectFresh.value) return
-    if (activeFriend?.value?.user_id) {
-        handleWsReconnect()
+watch(() => reconnectFresh.value, (val:boolean) => {
+    if (val) {
+        if (activeFriend?.value?.user_id) {
+            handleWsReconnect()
+        }
     }
 })
 
-// const route = useRoute()
 onMounted(async () => {
     const user_id = sessionStorage.getItem('user_id')
     const wsUrl = sessionStorage.getItem('wsBaseUrl')
@@ -186,9 +186,6 @@ onBeforeUnmount(() => {
     if (refreshTokenTime) {
         clearInterval(refreshTokenTime)
     }
-    // store.commit('global/setCenterFn', null)
-    mainStore.setCenterFn(null)
-    // store.commit('global/setActiveFriend', null)
     mainStore.setActiveFriend({
         name: '',
         user_id: '',
@@ -198,10 +195,6 @@ onBeforeUnmount(() => {
         searchActive: false
     })
 })
-
-// 将 center 挂载到 vuex
-// store.commit('global/setCenterFn', Center)
-mainStore.setCenterFn(Center)
 
 // 刷新 refreshToken
 function getRefreshToken() {
@@ -225,13 +218,13 @@ function getRefreshToken() {
     }, 1000 * 60 * 60)
 }
 
-let newChatData: Ref<RefreshMessage> = ref({
-    chat: InitBox
-})
+// let newChatData: Ref<RefreshMessage> = ref({
+//     chat: InitBox
+// })
 
-let trytoRfChat: Ref<RefreshMessage> = ref({
-    chat: InitBox
-})
+// let trytoRfChat: Ref<RefreshMessage> = ref({
+//     chat: InitBox
+// })
 
 function Center(chatData: Box, type?: string): void {
     // 发送消息
@@ -271,7 +264,7 @@ function Center(chatData: Box, type?: string): void {
 
         // core
         // chatBox.value.push(chatData)
-        if (isLastChatList.value) {
+        if (isLastChatList.value === Judge.YES) {
             chatBox.value.push(chatData)
             nextTick(() => {
                 scrollChatBoxToBottom()
@@ -306,7 +299,7 @@ function Center(chatData: Box, type?: string): void {
             if (websocket.value) {
                 const ws = websocket.value as WebSocket
                 ws.send(JSON.stringify(chatData))
-                console.log('mainUI 发送消息!', chatData, ws)
+                // console.log('mainUI 发送消息!', chatData, ws)
             }
         }
 
@@ -339,10 +332,10 @@ function Center(chatData: Box, type?: string): void {
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
                 // chatBox.value.push(chatData)
-                if (receivedShowGotoBottom === Judge.YES) {
+                if (mainStore.receivedShowGotoBottom === Judge.YES) {
                     chatBox.value.push(chatData)
                     //   store.commit('footSend/setGotoBottomState', true)
-                    footSendStore.goToBottom = true
+                    footSendStore.goToBottom = Judge.YES
                     pongSaveCacheData.push(chatData)
                     //   store.commit(
                     //     'footSend/setPongSaveCacheData',
@@ -350,7 +343,7 @@ function Center(chatData: Box, type?: string): void {
                     //   )
                     footSendStore.pongSaveCacheData = JSON.parse(JSON.stringify(pongSaveCacheData))
                 } else {
-                    if (isLastChatList.value) {
+                    if (isLastChatList.value === Judge.YES) {
                         chatBox.value.push(chatData)
                         nextTick(() => {
                             scrollChatBoxToBottom()
@@ -391,14 +384,22 @@ function Center(chatData: Box, type?: string): void {
 // 滚动聊天框到底部
 function scrollChatBoxToBottom(start_sp?: number) {
     const end_sp = scrollData.value.chatListDiv?.scrollHeight
-    end_sp &&
-        scrollData.value.scrollBar.setScrollTop(
-            start_sp ? end_sp - start_sp : end_sp
-        )
+    end_sp
+    &&
+    scrollData.value.scrollBar.setScrollTop(
+        start_sp ? end_sp - start_sp : end_sp
+    )
+    // 滚动到底部时，应该负责关掉回到最新按钮
+    footSendStore.goToBottom = Judge.NO
 }
 // 将信息发送到好友模块的提示栏中
 function sendTipToFriendModel(unread: number, chat: Box) {
-    newChatData.value = {
+    // newChatData.value = {
+    //     // isUnread 为 1时标记为未读，0 时标记为已读需要展示
+    //     isUnread: unread,
+    //     chat: chat
+    // }
+    freshTextTip.value = {
         // isUnread 为 1时标记为未读，0 时标记为已读需要展示
         isUnread: unread,
         chat: chat
@@ -444,30 +445,13 @@ function VideoCenter(data: VideoConfig, type?: string) {
     }
 }
 
-// 接收信息撤回处理
-function centerDeleted(chat: Box) {
-    const isActive = activeFriend.value?.chat_table === chat.to_table
-    if (isActive) {
-        // console.log('撤回 -> 0')
-        const idx = chatBox.value.findIndex(i => i.chat_id === chat.chat_id)
-        if (idx !== -1) {
-            chatBox.value.splice(idx, 1)
-        }
-        chat.text = '[撤回一条信息]'
-        trytoRfChat.value = { chat }
-        return
-    }
-    chat.text = '[撤回一条信息]'
-    trytoRfChat.value = { chat }
-    // console.log('撤回 -> 1')
-}
 
 // 接收消息回响
 const pongSaveCacheData: Box[] = []
 
 function centerPong(data: PingPong) {
     if (activeFriend.value.chat_table === data.to_table) {
-        if (isLastChatList.value) {
+        if (isLastChatList.value === Judge.YES) {
             const boxIndex = chatBox.value.findIndex(
                 chat => chat.chat_id === data.chat_id
             )
@@ -676,13 +660,13 @@ async function handleActiveFriend(f: Friend) {
     // activeFriend.value = f
     mainStore.setActiveFriend(f)
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
-    isGetChatHistoryFromUp = true
-    isGetChatHistoryFromDown = true
+    scrollUpLock.value = Lock.UnLock
+    scrollDownLock.value = Lock.UnLock
     // 记录的结尾标识也需要重置
-    isLastChatList.value = false
+    isLastChatList.value = Judge.NO
     // 存在回到最新提示的也需要重置
     //   store.commit('footSend/setGotoBottomState', false)
-    footSendStore.goToBottom = false
+    footSendStore.goToBottom = Judge.NO
     // 未显示内容需要重置
     // store.commit('footSend/setPongSaveCacheData', [])
     footSendStore.pongSaveCacheData = []
@@ -712,12 +696,12 @@ function handleChatData(data: Box[]): Box[] {
 // const chatWindow = ref()
 
 // 查询锁 向上锁
-let isGetChatHistoryFromUp = true
+// let scrollUpLock = true
 // 查询锁，向下锁
-let isGetChatHistoryFromDown = true
+// let scrollDownLock = true
 
 // 判断获取数据时候是最后一组了
-let isLastChatList: Ref<boolean> = ref(false)
+// let isLastChatList: Ref<boolean> = ref(false)
 
 // 从服务器获取聊天记录
 // offsetOb 可以放置不同的 offset, 比如数据库的 offset, 和滚动距离的 offset
@@ -752,11 +736,11 @@ async function normalGetChatData(rollingDeriction: DESC) {
 }
 // 获取数据后处理文件定位
 async function handlePositionAfterGetChatDataFromUp() {
-    if (!isGetChatHistoryFromUp) return
+    // if (!scrollUpLock.value) return
 
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
-    isGetChatHistoryFromUp = false
+    scrollUpLock.value = Lock.Locked
 
     const chat_table = activeFriend.value.chat_table
     const offset = chatBox.value[0].id
@@ -765,7 +749,7 @@ async function handlePositionAfterGetChatDataFromUp() {
     if (!offset) return
     const chatData: Box[] = []
     chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.UP)))
-    console.log('获取聊天记录 向上 -> ', chatData)
+    console.log('获取聊天记录 向上 -> ', chatData.length)
 
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
     const resChatData = handleChatData(chatData || [])
@@ -780,27 +764,27 @@ async function handlePositionAfterGetChatDataFromUp() {
     })
 
     // 释放锁
-    isGetChatHistoryFromUp = true
+    scrollUpLock.value = Lock.UnLock
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistoryFromUp = false
+    if (chatData?.length === 0) scrollUpLock.value = Lock.Locked
 }
 
 async function handlePositionAfterGetChatDataFromDown() {
-    if (!isGetChatHistoryFromDown) return
+    // if (!scrollDownLock) return
 
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
-    isGetChatHistoryFromDown = false
+    scrollDownLock.value = Lock.Locked
 
     const chat_table = activeFriend.value.chat_table
-    const offset = chatBox.value[chatBox.value.length - 1].id
+    const offset = chatBox.value.length ? chatBox.value[chatBox.value.length - 1].id : 0
     // console.log('最后一个box数据 -> ', chatBox.value[chatBox.value.length - 1])
     const chatData: Box[] = []
     // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
     chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.DOWN)))
     const lastId = await dbGetLastPrimaryKey(chat_table)
-    console.log('获取聊天记录 向下 -> ', chatData)
+    console.log('获取聊天记录 向下 -> ', chatData.length)
     const tmpScrollTopValue = boxScrolltop.value
     const resChatData = handleChatData(chatData || [])
     chatBox.value.push(...resChatData)
@@ -811,17 +795,17 @@ async function handlePositionAfterGetChatDataFromDown() {
             //  chatData.length < scrollSafeLength.value ||
             if (!chatData.length || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
-                isLastChatList.value = true
-                isGetChatHistoryFromDown = false
+                isLastChatList.value = Judge.YES
+                scrollDownLock.value = Lock.Locked
             }
         })
     })
 
     // 释放锁
-    isGetChatHistoryFromDown = true
+    scrollDownLock.value = Lock.UnLock
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistoryFromDown = false
+    if (chatData?.length === 0) scrollDownLock.value = Lock.Locked
 }
 
 async function handlePositionAfterFirstTimeGetChatData() {
@@ -847,8 +831,8 @@ async function handlePositionAfterFirstTimeGetChatData() {
                 ) {
                     // console.log('到底了 -> ', lastId)
                     // 向下锁 锁死ß
-                    isGetChatHistoryFromDown = false
-                    isLastChatList.value = true
+                    scrollDownLock.value = Lock.Locked
+                    isLastChatList.value = Judge.YES
                     if (!scrollData?.value?.el) return
                     if (
                         scrollData.value.el.scrollTop + scrollData.value.el.clientHeight <
@@ -856,11 +840,11 @@ async function handlePositionAfterFirstTimeGetChatData() {
                     ) {
                         // 用于显示 "回到最新" Tip 按钮
                         // store.commit('footSend/setGotoBottomState', true)
-                        footSendStore.goToBottom = true
+                        footSendStore.goToBottom = Judge.YES
                     }
                 } else {
                     // store.commit('footSend/setGotoBottomState', true)
-                    footSendStore.goToBottom = true
+                    footSendStore.goToBottom = Judge.YES
                 }
             })
         }
@@ -871,15 +855,15 @@ async function handlePositionAfterFirstTimeGetChatData() {
             // const end_sp = scrollData.value.chatListDiv?.scrollHeight
             // chatWindow.value.scrollBar.setScrollTop(end_sp)
             scrollChatBoxToBottom()
-            isLastChatList.value = true
+            isLastChatList.value = Judge.YES
         })
     }
 
     // 释放锁
-    isGetChatHistoryFromUp = true
+    scrollUpLock.value = Lock.UnLock
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) isGetChatHistoryFromUp = false
+    if (chatData?.length === 0) scrollUpLock.value = Lock.Locked
 }
 
 // 从数据库拿数据
@@ -990,39 +974,8 @@ function mediaDelayPosition(chatData: Box[], cb: Function) {
     }
 }
 
-// 监听回到最新定位方法
-let receivedShowGotoBottom: Judge = Judge.NO
-watchEffect(() => {
-    if (!scrollData.value?.el) {
-        console.log('scrollData 没值 -> ', scrollData.value)
-        return
-    }
-    if (
-        scrollData.value.el.scrollTop + scrollData.value.el.clientHeight + 20 >
-        scrollData.value.el.scrollHeight
-    ) {
-        if (isLastChatList.value) {
-            // store.commit('footSend/setGotoBottomState', false)
-            footSendStore.goToBottom = false
-            receivedShowGotoBottom = Judge.NO
-        }
-    }
-
-    if (
-        scrollData?.value?.el.scrollHeight -
-        scrollData.value.el.clientHeight -
-        scrollData.value.el.scrollTop >
-        scrollData.value.el.clientHeight * 1.5
-    ) {
-        console.log('已经滚动超过一个聊天框的距离')
-        if (isLastChatList.value && !showGotoBottom.value) {
-            receivedShowGotoBottom = Judge.YES
-        }
-    }
-})
-
 async function handleGotoBottom() {
-    if (isLastChatList.value) {
+    if (isLastChatList.value === Judge.YES) {
         scrollChatBoxToBottom()
         // console.log('直接到底部了')
     } else {
@@ -1046,7 +999,7 @@ const scrollOffsetAntiShakeFn = antiShake(saveChatWindowPosition, 500)
 // 创建一个防抖实例函数
 const scrollAntiShakeFn = antiShake(getChatFromServer)
 async function handleScroll(val: { scrollTop: number }) {
-    // console.log('handleScroll isGetChatHistoryFromUp -> ', isGetChatHistoryFromUp)
+    // console.log('handleScroll scrollUpLock -> ', scrollUpLock)
     if (!scrollData.value?.el) {
         console.log('scrollData 没值2 -> ', scrollData.value)
         return
@@ -1054,13 +1007,13 @@ async function handleScroll(val: { scrollTop: number }) {
     boxScrolltop.value = val.scrollTop
     scrollOffsetAntiShakeFn()
     // if (!scrollData.value?.el) return
-    if (Math.floor(val.scrollTop) === 0 && isGetChatHistoryFromUp) {
+    if (Math.floor(val.scrollTop) === 0 && scrollUpLock.value === Lock.UnLock) {
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.UP)
     }
     if (
         val.scrollTop + scrollData.value.el.clientHeight + 5 >=
         scrollData.value.el.scrollHeight &&
-        isGetChatHistoryFromDown
+        scrollDownLock.value === Lock.UnLock
     ) {
         // console.log('滚到了底部，需要获取数据了')
         scrollAntiShakeFn(IsSwitchFriend.No, DESC.DOWN)
@@ -1071,16 +1024,6 @@ async function handleScroll(val: { scrollTop: number }) {
 const appSetting = ref()
 function showSettingDialog() {
     appSetting.value.showDialog(true)
-}
-
-function handleExit() {
-    if (websocket.value) {
-        const ws = websocket.value as WebSocket
-        ws.close(4001, '客户端关闭链接')
-    }
-    // websocket?.value?.close(4001,'客户端关闭链接')
-    sessionStorage.setItem('user_info', '')
-    router.go(-1)
 }
 
 // 头像更新
@@ -1126,7 +1069,7 @@ async function handleDeleted(idx: number) {
         .then(() => {
             chatBox.value.splice(idx, 1)
             chat.text = '[已删除一条信息]'
-            trytoRfChat.value = { chat }
+            freshDeleteTextTip.value = { chat }
             // 重新保存定位信息
             saveChatWindowPosition()
         })
@@ -1161,7 +1104,7 @@ async function handleWithdraw(idx: number) {
     deleteLocalDataBaseData(chatBox.value[idx])
         .then(() => {
             chatBox.value[idx].text = '[撤回一条信息]'
-            trytoRfChat.value = { chat: chatBox.value[idx] }
+            freshDeleteTextTip.value = { chat: chatBox.value[idx] }
             chatBox.value.splice(idx, 1)
 
             // 撤回或者删除后，需要重新设置定位信息
@@ -1213,11 +1156,11 @@ function handleLoaded(chat_id: string) {
 // websocket 重连刷新
 function handleWsReconnect() {
     // store.commit('footSend/setGotoBottomState', true)
-    footSendStore.goToBottom = true
+    footSendStore.goToBottom = Judge.YES
     // 如果上锁了，就将锁解开，让它自由的获取到数据
-    if (!isGetChatHistoryFromDown) {
-        isGetChatHistoryFromDown = true
-        isLastChatList.value = false
+    if (scrollDownLock.value === Lock.Locked) {
+        scrollDownLock.value = Lock.UnLock
+        isLastChatList.value = Judge.NO
     }
 
     // 关掉 realoadChatData

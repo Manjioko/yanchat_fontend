@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
-import { Box } from '@/interface/global'
+import { Box, Judge } from '@/interface/global'
 
 export interface FootSendState {
-    goToBottom: boolean
+    goToBottom: Judge
     pongSaveCacheData: Box[]
 }
 
-export const sendFootStore = defineStore('components/sendFoot', {
+export const FootSendStore = defineStore('components/sendFoot', {
     state:(): FootSendState => ({
-        goToBottom: false,
+        goToBottom: Judge.NO,
         pongSaveCacheData: []
     }),
     actions: {
