@@ -43,6 +43,11 @@ export const MainStore = defineStore('view/Main', {
         dbname: null,
         dbversion: null
     }),
+    getters: {
+        positionId(): string {
+            return this.activeFriend.user_id + this.activeFriend.chat_table
+        }
+    },
     actions: {
         setWs(payload: WebSocket) {
             this.ws = payload

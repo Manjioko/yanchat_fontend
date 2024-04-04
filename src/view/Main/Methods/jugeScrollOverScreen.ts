@@ -1,6 +1,8 @@
 import { MainStore } from "../store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { Judge } from "@/interface/global"
+import { deleteActionFriendPositionData } from '../Methods/positionOperator'
+// import typeIs from "@/utils/type"
 import { storeToRefs } from "pinia"
 
 const mainStore = MainStore()
@@ -33,5 +35,8 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
     ) {
         console.log('已经到底了😂')
         goToBottom.value = Judge.NO
+
+        // 一旦到底了, 就不需要定位，不然可能会出现问题
+        deleteActionFriendPositionData()
     }
 }

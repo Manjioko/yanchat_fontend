@@ -82,6 +82,7 @@ import videoCallOfferer from '@/components/VideoCallOfferer/videoCallOffererInde
 import videoCallAnwserer from '@/components/videoCallAnwserer/videoCallAnwsererIndex.vue'
 import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
 import { saveChatWindowPosition } from './Methods/savePosition'
+import { deleteActionFriendPositionData, clearActionFriendPositionData } from './Methods/positionOperator'
 import {
     dbAdd,
     dbReadRange,
@@ -98,7 +99,6 @@ import {
     UserInfo,
     WsConnectParams,
     PingPong,
-    Position,
     IsSwitchFriend,
     Judge,
     Tips,
@@ -114,6 +114,7 @@ import { MainStore } from './store'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { centerDeleted } from './Methods/centerDeleted'
+import { getActionFriendPositionData } from './Methods/positionOperator'
 
 const friendsStore = FriendsListStore()
 const { freshTextTip, freshDeleteTextTip } = storeToRefs(friendsStore)
@@ -217,14 +218,6 @@ function getRefreshToken() {
         }
     }, 1000 * 60 * 60)
 }
-
-// let newChatData: Ref<RefreshMessage> = ref({
-//     chat: InitBox
-// })
-
-// let trytoRfChat: Ref<RefreshMessage> = ref({
-//     chat: InitBox
-// })
 
 function Center(chatData: Box, type?: string): void {
     // 发送消息
@@ -331,16 +324,10 @@ function Center(chatData: Box, type?: string): void {
             if (chatData.user_id === activeFriend?.value?.user_id) {
                 // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
                 // 先处理撤回信息
-                // chatBox.value.push(chatData)
                 if (mainStore.receivedShowGotoBottom === Judge.YES) {
                     chatBox.value.push(chatData)
-                    //   store.commit('footSend/setGotoBottomState', true)
                     footSendStore.goToBottom = Judge.YES
                     pongSaveCacheData.push(chatData)
-                    //   store.commit(
-                    //     'footSend/setPongSaveCacheData',
-                    //     JSON.parse(JSON.stringify(pongSaveCacheData))
-                    //   )
                     footSendStore.pongSaveCacheData = JSON.parse(JSON.stringify(pongSaveCacheData))
                 } else {
                     if (isLastChatList.value === Judge.YES) {
@@ -351,10 +338,6 @@ function Center(chatData: Box, type?: string): void {
                         // scrollChatBoxToBottom()
                     } else {
                         pongSaveCacheData.push(chatData)
-                        // store.commit(
-                        //   'footSend/setPongSaveCacheData',
-                        //   JSON.parse(JSON.stringify(pongSaveCacheData))
-                        // )
                         footSendStore.pongSaveCacheData = JSON.parse(JSON.stringify(pongSaveCacheData))
                     }
                 }
@@ -394,11 +377,6 @@ function scrollChatBoxToBottom(start_sp?: number) {
 }
 // 将信息发送到好友模块的提示栏中
 function sendTipToFriendModel(unread: number, chat: Box) {
-    // newChatData.value = {
-    //     // isUnread 为 1时标记为未读，0 时标记为已读需要展示
-    //     isUnread: unread,
-    //     chat: chat
-    // }
     freshTextTip.value = {
         // isUnread 为 1时标记为未读，0 时标记为已读需要展示
         isUnread: unread,
@@ -692,20 +670,6 @@ function handleChatData(data: Box[]): Box[] {
     )
 }
 
-// 接收到信息时信息栏滚动到底部
-// const chatWindow = ref()
-
-// 查询锁 向上锁
-// let scrollUpLock = true
-// 查询锁，向下锁
-// let scrollDownLock = true
-
-// 判断获取数据时候是最后一组了
-// let isLastChatList: Ref<boolean> = ref(false)
-
-// 从服务器获取聊天记录
-// offsetOb 可以放置不同的 offset, 比如数据库的 offset, 和滚动距离的 offset
-// let offsetOb:{ [key: string]: offsetType  } = {}
 async function getChatFromServer(
     isSwitchFriend: IsSwitchFriend,
     rollingDeriction: DESC
@@ -757,8 +721,6 @@ async function handlePositionAfterGetChatDataFromUp() {
     nextTick(() => {
         // console.log('scrollData 3 -> ', scrollData)
         mediaDelayPosition(chatData, () => {
-            // const end_sp = scrollData.value.chatListDiv?.scrollHeight
-            // chatWindow.value.scrollBar.setScrollTop(end_sp - start_sp)
             scrollChatBoxToBottom(start_sp)
         })
     })
@@ -791,12 +753,11 @@ async function handlePositionAfterGetChatDataFromDown() {
     nextTick(() => {
         mediaDelayPosition(chatData, () => {
             scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
-            // console.log('chatData.length -> ', chatData.length)
-            //  chatData.length < scrollSafeLength.value ||
             if (!chatData.length || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
                 isLastChatList.value = Judge.YES
                 scrollDownLock.value = Lock.Locked
+                deleteActionFriendPositionData()
             }
         })
     })
@@ -809,12 +770,12 @@ async function handlePositionAfterGetChatDataFromDown() {
 }
 
 async function handlePositionAfterFirstTimeGetChatData() {
-    const { chatData, position, lastId }: FirstTimeGetChatDataFromDataBase =
+    const { chatData, lastId }: FirstTimeGetChatDataFromDataBase =
         await firstTimeGetChatDataFromDataBase()
-    const chat_table = activeFriend.value.chat_table
-    if (position[activeFriend.value.user_id + chat_table]) {
+    const position = getActionFriendPositionData()
+    if (position) {
         const dataIndex = chatBox.value.findIndex(
-            item => item.id === position[activeFriend.value.user_id + chat_table]?.use
+            item => item.id === position?.use
         )
         const children = scrollData.value.chatListDiv?.children
         if (!dataIndex || !children) return
@@ -839,21 +800,16 @@ async function handlePositionAfterFirstTimeGetChatData() {
                         scrollData.value.el.scrollHeight - 10
                     ) {
                         // 用于显示 "回到最新" Tip 按钮
-                        // store.commit('footSend/setGotoBottomState', true)
                         footSendStore.goToBottom = Judge.YES
                     }
                 } else {
-                    // store.commit('footSend/setGotoBottomState', true)
                     footSendStore.goToBottom = Judge.YES
                 }
             })
         }
     } else {
         // 随便设置值，后期需要优化
-        // chatWindow.value.scrollBar.setScrollTop(100)
         mediaDelayPosition(chatData, () => {
-            // const end_sp = scrollData.value.chatListDiv?.scrollHeight
-            // chatWindow.value.scrollBar.setScrollTop(end_sp)
             scrollChatBoxToBottom()
             isLastChatList.value = Judge.YES
         })
@@ -869,7 +825,6 @@ async function handlePositionAfterFirstTimeGetChatData() {
 // 从数据库拿数据
 interface FirstTimeGetChatDataFromDataBase {
     chatData: Box[]
-    position: { [postion_id: string]: Position }
     lastId: number | undefined
 }
 async function firstTimeGetChatDataFromDataBase(
@@ -881,29 +836,27 @@ async function firstTimeGetChatDataFromDataBase(
         // 这个置空的情况不希望触发滚动事件
         // 因为这样会导致重复执行 getChatFromServer 函数
         chatBox.value = []
-        const position: { [postion_id: string]: Position } = JSON.parse(
-            localStorage.getItem('Position') || '{}'
-        )
+        const actionFriendPostionData = getActionFriendPositionData()
         const chatData: Box[] = []
-        if (position[activeFriend.value.user_id + chat_table]) {
+        if (actionFriendPostionData) {
             // 这里获取的数据可能为空，Position 记录的信息可能会被 `删除` `撤回` `数据库操作错误`
             // 导致记录与实际情况有出入，所以这里获取为空时，需要尝试将 Position 信息删除，并从头获取
             let data = []
             data = await dbReadRangeByArea(
                 chat_table,
-                position[activeFriend.value.user_id + chat_table].first,
-                position[activeFriend.value.user_id + chat_table].last
+                actionFriendPostionData.first,
+                actionFriendPostionData.last
             )
             // 如果数据为空，尝试从头获取
             if (data.length === 0) {
-                localStorage.setItem('Position', JSON.stringify('{}'))
+                clearActionFriendPositionData()
                 data = await dbReadRangeNotOffset(
                     chat_table,
                     DESC.UP,
                     scrollSafeLength.value
                 )
             }
-            // console.log('获取聊天记录 首次获取 1 ->', chatData, position[activeFriend.value.user_id + chat_table].first, position[activeFriend.value.user_id + chat_table].last)
+            // console.log('获取聊天记录 首次获取 1 ->', chatData, position[mainStore.positionId].first, position[mainStore.positionId].last)
             chatData.push(...data)
         } else {
             const data = await dbReadRangeNotOffset(
@@ -929,25 +882,20 @@ async function firstTimeGetChatDataFromDataBase(
             chatData[chatData.length - 1].id !== lastId
         ) {
             scrollSafeLength.value += Math.ceil(scrollSafeLength.value / 2)
-            localStorage.setItem('Position', JSON.stringify('{}'))
+            clearActionFriendPositionData()
             console.log('数量不够')
         } else {
             return {
                 chatData,
-                position,
                 lastId
             }
         }
     }
-    const position: { [postion_id: string]: Position } = JSON.parse(
-        localStorage.getItem('Position') || '{}'
-    )
     const lastId = await dbGetLastPrimaryKey(chat_table)
 
     console.log('获取聊天记录 首次获取 空 ->')
     return {
         chatData: [],
-        position,
         lastId
     }
 }

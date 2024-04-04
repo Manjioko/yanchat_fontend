@@ -103,13 +103,6 @@ interface Position {
     first: number
     last: number
     use: number
-    // offset: number
-    // area: {
-    //     x: number
-    //     y: number
-    //     top: number
-    //     left: number
-    // }
 }
 
 // 消息体

@@ -4,6 +4,7 @@ import { MainStore } from '../store'
 import { Position } from '@/interface/global'
 import { jugeScrollOverScreen } from './jugeScrollOverScreen'
 import { cutChatBox } from './cutChatBox'
+import { setActionFriendPositionData } from './positionOperator'
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 
@@ -17,7 +18,6 @@ export function saveChatWindowPosition() {
     const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
     const canSaw: string | number [] = []
     const ary = elementFilter(chatDivList, chatWindowEl)
-    jugeScrollOverScreen(ary)
     ary.forEach((el) => {
         const idx = el.dataset.checkIndex
         if (idx) {
@@ -35,22 +35,16 @@ export function saveChatWindowPosition() {
         console.log('extendFirst 或 extendLast 不存在')
         return
     }
-
-    let beforedata: { [position_id: string]: Position } = JSON.parse(
-        localStorage.getItem('Position') || '{}'
-    )
-    if (typeof beforedata === 'string') {
-        beforedata = JSON.parse(beforedata)
-    }
-    const af = mainStore.activeFriend
     const saveData: Position = {
         first: Number(firstId) - Math.ceil(mainStore.scrollSafeLength / 2),
         last: Number(lastId) + Math.ceil(mainStore.scrollSafeLength / 2),
         use: Number(firstId)
     }
-    beforedata[mainStore.activeFriend.user_id + af.chat_table] = saveData
-    localStorage.setItem('Position', JSON.stringify(beforedata))
+    // 存储位置信息
+    setActionFriendPositionData(saveData)
     console.log('定位信息 -> ', saveData)
+    // 判断聊天记录向下滚动是否超过了一个屏幕
+    jugeScrollOverScreen(ary)
     // 计算多余的聊天记录，如果数量过多，需要裁掉一部分，节省内存
     cutChatBox(ary)
 }
