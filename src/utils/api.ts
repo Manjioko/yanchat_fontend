@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios"
 import router from "@/router/router"
+import { clearUserInfo } from "@/view/Main/Methods/userInfoOperator"
 
 const service = axios.create({
     baseURL: sessionStorage.getItem('baseUrl') || '',
@@ -39,7 +40,7 @@ service.interceptors.response.use(res => {
         sessionStorage.setItem('Token', 'RefreshToken ' + refreshToken)
         return service(error.config)
     } else if (error?.response?.status === 403) {
-        sessionStorage.setItem('user_info', '')
+        clearUserInfo()
         router.push('/')
         // return Promise.reject('403')
     }
@@ -75,5 +76,7 @@ export const api = {
     verifyAuth: '/verifyAuth', // 用于更新 token
     joinFile: '/joinFile', // 确认合并文件
     clearDir: 'clearDir', // 清空文件夹
-    getUserInfoByPhone: 'getUserInfoByPhone' // 根据手机号获取用户
+    getUserInfoByPhone: 'getUserInfoByPhone', // 根据手机号获取用户
+    updateVersion: '/updateVersion', // 更新版本号
+    updateUserInfo: '/updateUserInfo', // 更新用户信息
 }

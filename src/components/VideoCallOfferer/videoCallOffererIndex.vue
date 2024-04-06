@@ -22,14 +22,20 @@
 
 <script setup lang="ts">
 import VueDragResize from 'vue-drag-resize'
-import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
+import { onMounted, ref, defineProps, watch } from 'vue'
 import { timeFormat, getUseTime } from '@/utils/timeFormat'
 import { v4 as uuidv4 } from 'uuid'
 import { VideoConfig } from '@/interface/video'
+import { centerSend } from '@/view/Main/Methods/centerMethods'
+import { Box } from '@/interface/global'
+import { destroyVideoCallOfferer } from '@/components/VideoCallOfferer/methods/videoCenter'
+import { VideoCallOfferer } from './store'
+import { storeToRefs } from 'pinia'
+const { videocallAnwserData: anwserData } = storeToRefs(VideoCallOfferer())
 // import { Box } from '@/interface/global'
 
 // import { ElNotification } from 'element-plus'
-const emit = defineEmits(['destroy', 'center'])
+// const emit = defineEmits(['destroy', ])
 const props = defineProps({
     socket: {
         type: WebSocket,
@@ -39,7 +45,7 @@ const props = defineProps({
         type: Object,
         default: () => ({})
     },
-    anwserData: Object as () => VideoConfig
+    // anwserData: Object as () => VideoConfig
 })
 
 const width = ref(500)
@@ -92,7 +98,7 @@ const sendLeaveConfig: VideoConfig = {
     data: null
 }
 
-watch(() => props.anwserData, (newVal) => {
+watch(() => anwserData.value, (newVal) => {
     if (newVal && newVal.type === 'anwser') {
         // localpeerConnection.setRemoteDescription(new RTCSessionDescription(newVal.data))
         // console.log('answer', newVal.data )
@@ -198,7 +204,8 @@ function listenResponse(data:any) {
 function disconnectVideoCall(rejectMessage?:string) {
     localpeerConnection?.close()
     localStream?.getTracks().forEach(track => track.stop())
-    emit('destroy', true)
+    // emit('destroy', true)
+    destroyVideoCallOfferer()
     // 处理通话时长显示
     const uuid = uuidv4()
     // 发送消息还有一种情况,就是发送给自己的和发送到对面的不是同一文本
@@ -217,7 +224,8 @@ function disconnectVideoCall(rejectMessage?:string) {
         dataOb.text = `通话时长为 ${timeMsg}`
     }
 
-    emit('center', dataOb, 'sent')
+    // emit('center', dataOb, 'sent')
+    centerSend(dataOb as Box)
 }
 
 // 点击结束通话按钮

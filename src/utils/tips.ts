@@ -1,5 +1,5 @@
 // import {  store } from '@/store'
-import { updateUserInfo } from '@/utils/friends'
+import { receivedFriendAddSuccessSingle } from '@/utils/friends'
 import { Tips } from '@/interface/global'
 import { handleWithdraw } from '@/utils/withdraw'
 import { MainStore } from '@/view/Main/store'
@@ -32,7 +32,7 @@ export function handleTips(tips: { data: Tips[] }) {
             case 'addFriendRecieved':
                 {
                     console.log('好友确认更新 ->', item)
-                    updateUserInfo()
+                    receivedFriendAddSuccessSingle()
                 }
                 break
             default:

@@ -1,5 +1,5 @@
 
-import { Friend, Tips, Box, Judge, Lock } from "@/interface/global"
+import { Friend, Tips, Box, Judge, Lock, UserInfo } from "@/interface/global"
 import { defineStore } from "pinia"
 
 export interface GlobalState {
@@ -13,6 +13,11 @@ export interface GlobalState {
     isLastChatList: Judge
     scrollUpLock: Lock
     scrollDownLock: Lock
+    showQuote: boolean
+    comment: string
+    userInfo: UserInfo
+    signal: number
+    imgLoadList: string[]
 
     db: any | null
     dbname: string | null
@@ -38,6 +43,16 @@ export const MainStore = defineStore('view/Main', {
         isLastChatList: Judge.NO,
         scrollUpLock: Lock.UnLock,
         scrollDownLock: Lock.UnLock,
+        showQuote: false,
+        comment: '',
+        userInfo:{
+            friends: [],
+            phone_number: '',
+            user_id: '',
+            user: ''
+        },
+        signal: 0,
+        imgLoadList: [],
 
         db: null,
         dbname: null,

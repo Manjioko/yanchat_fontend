@@ -22,8 +22,12 @@
 
 <script setup>
 import VueDragResize from 'vue-drag-resize'
-import { onMounted, ref, defineProps, watch, defineEmits } from 'vue'
-const emit = defineEmits(['destroy'])
+import { onMounted, ref, defineProps, watch } from 'vue'
+import { destroyVideoCallAnwserer } from '@/components/VideoCallOfferer/methods/videoCenter'
+import { VideoCallOfferer } from '../VideoCallOfferer/store'
+import { storeToRefs } from 'pinia'
+const { videocallOfferData: offerData } = storeToRefs(VideoCallOfferer())
+// const emit = defineEmits(['destroy'])
 const props = defineProps({
     socket: {
         type: Object,
@@ -33,10 +37,10 @@ const props = defineProps({
         type: Object,
         default: () => ({})
     },
-    offerData: {
-        type: Object,
-        default: () => ({})
-    }
+    // offerData: {
+    //     type: Object,
+    //     default: () => ({})
+    // }
 })
 
 const width = ref(500)
@@ -45,8 +49,8 @@ let localStream = null
 // let localVideo = null
 let localpeerConnection = null
 const user_id = sessionStorage.getItem('user_id')
-// const to_id = props.offerData.user_id
-// const to_table = props.offerData.to_table 
+// const to_id = offerData.value.user_id
+// const to_table = offerData.value.to_table 
 const constraints = { 
     video: {
         width: width.value,
@@ -54,13 +58,13 @@ const constraints = {
     },
     audio: false
 }
-// console.log('offerer 的数据是 -> ', props.offerData, )
+// console.log('offerer 的数据是 -> ', offerData.value, )
 const sendAnwserConfig = {
     event: 'videoCallAnwser',
     type: 'anwser',
     user_id,
-    to_table: props.offerData.to_table ,
-    to_id: props.offerData.user_id,
+    to_table: offerData.value.to_table ,
+    to_id: offerData.value.user_id,
     data: null
 }
 
@@ -68,8 +72,8 @@ const sendIcecandidateConfig = {
     event: 'videoCallAnwser',
     type: 'candidate',
     user_id,
-    to_table: props.offerData.to_table ,
-    to_id: props.offerData.user_id,
+    to_table: offerData.value.to_table ,
+    to_id: offerData.value.user_id,
     data: null
 }
 
@@ -77,8 +81,8 @@ const sendResponseConfig = {
     event: 'videoCallResponse',
     type: 'response',
     user_id,
-    to_table: props.offerData.to_table ,
-    to_id: props.offerData.user_id,
+    to_table: offerData.value.to_table ,
+    to_id: offerData.value.user_id,
     data: null
 }
 
@@ -86,14 +90,14 @@ const sendLeaveConfig = {
     event: 'videoCallLeave',
     type: 'leave',
     user_id,
-    to_table: props.offerData.to_table ,
-    to_id: props.offerData.user_id,
+    to_table: offerData.value.to_table ,
+    to_id: offerData.value.user_id,
     data: null
 }
 
 const ok = ref(false)
 
-watch(() => props.offerData, (newVal) => {
+watch(() => offerData.value, (newVal) => {
     // console.log('answer 收到 ->', newVal)
     if (newVal && newVal.type === 'offer') {
         // localpeerConnection.setRemoteDescription(new RTCSessionDescription(newVal.data))
@@ -145,7 +149,8 @@ async function start() {
         data: 'reject'
     }))
 
-    emit('destroy', true)
+    // emit('destroy', true)
+    destroyVideoCallAnwserer(true)
   
 }
 
@@ -192,7 +197,8 @@ async function listenIcecandidate(candidate) {
 function disconnectVideoCall() {
     localpeerConnection.close()
     localStream.getTracks().forEach(track => track.stop())
-    emit('destroy', true)
+    // emit('destroy', true)
+    destroyVideoCallAnwserer(true)
 }
 
 // 点击结束通话按钮

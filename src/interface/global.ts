@@ -62,10 +62,11 @@ interface UserInfo {
     password?: string // 后台不会返回密码,所以这个不做要求
     user_id: string
     phone_number: string
-    friends: string
+    friends: Friend[]
     group?: string
     avatar_url?: string
     is_use_md?: boolean
+    db_version?: number
     created_at?: string
     updated_at?: string
 }
@@ -89,10 +90,10 @@ interface PingPong {
 interface WsConnectParams {
     // ws: Ref<WebSocket | undefined>
     url: string
-    centerFn(data: Box, type?: string): void
-    videoFn(data: VideoConfig, type?: string): void
-    pingPongFn(data: PingPong, type?: string): void
-    signal: Ref<number>
+    // centerFn(data: Box, type?: string): void
+    // videoFn(data: VideoConfig, type?: string): void
+    // pingPongFn(data: PingPong, type?: string): void
+    // signal: Ref<number>
 }
 
 interface Tip extends Box {
@@ -100,9 +101,9 @@ interface Tip extends Box {
 }
 
 interface Position {
-    first: number
-    last: number
-    use: number
+    first?: number
+    last?: number
+    use?: number
 }
 
 // 消息体

@@ -4,9 +4,23 @@ import { handleTips } from "./tips"
 // import { store } from '@/store'
 import { FriendsListStore } from "@/components/friendsList/store"
 import { MainStore } from "@/view/Main/store"
+import { centerDeleted, centerReceived, centerPong } from "@/view/Main/Methods/centerMethods"
+import { storeToRefs } from "pinia"
+import {
+    centerVideoCallOffer,
+    centerVideoCallAnwser,
+    // destroyVideoCallOfferer,
+    destroyVideoCallAnwserer,
+    centerVideoCallRequest,
+    centerVideoCallResponse,
+    centerVideoCallLeave,
+    // handleVideoCallStart
+} from '@/components/VideoCallOfferer/methods/videoCenter'
 
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
+
+const { signal } = storeToRefs(mainStore)
 
 // 第一次再确认断开连接后,需要在 2 分钟后再重新尝试连接
 interface RefreshConnectSocketConfig {
@@ -49,7 +63,7 @@ const connectConfig: ConnectSocketConfig = {
 }
 
 function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) {
-    const { url, centerFn, videoFn, pingPongFn, signal} = params
+    const { url } = params
     // console.log(`正在连接到服务器, 次数：${ retryCount } ...`,)
     if (connectConfig.retryCount >= connectConfig.MAX_RETRIES) {
         console.log('超过重连次数...')
@@ -94,34 +108,42 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
 
         switch (chatData.receivedType) {
             case 'deleted':
-                centerFn(chatData, 'deleted')
+                // centerFn(chatData, 'deleted')
+                centerDeleted(chatData)
                 break
             case 'pong':
                 console.log('对方确认收到')
-                pingPongFn(chatData, 'pong')
+                // pingPongFn(chatData, 'pong')
+                centerPong(chatData)
                 break
             case 'videoCallRequest':
-                videoFn(chatData, 'videoCallRequest')
+                // videoFn(chatData, 'videoCallRequest')
+                centerVideoCallRequest(chatData)
                 break
             case 'videoCallResponse':
-                videoFn(chatData, 'videoCallResponse')
+                // videoFn(chatData, 'videoCallResponse')
+                centerVideoCallResponse(chatData)
                 break
             case 'videoCallOffer':
                 console.log('offer -> ', chatData)
-                videoFn(chatData, 'videoCallOffer')
+                // videoFn(chatData, 'videoCallOffer')
+                centerVideoCallOffer(chatData)
                 break
             case 'videoCallAnwser':
-                videoFn(chatData, 'videoCallAnwser')
+                // videoFn(chatData, 'videoCallAnwser')
+                centerVideoCallAnwser(chatData)
                 break
             case 'videoCallLeave':
-                videoFn(chatData, 'videoCallLeave')
+                // videoFn(chatData, 'videoCallLeave')
+                centerVideoCallLeave(chatData)
                 break
             case 'tips':
                 // console.log('这是消息系统发来的消息 -> ', chatData)
                 handleTips(chatData)
                 break
             default:
-                centerFn(chatData, 'received')
+                // centerFn(chatData, 'received')
+                centerReceived(chatData)
                 {
                     const pong: PingPong = {
                         user_id: chatData.to_id,

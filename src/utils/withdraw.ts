@@ -2,7 +2,7 @@ import { Tips, Box } from "@/interface/global"
 import { request, api } from "@/utils/api"
 import { dbDeleteByIndex } from "./indexDB"
 import { computed, ComputedRef, watchEffect } from "vue"
-import { centerDeleted } from "@/view/Main/Methods/centerDeleted"
+import { centerDeleted } from "@/view/Main/Methods/centerMethods"
 // import { store } from '@/store'
 import { MainStore } from "@/view/Main/store"
 const mainstore = MainStore()

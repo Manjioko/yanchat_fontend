@@ -38,7 +38,7 @@
     </main>
 </template>
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, reactive } from 'vue'
+import { ref, defineProps, reactive } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
@@ -50,6 +50,9 @@ import { Box, Judge } from '@/interface/global'
 import { UploadCallback } from '@/interface/download'
 import { FootSendStore } from './store'
 import { storeToRefs } from 'pinia'
+import { centerSend } from '@/view/Main/Methods/centerMethods'
+import { handleVideoCallStart } from '../VideoCallOfferer/methods/videoCenter'
+import { handleGotoBottom } from '@/view/Main/Methods/mainMethods'
 
 const sfStore = FootSendStore()
 const props = defineProps({
@@ -60,7 +63,7 @@ const props = defineProps({
         default: ''
     }
 })
-const emit = defineEmits(['center', 'progress', 'response', 'videoCallStart', 'gotoBottom'])
+// const emit = defineEmits(['progress', 'response', 'gotoBottom'])
 const { goToBottom: showGotoBottom, pongSaveCacheData } = storeToRefs(sfStore)
 
 const chatText = ref('')
@@ -73,8 +76,7 @@ function hdkeydown() {
 // 发送文本到聊天框的处理器
 function sendMessage(chatData?:Box) {
     if (chatData) {
-        // Center(chatData, 'sent')
-        emit('center', chatData, 'sent')
+        centerSend(chatData)
         return
     }
 
@@ -99,7 +101,8 @@ function sendMessage(chatData?:Box) {
         dataOb.quote = props.quote
     }
     // Center(dataOb, 'sent')
-    emit('center', dataOb, 'sent')
+    // emit('center', dataOb, 'sent')
+    centerSend(dataOb)
 
     // 清空聊天框
     chatText.value = ''
@@ -199,14 +202,16 @@ async function uploadFile(e:Event) {
 // 视频通话
 // const showOfferer = ref(false)
 function videoCall() {
-    emit('videoCallStart', { videoCallStart: true })
+    // emit('videoCallStart', { videoCallStart: true })
+    handleVideoCallStart()
     // showOfferer.value = true
 }
 
-function handleGotoBottom() {
-    // store.commit('footSend/setGotoBottomState', false)
-    emit('gotoBottom')
-}
+// function handleGotoBottom() {
+//     // store.commit('footSend/setGotoBottomState', false)
+//     // emit('gotoBottom')
+//     handleGotoBottom()
+// }
 </script>
 <style lang="scss" scoped>
 .text-send {

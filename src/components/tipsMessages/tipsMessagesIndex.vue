@@ -29,7 +29,7 @@ import { ChatSquare } from '@element-plus/icons-vue'
 // import { useStore } from '@/store'
 import { watchEffect, ref, Ref } from 'vue'
 import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
-import { addFriend } from '@/utils/friends'
+import { localClickAddFriend } from '@/utils/friends'
 import { Tips } from '@/interface/global'
 // import { Tips } from '@/interface/global'
 import { MainStore } from '@/view/Main/store'
@@ -38,9 +38,6 @@ import { storeToRefs } from 'pinia'
 const mainStore = MainStore()
 const { ws, tips, dbname:dbName } = storeToRefs(mainStore)
 
-// const ws: ComputedRef<WebSocket | null> = computed(() => mainStore.ws)
-// const dbName: ComputedRef<string> = computed(() => store.state.dataBase.dbname || '')
-// const tips: ComputedRef<Tips[]> = computed(() => mainStore.tips)
 const tipsShowList: Ref<Tips[]> = ref([])
 watchEffect(() => {
     if (dbName.value) {
@@ -81,18 +78,16 @@ watchEffect(() => {
                 .catch((err: string) => {
                     console.log('读取 tips_messages 数据库失败 -> ', err)
                 })
-                // store.commit('global/setTips', [])
                 mainStore.tips = []
             })
         }
-        // store.commit('global/setTips', [])
     }
 })
 
 // 同意添加好友
 function handleAddFriend(item: Tips, idx: number) {
     console.log('同意添加好友 -> ', item)
-    addFriend(item.messages_box)
+    localClickAddFriend(item.messages_box)
     .then(() => {
         const params: Tips = {
             messages_type: 'addFriendRecieved',

@@ -57,7 +57,8 @@ import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
 import router from '@/router/router'
 import { ResetPinia } from '@/utils/resetAllPiniaStore'
-const { ws: websocket } = storeToRefs(MainStore())
+import { clearUserInfo } from '@/view/Main/Methods/userInfoOperator'
+const { ws: websocket, userInfo: user_info } = storeToRefs(MainStore())
 // import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
@@ -71,13 +72,13 @@ const emit = defineEmits([
 
 let dShow =  ref(false)
 const user_id = sessionStorage.getItem('user_id')
-const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
+// const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
 
 const changeMarkdownList = [
     { label: '是', value: true },
     { label: '否', value: false },
 ]
-const isUseMd = sessionStorage.getItem('is_use_md') || user_info.is_use_md
+const isUseMd = sessionStorage.getItem('is_use_md') || user_info.value.is_use_md
 const isMarkdown = ref(isUseMd === 'true' || isUseMd === '1' ? true : false)
 watchEffect(async () => {
     if (isMarkdown.value !== undefined) {
@@ -86,7 +87,7 @@ watchEffect(async () => {
             method: 'post',
             url: api.markdown,
             data: {
-                user_id: user_info.user_id,
+                user_id: user_info.value.user_id,
                 is_use_md: isMarkdown.value
             }
         }))
@@ -99,7 +100,7 @@ watchEffect(async () => {
     }
 })
 
-const placeholder = ref(user_info.user)
+const placeholder = ref(user_info.value.user)
 const baseUrl = sessionStorage.getItem('baseUrl')
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`)
 defineExpose({
@@ -116,7 +117,8 @@ function handleExit() {
         const ws = websocket.value as WebSocket
         ws.close(4001, '客户端关闭链接')
     }
-    sessionStorage.setItem('user_info', '')
+    // sessionStorage.setItem('user_info.value', '')
+    clearUserInfo()
     const storeObject = ResetPinia()
     storeObject.all()
     router.go(-1)
@@ -165,15 +167,14 @@ async function uploadAvatar(e: Event) {
 // 保存昵称
 const nickName = ref('')
 async function saveNickName() {
-    const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
-    console.log('user_info -> ', user_info)
+    console.log('user_info.value -> ', user_info.value)
     if (!nickName.value) return console.log('昵称为空')
     const [err, res] = await to(request({
         method: 'post',
         url: api.changeNickName,
         data: {
             nick_name: nickName.value,
-            phone_number: user_info.phone_number
+            phone_number: user_info.value.phone_number
         }
     }))
     if (err) {

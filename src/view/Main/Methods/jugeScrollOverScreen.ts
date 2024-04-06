@@ -4,12 +4,16 @@ import { Judge } from "@/interface/global"
 import { deleteActionFriendPositionData } from '../Methods/positionOperator'
 // import typeIs from "@/utils/type"
 import { storeToRefs } from "pinia"
+import { ChatWindowStore } from "@/components/chatWindow/store"
 
 const mainStore = MainStore()
 const footSendStore = FootSendStore()
 
+const chatWindowStore = ChatWindowStore()
+
 const { goToBottom } = storeToRefs(footSendStore)
 const { isLastChatList, receivedShowGotoBottom, chatBox } = storeToRefs(mainStore)
+const { scrollData } = storeToRefs(chatWindowStore)
 
 
 
@@ -33,10 +37,22 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
         &&
         isLastChatList.value === Judge.YES
     ) {
-        console.log('已经到底了😂')
+
+        // 判断是否到底,计算量和应用较大，将它包裹在一个独立的作用域里，防止内存占用过大
+        {
+            const bar = scrollData.value?.scrollBar?.wrapRef
+            if (bar) {
+                if (bar.scrollTop && bar.clientHeight && bar.scrollHeight) {
+                    if (bar.scrollTop + bar.clientHeight >= bar.scrollHeight) {
+                        console.log('已经到底了😂')
+                        // 一旦到底了, 就不需要定位，不然可能会出现问题
+                        deleteActionFriendPositionData()
+                    }
+                }
+            }
+        }
+        
         goToBottom.value = Judge.NO
 
-        // 一旦到底了, 就不需要定位，不然可能会出现问题
-        deleteActionFriendPositionData()
     }
 }

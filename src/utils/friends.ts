@@ -2,16 +2,21 @@
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { UserInfo, Friend } from '@/interface/global'
-import { initDdOperate } from '@/utils/indexDB'
+import { updateDatabase } from '@/utils/indexDB'
 // import { store } from '@/store'
 import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'
+import { storeToRefs } from 'pinia'
+import { setUserInfo, updateUserInfo } from '@/view/Main/Methods/userInfoOperator'
+import { A_getUserInfo } from '@/api'
 const mainstore = MainStore()
 const friendstore = FriendsListStore()
+const { userInfo } = storeToRefs(mainstore)
 // const store = useStore()
 
-export async function addFriend(friData: any) {
-    const getUserInfo: UserInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}')
+// 点击添加好友 同意按钮后会触发这个函数
+export async function localClickAddFriend(friData: any) {
+    const getUserInfo: UserInfo = userInfo.value
     const [err, res] = await to(request({
         method: 'post',
         url: api.addFri,
@@ -29,73 +34,34 @@ export async function addFriend(friData: any) {
     // 返回错误
     if (!res?.data?.friends) return
 
-    const baseUrl = sessionStorage.getItem('baseUrl')
-    res.data.friends.forEach((item: Friend) => {
-        const friendParams: Friend = {
-            name: item.name || item.user as string,
-            user_id: item.user_id,
-            time: '',
-            message: '',
-            avatar_url:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
-            active: false,
-            searchActive: true,
-            chat_table: item.chat_table,
-            phone_number: item.phone_number,
-            user: item.user
-        }
-        // store.commit('friendsList/addFriendsList', friendParams)
-        friendstore.addFriendsList(friendParams)
-    })
-    getUserInfo.friends = JSON.stringify(res.data.friends)
-    sessionStorage.setItem('user_info', JSON.stringify(getUserInfo))
+    // 更新用户信息
+    const userInfoRes = await A_getUserInfo({ phone_number: getUserInfo.phone_number, get_friends: true })
+    console.log('userInfoRes -> ', userInfoRes)
+    setUserInfo(userInfoRes.data[0] as UserInfo)
     // 更改版本号,重新更新数据库
-    initDdOperate(getUserInfo, mainstore.db)
+    const db = await updateDatabase(mainstore.db)
+    if (userInfoRes.data) {
+        const userInfo = userInfoRes.data[0] as UserInfo
+        userInfo.db_version = db.version
+        await updateUserInfo(userInfo)
+    }
 }
 
-export async function updateUserInfo() {
-    const user_info = JSON.parse(sessionStorage.getItem('user_info') || '{}')
-    const [uerr, udata] = await to(request({
-        method: 'post',
-        url: api.getUserInfoByPhone,
-        data: {
-            phone_number: user_info.phone_number,
-            get_friends: true
-        }
-    }))
-    if (uerr) {
-        console.log('获取用户信息错误: ', uerr)
-        return
-    }
-    // console.log('获取用户信息成功 -> ', udata)
-    if (!udata) return
-    if (udata.data && udata.data[0]) {
-        // 更新好友列表
-        const friends = JSON.parse(udata.data[0]?.friends || '[]')
-        // store.commit('friendsList/updateFriendsList', friends)
-        console.log('更新好友列表 -> ', friends)
-        const baseUrl = sessionStorage.getItem('baseUrl')
-        friends.forEach((item: Friend) => {
-            const friendParams: Friend = {
-                name: item.name || item.user as string,
-                user_id: item.user_id,
-                time: '',
-                message: '',
-                avatar_url:  `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
-                active: false,
-                searchActive: true,
-                chat_table: item.chat_table,
-                phone_number: item.phone_number,
-                user: item.user
-            }
-            // store.commit('friendsList/addFriendsList', friendParams)
-            friendstore.addFriendsList(friendParams)
-        })
 
-        // 更新用户信息
-        user_info.friends = JSON.stringify(udata.data[0]?.friends || '[]')
-        sessionStorage.setItem('user_info', JSON.stringify(user_info))
+// 远程客户端同意好友申请后，本地会接受到信号，会触发这个函数
+export async function receivedFriendAddSuccessSingle() {
+    const user_info = userInfo.value
 
-        // 更改版本号,重新更新数据库
-        initDdOperate(user_info, mainstore.db)
+    // 更新用户信息
+    const userInfoRes = await A_getUserInfo({ phone_number: user_info.phone_number, get_friends: true })
+    // 这里多此一举的动作，是为了更新数据库时，可能新建最新的好友表
+    // 然后再根据 updateUserInfo 把最新的版本号更新到远程数据库
+    setUserInfo(userInfoRes.data[0] as UserInfo)
+    // 更改版本号,重新更新数据库
+    const db = await updateDatabase(mainstore.db)
+    if (userInfoRes.data) {
+        const userInfo = userInfoRes.data[0] as UserInfo
+        userInfo.db_version = db.version
+        await updateUserInfo(userInfo)
     }
 }

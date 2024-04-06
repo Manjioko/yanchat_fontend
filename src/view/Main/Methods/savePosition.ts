@@ -52,9 +52,8 @@ export function saveChatWindowPosition() {
 
 function elementFilter(elList: HTMLElement[], container: HTMLElement): HTMLElement[] {
     if (!elList.length) return []
-    // const container = document.getElementById('container')
     const { top, bottom } = container.getBoundingClientRect()
-    const mid = Math.ceil(elList.length / 2)
+    const mid = elList.length === 1 ? 0 : Math.ceil(elList.length / 2)
     const midEl = elList[mid]
     const { top: midTop, bottom: midBottom } = midEl.getBoundingClientRect()
 

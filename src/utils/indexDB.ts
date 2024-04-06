@@ -4,15 +4,19 @@ import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box, UserInfo, Friend } from '@/interface/global'
 import typeIs from './type'
 import { MainStore } from '@/view/Main/store'
+import { A_getUserInfo } from '@/api'
+import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
+import { updateUserInfo } from '@/view/Main/Methods/userInfoOperator'
+import { storeToRefs } from 'pinia'
+// import { request, api } from './api'
 const mainstore = MainStore()
 
+const { userInfo } = storeToRefs(mainstore)
 // const vstore = store
   
 // indexDB 打开数据库
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
-    // const store = useStore()
-    const { dbName,  oldDb = null, config } = options
-    const version = localStorage.getItem('dbVersion') ? JSON.parse(localStorage.getItem('dbVersion') as string) : 2
+    const { dbName,  oldDb = null, config, version } = options
     return new Promise((resolve, reject) => {
         let newVersion: number | null = null
         if (oldDb) {
@@ -30,18 +34,11 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
         }
         request.onsuccess = event => {
             const result = (event.target as IDBOpenDBRequest).result
-            // console.log('数据库打开成功', result)
-            // vstore.commit('dataBase/setDb', {
-            //     db: result,
-            //     dbName: dbName,
-            //     dbVersion: newVersion || version,
-            // })
             mainstore.setDb({
                 db: result,
                 dbName: dbName,
                 dbVersion: newVersion || version
             })
-            localStorage.setItem('dbVersion', JSON.stringify(result.version))
             resolve(result)
         }
         request.onupgradeneeded = event => {
@@ -59,7 +56,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
                 }
             })
             
-            localStorage.setItem('dbVersion', JSON.stringify(result.version))
+            // localStorage.setItem('dbVersion', JSON.stringify(result.version))
         }
     })
 }
@@ -296,6 +293,7 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
 export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, size: number = 10): Promise<Box[]> {
     return new Promise((resolve,reject) => {
         if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
+        console.log('获取数据 参数 -> ', tableName, desc, size)
         const store = (mainstore.db as IDBDatabase)
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
@@ -437,16 +435,12 @@ export function dbUpdate(tableName: string, data: Box): Promise<string> {
     })
 }
 
-export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<IDBDatabase> {
+export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> {
     if (oldDB) {
         console.log('准备更新版本号, 更新数据库 -> ', oldDB)
     }
     
-    let friends = JSON.parse(userInfo.friends)
-    if (typeIs(friends) == 'String') {
-        // console.log('好友列表 字符串 -> ', friends)
-        friends = JSON.parse(friends)
-    }
+    const friends = userInfo.value.friends
     // 好友系统表结构
     const indexList = [
         { name: 'user_id', unique: false },
@@ -458,7 +452,7 @@ export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<
     // 消息系统表结构
     const tipsTable =  {
         name: 'tips_messages',
-        key: null,
+        key: 'messages_id',
         indexList: [
             { name: 'messages_id',unique: true },
             { name: 'messages_box', unique: false },
@@ -467,9 +461,12 @@ export function initDdOperate(userInfo: UserInfo, oldDB?: IDBDatabase): Promise<
     }
     const initConfig = friends?.map((item: Friend) => ({ name: item.chat_table, key: 'id', indexList })) || []
     initConfig.push(tipsTable)
+    console.log('initConfig 数据是 -> ', initConfig, userInfo.value)
+    const version = userInfo.value.db_version ? Number(userInfo.value.db_version) : 1
     return dbOpen({
-        dbName: userInfo.user_id,
+        dbName: userInfo.value.user_id,
         config: initConfig,
         oldDb: oldDB,
+        version
     })
 }

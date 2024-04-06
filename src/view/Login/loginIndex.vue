@@ -7,6 +7,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
+import { setUserInfo } from '../Main/Methods/userInfoOperator'
 // import { MainStore } from './Main/store'
 // import { FriendsListStore } from '@/components/friendsList/store'
 // const mainStore = MainStore()
@@ -80,7 +81,9 @@ async function login() {
         // 服务器无法处理的错误
         if (user_data !== 'err') {
             console.log('user_info', user_data)
-            sessionStorage.setItem('user_info', JSON.stringify(user_data))
+            // sessionStorage.setItem('user_info', JSON.stringify(user_data))
+            setUserInfo(user_data)
+            console.log('setUserInfo', user_data)
             // 保存 user_id 到 sessionStorage
             sessionStorage.setItem('user_id', user_data.user_id)
             // 重置好友栏
@@ -90,6 +93,7 @@ async function login() {
             // store.commit('global/clearTips')
             // mainStore.clearTips()
             router.value.push({ name: 'Chat' })
+            console.log('登录成功')
             // showloginErr.value = false
 
             // 将电话号码保存起来, 测试用
@@ -157,7 +161,8 @@ async function login() {
             }
             sessionStorage.setItem('Token', auth?.token ?? '')
             sessionStorage.setItem('RefreshToken', auth?.refreshToken ?? '')
-            sessionStorage.setItem('user_info', JSON.stringify(user_data))
+            // sessionStorage.setItem('user_info', JSON.stringify(user_data))
+            setUserInfo(user_data)
             // 保存 user_id 到 sessionStorage
             sessionStorage.setItem('user_id', user_data.user_id)
 

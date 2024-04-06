@@ -120,10 +120,6 @@ onMounted(() => {
     updatedScrollData()
 })
 
-// function watchScroll(el) {
-//     const observer = new IntersectionObserver((en) => {},{threshold: 0.1, root: el})
-// }
-
 const md = MarkdownIt({
     langPrefix: 'hljs code-set language-',
     html: true,
@@ -184,8 +180,6 @@ function handleAvatar(ob: Box) {
     } else {
         console.log('baseUrl 不存在')
     }
-    // console.log(ob)
-
 }
 
 function handleTime(idx: number) {
@@ -280,7 +274,7 @@ function handleMenu(e: any) {
     }
 }
 function emitWithdraw(index: number) {
-    console.log('没撤回？？？？？？')
+    // console.log('没撤回？？？？？？')
     emit('withdraw', index)
 }
 

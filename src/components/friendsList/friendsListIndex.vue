@@ -88,7 +88,6 @@
 import {
   ref,
   defineProps,
-  onMounted,
   defineEmits,
   watch,
   Ref
@@ -98,25 +97,31 @@ import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import { dbAdd, initDdOperate } from '@/utils/indexDB'
+import { dbAdd, updateDatabase } from '@/utils/indexDB'
 import {
   Box,
   Friend,
   RefreshMessage,
   Tip,
-  UserInfo,
+  // UserInfo,
   Tips,
   Judge
 } from '@/interface/global'
-import typeIs from '@/utils/type'
+// import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
-const { friendsList, fresh:reconnectFresh, freshDeleteTextTip, freshTextTip } = storeToRefs(friendStore)
+const {
+  friendsList,
+  fresh:reconnectFresh,
+  freshDeleteTextTip,
+  freshTextTip
+} = storeToRefs(friendStore)
+
+const { userInfo: user_info } = storeToRefs(mainStore)
 
 const props = defineProps({
-  friends: String,
   signal: Number,
   avatarRefresh: String,
 })
@@ -130,9 +135,7 @@ watch(() => reconnectFresh.value, val => {
 })
 
 // 用户信息
-const user_info = JSON.parse(sessionStorage.getItem('user_info') || '')
-// console.log('用户信息 -》 ', user_info)
-initDdOperate(user_info).then(() => {
+updateDatabase().then(() => {
   handleUnread()
 })
 const user_id = sessionStorage.getItem('user_id')
@@ -145,40 +148,28 @@ watch(
   }
 )
 
-onMounted(() => {
-  // console.log('route -> ', route)
-  if (!props.friends) return
-  let f = JSON.parse(props.friends)
-  const phone_number = user_info.phone_number
-  // console.log('f -> ', f, typeIs(f))
-  if (typeIs(f) === 'String') {
-    f = JSON.parse(f || '[]')
-  }
-  const baseUrl = sessionStorage.getItem('baseUrl')
-  f?.forEach((item: Friend) => {
-    // store.commit('friendsList/addFriendsList', {
-    //   name: item.name || (item.user as string),
-    //   user_id: item.user_id,
-    //   time: '',
-    //   message: '',
-    //   avatar_url: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
-    //   active: false,
-    //   searchActive: true,
-    //   chat_table: item.chat_table,
-    //   phone_number
-    // })
-    friendStore.addFriendsList({
-      name: item.name || (item.user as string),
-      user_id: item.user_id,
-      time: '',
-      message: '',
-      avatar_url: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
-      active: false,
-      searchActive: true,
-      chat_table: item.chat_table,
-      phone_number
+watch(() => user_info.value.friends, val => {
+  if (val) {
+    console.log('触发了 user_info.value -> ', val)
+    friendStore.clearFriendsList()
+    // const phone_number = user_info.value.phone_number
+    const baseUrl = sessionStorage.getItem('baseUrl')
+    val.forEach((item: Friend) => {
+      friendStore.addFriendsList({
+        ...item,
+        name: item.name || (item.user as string),
+        user_id: item.user_id,
+        time: '',
+        message: '',
+        avatar_url: `${baseUrl}/avatar/avatar_${item.user_id}.jpg`,
+        active: false,
+        searchActive: true,
+        chat_table: item.chat_table,
+      })
     })
-  })
+  }
+}, {
+  immediate: true
 })
 
 let dShow = ref(false)
@@ -207,11 +198,14 @@ function handleSelect(idx: number, row: Friend) {
 const friend_phone_number = ref('')
 const missFri = ref(false)
 const repFri = ref(false)
+const getFriendErr = antiShake(() => {
+  missFri.value = true
+})
 async function addFriend() {
   if (!friend_phone_number.value) {
     return
   }
-  // let phone_number = user_info.phone_number
+  // let phone_number = user_info.value.phone_number
   const [uerr, udata] = await to(
     request({
       method: 'post',
@@ -223,34 +217,35 @@ async function addFriend() {
   )
   if (uerr) {
     console.log('获取用户信息错误: ', uerr)
-    return
+    return dShow.value = false
   }
   // console.log('获取用户信息成功 -> ', udata)
   if (udata.data && udata.data[0]) {
     // console.log('用户存在 -> ', udata.data, store.state.global.ws)
+    console.log('userInfo xxxxx -> ', user_info.value)
     const to_id = udata.data[0].user_id || ''
     const tips: Tips = {
       to_id,
       messages_type: 'addFriend',
       messages_box: {
-        msg: `${userInfo.value.user} 想添加你为好友`,
-        friend_phone_number: userInfo.value.phone_number,
-        friendName: userInfo.value.user,
-        friend_user_id: userInfo.value.user_id,
+        msg: `${user_info.value.user} 想添加你为好友`,
+        friend_phone_number: user_info.value.phone_number,
+        friendName: user_info.value.user,
+        friend_user_id: user_info.value.user_id,
         to_user_id: udata.data[0].user_id
       }
     }
-    // store.state.global.ws?.send(JSON.stringify(tips))
     mainStore.ws?.send(JSON.stringify(tips))
-    return
+    return handleClose()
   }
-  dShow.value = false
+  // dShow.value = false
+  getFriendErr()
 }
 
 // 更新好友信息
-const userInfo: Ref<UserInfo> = ref(
-  JSON.parse(sessionStorage.getItem('user_info') || '{}')
-)
+// const userInfo: Ref<UserInfo> = ref(
+//   JSON.parse(sessionStorage.getItem('user_info.value') || '{}')
+// )
 let chatDataOb: Ref<{ [to_table: string]: Tip }> = ref({})
 watch(
   chatDataOb,
@@ -294,14 +289,13 @@ watch(() => freshTextTip.value, (ob: RefreshMessage) => {
 
 // 处理未读信息(红点提示部分)
 async function handleUnread(isWsReconnect: Judge = Judge.NO) {
-  // console.log('route -> ', route, router)
-  // const c = sessionStorage.getItem('chatDataOb')
-  // if (c) {
-  //     chatDataOb.value = JSON.parse(c)
-  //     return
-  // }
+  const c = sessionStorage.getItem('chatDataOb')
+  if (c) {
+      chatDataOb.value = JSON.parse(c)
+  }
+  console.log('userInfo -> ', user_info.value)
   // 从服务器拉取未读信息
-  let flist = JSON.parse(userInfo.value.friends)
+  let flist = user_info.value.friends
   if (!flist) return
   if (typeof flist === 'string') {
     flist = JSON.parse(flist)
@@ -312,7 +306,7 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
       url: api.unread,
       data: {
         friends: flist?.map((i: Friend) => i.chat_table),
-        user_id: userInfo.value.user_id
+        user_id: user_info.value.user_id
       }
     })
   )
