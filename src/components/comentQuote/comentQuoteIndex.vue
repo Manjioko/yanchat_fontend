@@ -18,8 +18,9 @@
 <!-- script setup -->
 <script setup lang="ts">
 import { Close } from '@element-plus/icons-vue'
-import { defineProps, defineEmits } from 'vue'
-const emit = defineEmits(['close'])
+import { defineProps } from 'vue'
+import {handleQuoteCloseEvent } from '@/components/chatWindow/Methods/quote'
+// const emit = defineEmits(['close'])
 defineProps({
     showInputQuote: {
         type: Boolean,
@@ -34,7 +35,8 @@ defineProps({
 })
 
 function handleClick() {
-    emit('close')
+    // emit('close')
+    handleQuoteCloseEvent()
 }
 </script>
 <!-- style -->

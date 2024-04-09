@@ -3,16 +3,12 @@ import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { UserInfo, Friend } from '@/interface/global'
 import { updateDatabase } from '@/utils/indexDB'
-// import { store } from '@/store'
 import { MainStore } from '@/view/Main/store'
-import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'
-import { setUserInfo, updateUserInfo } from '@/view/Main/Methods/userInfoOperator'
+import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { A_getUserInfo } from '@/api'
 const mainstore = MainStore()
-const friendstore = FriendsListStore()
 const { userInfo } = storeToRefs(mainstore)
-// const store = useStore()
 
 // 点击添加好友 同意按钮后会触发这个函数
 export async function localClickAddFriend(friData: any) {
@@ -36,14 +32,12 @@ export async function localClickAddFriend(friData: any) {
 
     // 更新用户信息
     const userInfoRes = await A_getUserInfo({ phone_number: getUserInfo.phone_number, get_friends: true })
-    console.log('userInfoRes -> ', userInfoRes)
     setUserInfo(userInfoRes.data[0] as UserInfo)
     // 更改版本号,重新更新数据库
-    const db = await updateDatabase(mainstore.db)
+    await updateDatabase(mainstore.db)
     if (userInfoRes.data) {
         const userInfo = userInfoRes.data[0] as UserInfo
-        userInfo.db_version = db.version
-        await updateUserInfo(userInfo)
+        setUserInfo(userInfo)
     }
 }
 
@@ -58,10 +52,9 @@ export async function receivedFriendAddSuccessSingle() {
     // 然后再根据 updateUserInfo 把最新的版本号更新到远程数据库
     setUserInfo(userInfoRes.data[0] as UserInfo)
     // 更改版本号,重新更新数据库
-    const db = await updateDatabase(mainstore.db)
+    await updateDatabase(mainstore.db)
     if (userInfoRes.data) {
         const userInfo = userInfoRes.data[0] as UserInfo
-        userInfo.db_version = db.version
-        await updateUserInfo(userInfo)
+        setUserInfo(userInfo)
     }
 }

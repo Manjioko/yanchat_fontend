@@ -21,7 +21,8 @@ export interface GlobalState {
 
     db: any | null
     dbname: string | null
-    dbversion: number | null
+    dbversion: number | null,
+    isUseMd: boolean
 
 }
 export const MainStore = defineStore('view/Main', {
@@ -56,7 +57,8 @@ export const MainStore = defineStore('view/Main', {
 
         db: null,
         dbname: null,
-        dbversion: null
+        dbversion: null,
+        isUseMd: false
     }),
     getters: {
         positionId(): string {

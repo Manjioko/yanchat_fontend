@@ -88,7 +88,7 @@
 import {
   ref,
   defineProps,
-  defineEmits,
+  // defineEmits,
   watch,
   Ref
 } from 'vue'
@@ -98,6 +98,7 @@ import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import { dbAdd, updateDatabase } from '@/utils/indexDB'
+import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
 import {
   Box,
   Friend,
@@ -105,11 +106,16 @@ import {
   Tip,
   // UserInfo,
   Tips,
-  Judge
+  Judge,
+  Lock,
+  IsSwitchFriend,
 } from '@/interface/global'
+import { DESC } from '@/interface/indexDB'
 // import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
+import { FootSendStore } from '../sendFoot/store'
 import { storeToRefs } from 'pinia'
+import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
 const {
@@ -119,13 +125,41 @@ const {
   freshTextTip
 } = storeToRefs(friendStore)
 
-const { userInfo: user_info } = storeToRefs(mainStore)
+const {
+  userInfo: user_info,
+  activeFriend,
+  scrollUpLock,
+  scrollDownLock,
+  isLastChatList,
+  signal
+} = storeToRefs(mainStore)
+const { goToBottom, pongSaveCacheData } = storeToRefs(FootSendStore())
 
 const props = defineProps({
-  signal: Number,
+  // signal: Number,
   avatarRefresh: String,
 })
-const emit = defineEmits(['handleActiveFriend'])
+// const emit = defineEmits(['handleActiveFriend'])
+// 点击好友（切换好友）
+async function handleActiveFriend(f: Friend) {
+    // 切走之前,把数据保存到本地
+    if (activeFriend.value.chat_table) {
+        saveChatWindowPosition()
+    }
+
+    // 设置好友信息
+    mainStore.setActiveFriend(f)
+    // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
+    scrollUpLock.value = Lock.UnLock
+    scrollDownLock.value = Lock.UnLock
+    // 记录的结尾标识也需要重置
+    isLastChatList.value = Judge.NO
+    // 存在回到最新提示的也需要重置
+    goToBottom.value = Judge.NO
+    // 未显示内容需要重置
+    pongSaveCacheData.value = []
+    getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
+}
 
 // 重连刷新内容
 watch(() => reconnectFresh.value, val => {
@@ -181,7 +215,8 @@ function handleSelect(idx: number, row: Friend) {
       item.active = true
       // 重复点击同一个对象时,只发送一次 handleActiveFriend
       if (idx !== oldIdx.value) {
-        emit('handleActiveFriend', item)
+        // emit('handleActiveFriend', item)
+        handleActiveFriend(item)
       }
       oldIdx.value = idx
       return

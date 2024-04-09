@@ -45,14 +45,13 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
                 if (bar.scrollTop && bar.clientHeight && bar.scrollHeight) {
                     if (bar.scrollTop + bar.clientHeight >= bar.scrollHeight) {
                         console.log('已经到底了😂')
+                        goToBottom.value = Judge.NO
                         // 一旦到底了, 就不需要定位，不然可能会出现问题
                         deleteActionFriendPositionData()
                     }
                 }
             }
         }
-        
-        goToBottom.value = Judge.NO
 
     }
 }

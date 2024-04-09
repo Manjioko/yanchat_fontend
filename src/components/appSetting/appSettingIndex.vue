@@ -30,7 +30,7 @@
             <div class="markdown">
                 <div class="nick-title markdown-title">是否使用Markdown:</div>
                 <div class="m-sel">
-                    <el-select v-model="isMarkdown" placeholder="Select">
+                    <el-select v-model="isUseMd" placeholder="Select">
                         <el-option
                         v-for="item in changeMarkdownList"
                         :key="item.value"
@@ -58,7 +58,8 @@ import { storeToRefs } from 'pinia'
 import router from '@/router/router'
 import { ResetPinia } from '@/utils/resetAllPiniaStore'
 import { clearUserInfo } from '@/view/Main/Methods/userInfoOperator'
-const { ws: websocket, userInfo: user_info } = storeToRefs(MainStore())
+// import { MainStore } from '@/view/Main/store'
+const { ws: websocket, userInfo: user_info, isUseMd } = storeToRefs(MainStore())
 // import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
@@ -78,24 +79,25 @@ const changeMarkdownList = [
     { label: '是', value: true },
     { label: '否', value: false },
 ]
-const isUseMd = sessionStorage.getItem('is_use_md') || user_info.value.is_use_md
-const isMarkdown = ref(isUseMd === 'true' || isUseMd === '1' ? true : false)
+const md = sessionStorage.getItem('is_use_md') || user_info.value.is_use_md
+// const isUseMd = ref(md === 'true' || md === '1' ? true : false)
+isUseMd.value = md === 'true' || md === '1' ? true : false
 watchEffect(async () => {
-    if (isMarkdown.value !== undefined) {
-        // console.log('changed markdown -> ', isMarkdown.value)
+    if (isUseMd.value !== undefined) {
+        // console.log('changed markdown -> ', isUseMd.value)
         const [err] = await to(request({
             method: 'post',
             url: api.markdown,
             data: {
                 user_id: user_info.value.user_id,
-                is_use_md: isMarkdown.value
+                is_use_md: isUseMd.value
             }
         }))
         if (err) {
             ElMessage.error('操作失败!')
         } else {
-            sessionStorage.setItem('is_use_md', isMarkdown.value.toString())
-            emit('isUseMarkdown', isMarkdown.value)
+            sessionStorage.setItem('is_use_md', isUseMd.value.toString())
+            // emit('isUseMarkdown', isUseMd.value)
         }
     }
 })

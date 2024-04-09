@@ -4,11 +4,8 @@ import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box, UserInfo, Friend } from '@/interface/global'
 import typeIs from './type'
 import { MainStore } from '@/view/Main/store'
-import { A_getUserInfo } from '@/api'
-import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
-import { updateUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { storeToRefs } from 'pinia'
-// import { request, api } from './api'
+
 const mainstore = MainStore()
 
 const { userInfo } = storeToRefs(mainstore)
@@ -16,7 +13,7 @@ const { userInfo } = storeToRefs(mainstore)
   
 // indexDB 打开数据库
 export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
-    const { dbName,  oldDb = null, config, version } = options
+    const { dbName,  oldDb = null, config } = options
     return new Promise((resolve, reject) => {
         let newVersion: number | null = null
         if (oldDb) {
@@ -27,9 +24,11 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
                 console.log('关闭旧数据库失败 -> ', error)
             }
         }
-        const request = window.indexedDB.open(dbName, newVersion || version)
+        const request = newVersion
+        ? window.indexedDB.open(dbName, newVersion)
+        : window.indexedDB.open(dbName)
         request.onerror = event => {
-            console.log('错误 -> ', event, dbName, newVersion || version)
+            console.log('错误 -> ', event, dbName, newVersion)
             reject(event)
         }
         request.onsuccess = event => {
@@ -37,7 +36,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
             mainstore.setDb({
                 db: result,
                 dbName: dbName,
-                dbVersion: newVersion || version
+                dbVersion: newVersion
             })
             resolve(result)
         }
@@ -462,11 +461,9 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
     const initConfig = friends?.map((item: Friend) => ({ name: item.chat_table, key: 'id', indexList })) || []
     initConfig.push(tipsTable)
     console.log('initConfig 数据是 -> ', initConfig, userInfo.value)
-    const version = userInfo.value.db_version ? Number(userInfo.value.db_version) : 1
     return dbOpen({
         dbName: userInfo.value.user_id,
         config: initConfig,
         oldDb: oldDB,
-        version
     })
 }

@@ -69,7 +69,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { defineProps, defineExpose, ref, defineEmits, watch, provide, onMounted } from 'vue'
+import { defineProps, defineExpose, ref, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile/sendFileIndex.vue'
@@ -81,17 +81,25 @@ import { ChatWindowStore } from './store'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { Box } from '@/interface/global'
 import { ScrollData } from '@/interface/chatWindow'
+import { scrollEvent } from './Methods/scroll'
+import { MainStore } from '@/view/Main/store'
+import { storeToRefs } from 'pinia'
+import { handleWithdraw, handleDeleted } from './Methods/withDraw'
+import { handleQuoteEvent } from './Methods/quote'
+import { handleLoadedEvent } from './Methods/mediaLoad'
+
+const { chatBox, isUseMd } = storeToRefs(MainStore())
 
 const props = defineProps({
-    chatBox: Object,
+    // chatBox: Object,
     avatarRefresh: String,
-    markdown: Boolean
+    // markdown: Boolean
 })
 const scrollBar = ref()
 let chatListDiv: HTMLElement | null = null
 provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
-const emit = defineEmits(['scroll', 'deleted', 'withdraw', 'loaded', 'quote'])
+// const emit = defineEmits(['loaded'])
 const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 
@@ -105,7 +113,7 @@ watch(() => props.avatarRefresh, (val) => {
 const store = ChatWindowStore()
 // let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
-watch(() => props.chatBox?.length, () => {
+watch(() => chatBox.value?.length, () => {
     // console.log('这里没变吗', scrollBar.value.wrapRef.clientHeight, scrollBar.value.wrapRef.scrollHeight)
     updatedScrollData()
 })
@@ -136,7 +144,7 @@ const md = MarkdownIt({
     }
 })
 function textToMarkdown(text: string) {
-    return props.markdown ? md.render(text) : text
+    return isUseMd.value ? md.render(text) : text
 }
 
 // 更新滚动数据
@@ -155,7 +163,7 @@ function updatedScrollData() {
 
 function handleScroll(e: any) {
     updatedScrollData()
-    emit('scroll', e)
+    scrollEvent(e)
 }
 
 // 自定义加载事件
@@ -183,8 +191,8 @@ function handleAvatar(ob: Box) {
 }
 
 function handleTime(idx: number) {
-    const beforItem = props.chatBox?.[idx - 1 || 0]
-    const nowItem = props.chatBox?.[idx]
+    const beforItem = chatBox.value?.[idx - 1 || 0]
+    const nowItem = chatBox.value?.[idx]
     if (!beforItem) return ''
     const beforTime = new Date(beforItem?.time ?? '').getTime()
     const nowTime = new Date(nowItem?.time ?? '').getTime()
@@ -237,7 +245,8 @@ function handleMenu(e: any) {
             onClick: () => {
                 // 本地删除
                 const index = node.dataset.index
-                emit('deleted', index)
+                // emit('deleted', index)
+                handleDeleted(index)
                 console.log('删除 -> ', index)
             }
         },
@@ -246,7 +255,8 @@ function handleMenu(e: any) {
             onClick: () => {
                 // 本地撤回
                 const index = node.dataset.index
-                emit('withdraw', index)
+                // emit('withdraw', index)
+                handleWithdraw(index)
             }
         },
         {
@@ -254,7 +264,8 @@ function handleMenu(e: any) {
             onClick: () => {
                 console.log(' -> 引用')
                 const index = node.dataset.index
-                emit('quote', index)
+                // emit('quote', index)
+                handleQuoteEvent(index)
             }
         },
     ]
@@ -275,12 +286,14 @@ function handleMenu(e: any) {
 }
 function emitWithdraw(index: number) {
     // console.log('没撤回？？？？？？')
-    emit('withdraw', index)
+    // emit('withdraw', index)
+    handleWithdraw(index)
 }
 
 function emitDeleted(index: number) {
     console.log('删除 -> ', index)
-    emit('deleted', index)
+    // emit('deleted', index)
+    handleDeleted(index)
 }
 
 function handleError(e: any) {
@@ -293,12 +306,14 @@ function handleSelfError() {
 
 function handleQuote(idx: number) {
     console.log('handleQuote')
-    emit('quote', idx)
+    // emit('quote', idx)
+    handleQuoteEvent(idx)
 }
 
 // 图片加载完成后处理
 function handleLoaded(chat_id: string) {
-    emit('loaded', chat_id)
+    // emit('loaded', chat_id)
+    handleLoadedEvent(chat_id)
 }
 </script>
 <style lang="scss" scoped>

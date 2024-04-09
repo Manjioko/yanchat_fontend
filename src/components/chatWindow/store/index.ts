@@ -6,13 +6,15 @@ export interface ChatWindowState {
     scrollBar: any
     chatListEle: any
     scrollData: ScrollData
+    boxScrollTop: number
 }
 
 export const ChatWindowStore = defineStore('components/chatWindow', {
     state:(): ChatWindowState => ({
         scrollBar: null,
         chatListEle: null,
-        scrollData: {}
+        scrollData: {},
+        boxScrollTop: 0
     }),
     actions: {
         setScrollBar(payload: any) {

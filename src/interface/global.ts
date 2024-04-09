@@ -24,7 +24,8 @@ interface Box {
     from?: string // 发送者
     quote?: string // 引用
     event?: string // 用于视频通话时传递通信类型,也可以约束接口用
-    data?: any // 用于存放一些额外数据
+    data?: any, // 用于存放一些额外数据
+    inaccessible?: boolean
 }
 
 const InitBox: Box = {

@@ -4,7 +4,7 @@ import { MainStore } from '../store'
 import { Position } from '@/interface/global'
 import { jugeScrollOverScreen } from './jugeScrollOverScreen'
 import { cutChatBox } from './cutChatBox'
-import { setActionFriendPositionData } from './positionOperator'
+import { setActionFriendPositionData, deleteActionFriendPositionData } from './positionOperator'
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 
@@ -33,6 +33,7 @@ export function saveChatWindowPosition() {
 
     if (!firstId ||  !lastId) {
         console.log('extendFirst 或 extendLast 不存在')
+        // deleteActionFriendPositionData()
         return
     }
     const saveData: Position = {
@@ -60,13 +61,14 @@ function elementFilter(elList: HTMLElement[], container: HTMLElement): HTMLEleme
     // 在顶部的情况
     if (midTop < top && midBottom < bottom) {
         const newElList = elList.slice(mid)
-        return elementFilter(newElList, container)
+        // console.log('newElList length -> ', newElList.length)
+        return newElList.length <= 1 ? newElList : elementFilter(newElList, container)
     }
 
     // 在底部的情况
     if (midTop > top && midBottom > bottom) {
         const newElList = elList.slice(0, mid)
-        return elementFilter(newElList, container)
+        return newElList.length <= 1 ? newElList : elementFilter(newElList, container)
     }
 
     // 在显示范围内的情况
