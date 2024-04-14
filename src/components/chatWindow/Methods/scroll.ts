@@ -5,11 +5,11 @@ import { ChatWindowStore } from '@/components/chatWindow/store'
 import { storeToRefs } from 'pinia'
 import { IsSwitchFriend, Lock } from '@/interface/global'
 import { DESC } from '@/interface/indexDB'
-import { MainStore } from '@/view/Main/store'
+// import { MainStore } from '@/view/Main/store'
 
-const { scrollUpLock, scrollDownLock } = storeToRefs(MainStore())
+// const {  } = storeToRefs(MainStore())
 
-const { scrollData, boxScrollTop } = storeToRefs(ChatWindowStore())
+const { scrollData, boxScrollTop, scrollUpLock, scrollDownLock } = storeToRefs(ChatWindowStore())
 
 const scrollOffsetAntiShakeFn = antiShake(saveChatWindowPosition, 500)
 // 滚动条事件处理

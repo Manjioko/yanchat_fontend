@@ -11,9 +11,11 @@ const footSendStore = FootSendStore()
 
 const chatWindowStore = ChatWindowStore()
 
-const { goToBottom } = storeToRefs(footSendStore)
-const { isLastChatList, receivedShowGotoBottom, chatBox } = storeToRefs(mainStore)
+const { goToBottom, receivedShowGotoBottom } = storeToRefs(footSendStore)
+// const {   } = storeToRefs(mainStore)
+
 const { scrollData } = storeToRefs(chatWindowStore)
+const { isLastChatList, chatBox } = storeToRefs(chatWindowStore)
 
 
 

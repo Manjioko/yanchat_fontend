@@ -4,6 +4,7 @@ import { getActionFriendPositionData } from '@/view/Main/Methods/positionOperato
 import { scrollChatBoxToBottom } from "@/view/Main/Methods/mainMethods"
 import { MainStore } from "@/view/Main/store"
 import { FootSendStore } from "@/components/sendFoot/store"
+import { FriendsListStore } from "@/components/friendsList/store"
 import { ChatWindowStore } from "../store"
 // import { FriendsListStore } from "@/components/friendsList/store"
 import { storeToRefs } from "pinia"
@@ -13,12 +14,12 @@ import {
     dbReadRangeNotOffset,
     dbReadRangeByArea,
     dbGetLastPrimaryKey
-} from '@/utils/indexDB'
+} from '@/view/Main/Methods/indexDB'
 import { deleteActionFriendPositionData, clearActionFriendPositionData } from '@/view/Main/Methods/positionOperator'
 
-const { chatBox, isLastChatList, scrollUpLock, scrollDownLock, activeFriend, scrollSafeLength, imgLoadList, userInfo } = storeToRefs(MainStore())
-const { scrollData, boxScrollTop } = storeToRefs(ChatWindowStore())
+const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, imgLoadList } = storeToRefs(ChatWindowStore())
 const { goToBottom } = storeToRefs(FootSendStore())
+const { activeFriend, userInfo } = storeToRefs(FriendsListStore())
 // const { activeFriend } = storeToRefs(FriendsListStore())
 
 export async function getChatFromServer(

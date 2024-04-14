@@ -1,7 +1,9 @@
-import { MainStore } from "@/view/Main/store"
+// import { MainStore } from "@/view/Main/store"
+import { ChatWindowStore } from "../store"
 import { storeToRefs } from "pinia"
 
-const { imgLoadList } = storeToRefs(MainStore())
+const { imgLoadList } = storeToRefs(ChatWindowStore())
+
 
 // 处理图片加载完成事件
 export function handleLoadedEvent(chat_id: string) {

@@ -2,15 +2,16 @@ import { storeToRefs } from "pinia"
 import { FriendsListStore } from "@/components/friendsList/store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { ChatWindowStore } from "@/components/chatWindow/store"
-import { MainStore } from "../store"
+// import { MainStore } from "../store"
 import { Judge, Box, Friend } from "@/interface/global"
-import { dbReadRangeNotOffset } from "@/utils/indexDB"
+import { dbReadRangeNotOffset } from "@/view/Main/Methods/indexDB"
 import { nextTick, watchEffect } from "vue"
+// import { FriendsListStore } from "@/components/friendsList/store"
 
-const { scrollData } = storeToRefs(ChatWindowStore())
-const { freshTextTip } = storeToRefs(FriendsListStore())
+const { scrollData, isLastChatList, chatBox, imgLoadList } = storeToRefs(ChatWindowStore())
+const { freshTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
 const { goToBottom } = storeToRefs(FootSendStore())
-const { userInfo, isLastChatList, chatBox, activeFriend, imgLoadList } = storeToRefs(MainStore())
+// const {  } = storeToRefs(MainStore())
 
 // 滚动聊天框到底部
 export function scrollChatBoxToBottom(start_sp?: number) {

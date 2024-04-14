@@ -1,6 +1,8 @@
-import { MainStore } from "../store"
+// import { MainStore } from "../store"
+import { FriendsListStore } from "@/components/friendsList/store"
 import { Position } from "@/interface/global"
-const mainStore = MainStore()
+// const mainStore = MainStore()
+const friendsListStore = FriendsListStore()
 
 export function deleteActionFriendPositionData() {
     let beforedata: { [position_id: string]: Position } = JSON.parse(
@@ -9,7 +11,7 @@ export function deleteActionFriendPositionData() {
     if (typeof beforedata === 'string') {
         beforedata = JSON.parse(beforedata)
     }
-    delete beforedata[mainStore.positionId]
+    delete beforedata[friendsListStore.positionId]
 
     localStorage.setItem('Position', JSON.stringify(beforedata))
 }
@@ -21,7 +23,7 @@ export function setActionFriendPositionData(data: Position) {
     if (typeof beforedata === 'string') {
         beforedata = JSON.parse(beforedata)
     }
-    beforedata[mainStore.positionId] = data
+    beforedata[friendsListStore.positionId] = data
     localStorage.setItem('Position', JSON.stringify(beforedata))
 }
 
@@ -32,7 +34,7 @@ export function getActionFriendPositionData() {
     if (typeof beforedata === 'string') {
         beforedata = JSON.parse(beforedata)
     }
-    return beforedata[mainStore.positionId]
+    return beforedata[friendsListStore.positionId]
 }
 
 export function clearActionFriendPositionData() {

@@ -1,14 +1,15 @@
 
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import { UserInfo, Friend } from '@/interface/global'
-import { updateDatabase } from '@/utils/indexDB'
+import { UserInfo } from '@/interface/global'
+import { updateDatabase } from '@/view/Main/Methods/indexDB'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
 import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { A_getUserInfo } from '@/api'
+import { FriendsListStore } from '@/components/friendsList/store'
 const mainstore = MainStore()
-const { userInfo } = storeToRefs(mainstore)
+const { userInfo } = storeToRefs(FriendsListStore())
 
 // 点击添加好友 同意按钮后会触发这个函数
 export async function localClickAddFriend(friData: any) {

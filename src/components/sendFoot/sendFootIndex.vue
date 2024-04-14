@@ -17,7 +17,7 @@
             </div>
             <div class="upload">
                 <img src="../../assets/folder.png" alt="upload">
-                <input type="file" @change="uploadFile" v-if="uploadDisable">
+                <input type="file" @change="uploadFile" v-if="!!activeFriend">
             </div>
         </section>
         <div class="text-send">
@@ -38,7 +38,7 @@
     </main>
 </template>
 <script setup lang="ts">
-import { ref, defineProps, reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import { api } from '@/utils/api'
@@ -53,18 +53,16 @@ import { storeToRefs } from 'pinia'
 import { centerSend } from '@/view/Main/Methods/centerMethods'
 import { handleVideoCallStart } from '../VideoCallOfferer/methods/videoCenter'
 import { handleGotoBottom } from '@/view/Main/Methods/mainMethods'
+// import { MainStore } from '@/view/Main/store'
+import { CommentQuoteStore } from '../comentQuote/store'
+import { FriendsListStore } from '../friendsList/store'
 
 const sfStore = FootSendStore()
-const props = defineProps({
-    chatBox: Object,
-    uploadDisable: Boolean,
-    quote: {
-        type: String,
-        default: ''
-    }
-})
 // const emit = defineEmits(['progress', 'response', 'gotoBottom'])
 const { goToBottom: showGotoBottom, pongSaveCacheData } = storeToRefs(sfStore)
+// const { activeFriend } = storeToRefs(MainStore())
+const { comment } = storeToRefs(CommentQuoteStore())
+const { activeFriend } = storeToRefs(FriendsListStore())
 
 const chatText = ref('')
 
@@ -81,6 +79,7 @@ function sendMessage(chatData?:Box) {
     }
 
     const message = chatText.value
+    console.log('commment.value -> ', comment.value)
 
     if (!message) return
     
@@ -97,8 +96,8 @@ function sendMessage(chatData?:Box) {
         user_id: '',
         loading: false
     })
-    if (props.quote) {
-        dataOb.quote = props.quote
+    if (comment.value) {
+        dataOb.quote = comment.value
     }
     // Center(dataOb, 'sent')
     // emit('center', dataOb, 'sent')

@@ -69,7 +69,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { defineProps, defineExpose, ref, watch, provide, onMounted } from 'vue'
+import { defineExpose, ref, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile/sendFileIndex.vue'
@@ -85,16 +85,13 @@ import { scrollEvent } from './Methods/scroll'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
 import { handleWithdraw, handleDeleted } from './Methods/withDraw'
-import { handleQuoteEvent } from './Methods/quote'
+import { handleQuoteEvent } from '@/components/comentQuote/Methods/quote'
 import { handleLoadedEvent } from './Methods/mediaLoad'
+import { AppSettingStore } from '../appSetting/store'
 
-const { chatBox, isUseMd } = storeToRefs(MainStore())
+const { isUseMd } = storeToRefs(MainStore())
+const { avatarRefresh } = storeToRefs(AppSettingStore())
 
-const props = defineProps({
-    // chatBox: Object,
-    avatarRefresh: String,
-    // markdown: Boolean
-})
 const scrollBar = ref()
 let chatListDiv: HTMLElement | null = null
 provide('scrollBar', scrollBar)
@@ -104,13 +101,14 @@ const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
-watch(() => props.avatarRefresh, (val) => {
+watch(() => avatarRefresh.value, (val) => {
     if (val) {
         avatarSrc.value = val
     }
 })
 
 const store = ChatWindowStore()
+const { chatBox } = storeToRefs(store)
 // let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
 watch(() => chatBox.value?.length, () => {

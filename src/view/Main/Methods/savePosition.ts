@@ -4,8 +4,8 @@ import { MainStore } from '../store'
 import { Position } from '@/interface/global'
 import { jugeScrollOverScreen } from './jugeScrollOverScreen'
 import { cutChatBox } from './cutChatBox'
-import { setActionFriendPositionData, deleteActionFriendPositionData } from './positionOperator'
-const mainStore = MainStore()
+import { setActionFriendPositionData } from './positionOperator'
+// const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 
 // 保存聊天窗口
@@ -21,7 +21,7 @@ export function saveChatWindowPosition() {
     ary.forEach((el) => {
         const idx = el.dataset.checkIndex
         if (idx) {
-            const id = mainStore.chatBox[Number(idx)]?.id
+            const id = chatWindowStore.chatBox[Number(idx)]?.id
             id && canSaw.push(id)
         }
     })
@@ -37,8 +37,8 @@ export function saveChatWindowPosition() {
         return
     }
     const saveData: Position = {
-        first: Number(firstId) - Math.ceil(mainStore.scrollSafeLength / 2),
-        last: Number(lastId) + Math.ceil(mainStore.scrollSafeLength / 2),
+        first: Number(firstId) - Math.ceil(chatWindowStore.scrollSafeLength / 2),
+        last: Number(lastId) + Math.ceil(chatWindowStore.scrollSafeLength / 2),
         use: Number(firstId)
     }
     // 存储位置信息

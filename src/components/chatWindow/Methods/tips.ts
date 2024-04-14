@@ -1,9 +1,11 @@
 // import {  store } from '@/store'
-import { receivedFriendAddSuccessSingle } from '@/utils/friends'
+import { receivedFriendAddSuccessSingle } from '@/components/friendsList/Methods/index'
 import { Tips } from '@/interface/global'
-import { handleWithdraw } from '@/utils/withdraw'
+import { handleWithdrawUtils } from '@/components/chatWindow/Methods/withDraw'
 import { MainStore } from '@/view/Main/store'
+import { ChatWindowStore } from '@/components/chatWindow/store'
 const mainStore = MainStore()
+const chatWindowStore = ChatWindowStore()
 // const store = store
 // 处理消息通知
 export function handleTips(tips: { data: Tips[] }) {
@@ -11,23 +13,23 @@ export function handleTips(tips: { data: Tips[] }) {
     // 添加好友信息到通知栏，并存入数据库中
     const addFriendsList = tips.data.filter((item: any) => item.messages_type === 'addFriend')
     // store?.commit('global/clearTips')
-    mainStore.clearTips()
+    chatWindowStore.clearTips()
     for (const item of addFriendsList) {
         const to_user_id = JSON.parse(item.messages_box || '{}').to_user_id || ''
         if (!to_user_id) continue
         // store.commit('global/addTips', item)
-        mainStore.addTips(item)
+        chatWindowStore.addTips(item)
     }
 
     // 处理其他即时消息，不做长久存储
-    const otherList = tips.data.filter((item: any) => item.messages_type !== 'addFriend')
+    const otherList: any = tips.data.filter((item: any) => item.messages_type !== 'addFriend')
     // console.log('其他消息 -> ', otherList)
     for (const item of otherList) {
         switch (item.messages_type) {
             case 'withdraw':
                 // store.commit('global/withdrewTips', item)
                 console.log('撤回消息 -> ', item)
-                handleWithdraw(item)
+                handleWithdrawUtils(item)
                 break
             case 'addFriendRecieved':
                 {

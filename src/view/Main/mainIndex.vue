@@ -1,6 +1,6 @@
 <template>
     <main class="main" @contextmenu.prevent>
-        <friendsList :avatarRefresh="avatarRefresh"/>
+        <friendsList />
         <section class="chat-window">
             <section class="text-top">
                 <div class="avatar" v-if="activeFriend">
@@ -20,25 +20,18 @@
                 </el-badge> -->
                 <tipsMessages />
             </section>
-            <ChatWindow
-                v-if="activeFriend.chat_table"
-                :avatarRefresh="avatarRefresh"
-            />
+            <ChatWindow v-if="activeFriend.chat_table" />
             <section class="zero-friend" v-else>还未选择聊天好友</section>
             <section style="position: relative">
-                <comentQuote v-if="showQuote" :show-input-quote="true" :comment="comment" />
-                <SendFoot v-if="activeFriend.chat_table" :upload-disable="!!activeFriend" :quote="comment" />
+                <comentQuote v-if="showQuote" :show-input-quote="true" />
+                <SendFoot v-if="activeFriend.chat_table" />
             </section>
         </section>
     </main>
-    <AppSetting
-        ref="appSetting"
-        @avaterChange="handleAvatarChange"
-        @nickNameChange="handleNickNameChange"
-    />
+    <AppSetting ref="appSetting" />
     <!-- 测试模式用 -->
-    <videoCallOfferer v-if="activeFriend && showOfferer" :friend="activeFriend" :socket="websocket || undefined" />
-    <videoCallAnwserer v-if="showAnwserer" :friend="activeFriend" :socket="websocket || undefined"/>
+    <!-- <videoCallOfferer v-if="activeFriend && showOfferer" :friend="activeFriend" :socket="websocket || undefined" />
+    <videoCallAnwserer v-if="showAnwserer" :friend="activeFriend" :socket="websocket || undefined"/> -->
     <!-- 铃声 -->
     <!-- <audio class="audio"
         src="../assets/audio/call.mp3"
@@ -55,23 +48,19 @@ import {
     onMounted,
     onBeforeUnmount,
     nextTick,
-    // watchEffect,
-    watch,
-    Ref,
+    watch
 } from 'vue'
 import ChatWindow from '@/components/chatWindow/chatWindowIndex.vue'
-import wsInit from '@/utils/ws'
+import wsInit from '@/view/Main/Methods/ws'
 import friendsList from '@/components/friendsList/friendsListIndex.vue'
-// import antiShake from '@/utils/antiShake'
 import AppSetting from '@/components/appSetting/appSettingIndex.vue'
 import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
 import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
-import videoCallOfferer from '@/components/VideoCallOfferer/videoCallOffererIndex.vue'
-import videoCallAnwserer from '@/components/videoCallAnwserer/videoCallAnwsererIndex.vue'
+// import videoCallOfferer from '@/components/VideoCallOfferer/videoCallOffererIndex.vue'
+// import videoCallAnwserer from '@/components/videoCallAnwserer/videoCallAnwsererIndex.vue'
 import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
-// import { saveChatWindowPosition } from './Methods/savePosition'
 
 import {
     WsConnectParams,
@@ -81,22 +70,24 @@ import {
 import { FootSendStore } from '@/components/sendFoot/store'
 import { storeToRefs } from 'pinia'
 import { MainStore } from './store'
-import { VideoCallOfferer } from '@/components/VideoCallOfferer/store'
-import { getUserInfo, setUserInfo } from './Methods/userInfoOperator'
+import { FriendsListStore } from '@/components/friendsList/store'
+// import { VideoCallOfferer } from '@/components/VideoCallOfferer/store'
+import { getUserInfo } from './Methods/userInfoOperator'
+import { ChatWindowStore } from '@/components/chatWindow/store'
+import { CommentQuoteStore } from '@/components/comentQuote/store'
 
-const { showOfferer, showAnwserer } = storeToRefs(VideoCallOfferer())
+
+// const { showOfferer, showAnwserer } = storeToRefs(VideoCallOfferer())
 
 
 // websocket 客户端
 const {
     ws: websocket,
-    reloadChatData:reconnectFresh,
-    activeFriend,
-    showQuote,
-    comment,
-    userInfo,
     signal
 }  = storeToRefs(MainStore())
+const friendsListStore = FriendsListStore()
+const { userInfo, activeFriend } = storeToRefs(friendsListStore)
+const { showQuote } = storeToRefs(CommentQuoteStore())
 
 const user_info = getUserInfo()
 if (user_info) {
@@ -106,10 +97,12 @@ if (user_info) {
 
 // 计时器
 let refreshTokenTime: number | null | undefined = null
-const mainStore = MainStore()
+// const mainStore = MainStore()
+const chatWindowStore = ChatWindowStore()
 
 const footSendStore = FootSendStore()
-const { isLastChatList, scrollDownLock } = storeToRefs(mainStore)
+// const { isLastChatList, scrollDownLock } = storeToRefs(mainStore)
+const { isLastChatList, scrollDownLock, reloadChatData:reconnectFresh, } = storeToRefs(chatWindowStore)
 
 watch(() => reconnectFresh.value, (val:boolean) => {
     if (val) {
@@ -140,7 +133,7 @@ onBeforeUnmount(() => {
     if (refreshTokenTime) {
         clearInterval(refreshTokenTime)
     }
-    mainStore.setActiveFriend({
+    friendsListStore.setActiveFriend({
         name: '',
         user_id: '',
         phone_number: '',
@@ -178,19 +171,6 @@ function showSettingDialog() {
     appSetting.value.showDialog(true)
 }
 
-// 头像更新
-const avatarRefresh: Ref<string> = ref('')
-function handleAvatarChange(url: string) {
-    avatarRefresh.value = url
-}
-
-// 更新好友信息
-function handleNickNameChange(fri: any) {
-    userInfo.value = fri
-    // sessionStorage.setItem('user_info', JSON.stringify(fri))
-    setUserInfo(fri)
-}
-
 // websocket 重连刷新
 function handleWsReconnect() {
     // store.commit('footSend/setGotoBottomState', true)
@@ -204,7 +184,7 @@ function handleWsReconnect() {
     // 关掉 realoadChatData
     nextTick(() => {
         // store.commit('global/setReloadChatData', false)
-        mainStore.setReloadChatData(false)
+        chatWindowStore.setReloadChatData(false)
     })
 }
 </script>
@@ -387,4 +367,4 @@ function handleWsReconnect() {
     align-items: center;
     justify-content: center;
 }
-</style>
+</style>@/view/Main/Methods/ws

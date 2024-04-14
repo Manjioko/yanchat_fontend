@@ -47,7 +47,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { defineProps, ref, defineExpose, defineEmits, watchEffect } from 'vue'
+import { defineProps, ref, defineExpose, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
@@ -58,18 +58,20 @@ import { storeToRefs } from 'pinia'
 import router from '@/router/router'
 import { ResetPinia } from '@/utils/resetAllPiniaStore'
 import { clearUserInfo } from '@/view/Main/Methods/userInfoOperator'
+import { AppSettingStore } from './store'
+import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
+import { FriendsListStore } from '../friendsList/store'
 // import { MainStore } from '@/view/Main/store'
-const { ws: websocket, userInfo: user_info, isUseMd } = storeToRefs(MainStore())
+const { ws: websocket,  isUseMd } = storeToRefs(MainStore())
 // import avatarErrHandler from '@/utils/avatarErrHandler'
 defineProps({
     websocket: Object,
 })
-const emit = defineEmits([
-    'exit',
-    'avaterChange',
-    'nickNameChange',
-    'isUseMarkdown'
-])
+
+const store = AppSettingStore()
+const friendsListStore = FriendsListStore()
+
+const { userInfo: user_info } = storeToRefs(friendsListStore)
 
 let dShow =  ref(false)
 const user_id = sessionStorage.getItem('user_id')
@@ -161,7 +163,7 @@ async function uploadAvatar(e: Event) {
         const baseUrl = sessionStorage.getItem('baseUrl') || ''
         avatarSrc.value = `${baseUrl}/avatar/avatar_${user_id}.jpg?t=${new Date().getTime()}`
         console.log(' avatarSrc.value -> ', avatarSrc.value)
-        emit('avaterChange', avatarSrc.value)
+        store.avatarRefresh = avatarSrc.value
     }
     console.log('res -> ', res)
 }
@@ -199,11 +201,14 @@ async function saveNickName() {
             }
         }))
         if (err) return
-
-        emit('nickNameChange', res.data)
+        handleNickNameChange(res.data)
     }
 }
-
+function handleNickNameChange(fri: any) {
+    user_info.value = fri
+    // sessionStorage.setItem('user_info', JSON.stringify(fri))
+    setUserInfo(fri)
+}
 function handleError() {
     // console.log('头像加载失败')
     avatarSrc.value = require('../../assets/default_avatar.png')

@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
-import { RefreshMessage } from '@/interface/global'
+import { RefreshMessage, Friend, UserInfo } from '@/interface/global'
 
 export interface FriendsListState {
     friendsList: any[],
     fresh: boolean,
     freshTextTip: RefreshMessage,
     freshDeleteTextTip: RefreshMessage
+    activeFriend: Friend
+    userInfo: UserInfo
 }
 export const FriendsListStore = defineStore('components/friendsList', {
     state:(): FriendsListState => ({
@@ -16,8 +18,27 @@ export const FriendsListStore = defineStore('components/friendsList', {
         },
         freshDeleteTextTip: {
             chat: null
-        }
+        },
+        activeFriend: {
+            name: '',
+            user_id: '',
+            phone_number: '',
+            chat_table: '',
+            active: false,
+            searchActive: false
+        },
+        userInfo:{
+            friends: [],
+            phone_number: '',
+            user_id: '',
+            user: ''
+        },
     }),
+    getters: {
+        positionId(): string {
+            return this.activeFriend.user_id + this.activeFriend.chat_table
+        }
+    },
     actions: {
         updateFriendsList(payload: any) {
             if (Array.isArray(payload)) {
@@ -35,6 +56,9 @@ export const FriendsListStore = defineStore('components/friendsList', {
         },
         setRefreshFriendData(payload: boolean) {
             this.fresh = payload
-        }
+        },
+        setActiveFriend(payload: Friend) {
+            this.activeFriend = payload
+        },
     }
 })

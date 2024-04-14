@@ -4,12 +4,14 @@ import { Box, Judge } from '@/interface/global'
 export interface FootSendState {
     goToBottom: Judge
     pongSaveCacheData: Box[]
+    receivedShowGotoBottom: Judge
 }
 
 export const FootSendStore = defineStore('components/sendFoot', {
     state:(): FootSendState => ({
         goToBottom: Judge.NO,
-        pongSaveCacheData: []
+        pongSaveCacheData: [],
+        receivedShowGotoBottom: Judge.NO,
     }),
     actions: {
         setGotoBottomState(payload: any) {

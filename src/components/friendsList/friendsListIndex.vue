@@ -87,8 +87,6 @@
 <script setup lang="ts">
 import {
   ref,
-  defineProps,
-  // defineEmits,
   watch,
   Ref
 } from 'vue'
@@ -97,7 +95,7 @@ import { Search } from '@element-plus/icons-vue'
 import antiShake from '@/utils/antiShake'
 import to from 'await-to-js'
 import { request, api } from '@/utils/api'
-import { dbAdd, updateDatabase } from '@/utils/indexDB'
+import { dbAdd, updateDatabase } from '@/view/Main/Methods/indexDB'
 import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
 import {
   Box,
@@ -114,31 +112,32 @@ import { DESC } from '@/interface/indexDB'
 // import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { FootSendStore } from '../sendFoot/store'
+import { AppSettingStore } from '../appSetting/store'
 import { storeToRefs } from 'pinia'
 import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
+import { ChatWindowStore } from '../chatWindow/store'
+// import { FriendsListStore } from './store'
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
+const chatWindowStore = ChatWindowStore()
 const {
   friendsList,
   fresh:reconnectFresh,
   freshDeleteTextTip,
-  freshTextTip
-} = storeToRefs(friendStore)
-
-const {
+  freshTextTip,
   userInfo: user_info,
   activeFriend,
+} = storeToRefs(friendStore)
+
+const { signal } = storeToRefs(mainStore)
+const {
   scrollUpLock,
   scrollDownLock,
   isLastChatList,
-  signal
-} = storeToRefs(mainStore)
+}  = storeToRefs(chatWindowStore)
 const { goToBottom, pongSaveCacheData } = storeToRefs(FootSendStore())
+const { avatarRefresh } = storeToRefs(AppSettingStore())
 
-const props = defineProps({
-  // signal: Number,
-  avatarRefresh: String,
-})
 // const emit = defineEmits(['handleActiveFriend'])
 // 点击好友（切换好友）
 async function handleActiveFriend(f: Friend) {
@@ -148,7 +147,7 @@ async function handleActiveFriend(f: Friend) {
     }
 
     // 设置好友信息
-    mainStore.setActiveFriend(f)
+    friendStore.setActiveFriend(f)
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
     scrollUpLock.value = Lock.UnLock
     scrollDownLock.value = Lock.UnLock
@@ -176,7 +175,7 @@ const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 watch(
-  () => props.avatarRefresh,
+  () => avatarRefresh.value,
   val => {
     avatarSrc.value = val || ''
   }
@@ -368,11 +367,11 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
         console.log('成功将未读信息保存到数据库中！')
         if (isWsReconnect === Judge.YES) {
           // if (store.state.global.activeFriend?.chat_table === key) {
-          if (mainStore.activeFriend?.chat_table === key) {
+          if (friendStore.activeFriend?.chat_table === key) {
             if (len) {
               // 通知聊天页面，可以重新加载数据
               // store.commit('global/setReloadChatData', true)
-              mainStore.reloadChatData = true
+              chatWindowStore.reloadChatData = true
               console.log('%c readUnread 已经发出通知', 'color: red')
             }
           }
@@ -392,7 +391,7 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
     // 如果是 ws 连接时，没有设置未读信息时，默认为 0
     setTipData[key] = {
       ...lastChat,
-      unread: mainStore.activeFriend?.chat_table === key ?
+      unread: friendStore.activeFriend?.chat_table === key ?
       0 :
       unRead.data[key].unread + unread
     }
@@ -601,4 +600,4 @@ function handleError(i: Friend) {
   height: 16px;
   padding: 0 5px;
 }
-</style>
+</style>@/view/Main/Methods/indexDB

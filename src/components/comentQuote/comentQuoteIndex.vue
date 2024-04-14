@@ -18,19 +18,21 @@
 <!-- script setup -->
 <script setup lang="ts">
 import { Close } from '@element-plus/icons-vue'
-import { defineProps } from 'vue'
-import {handleQuoteCloseEvent } from '@/components/chatWindow/Methods/quote'
+import { defineProps, watch } from 'vue'
+import {handleQuoteCloseEvent } from './Methods/quote'
+// import { MainStore } from '@/view/Main/store'
+import { CommentQuoteStore } from './store'
+import { storeToRefs } from 'pinia'
+
+const { comment } = storeToRefs(CommentQuoteStore())
+watch(() => comment.value, () => {
+    console.log('comment.value23333333 -> ', comment.value)
+})
 // const emit = defineEmits(['close'])
 defineProps({
     showInputQuote: {
         type: Boolean,
         default: false
-    },
-    comment: {
-        type: String,
-        default: () => {
-            return ''
-        }
     }
 })
 

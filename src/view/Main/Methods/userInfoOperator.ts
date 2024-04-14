@@ -1,9 +1,8 @@
 import { UserInfo } from "@/interface/global"
-import { MainStore } from "../store"
+import { FriendsListStore } from "@/components/friendsList/store"
 import { request, api } from "@/utils/api"
 import { to } from "await-to-js"
-
-const mainStore = MainStore()
+const friendsListStore = FriendsListStore()
 
 export function getUserInfo(): UserInfo | null {
     const data = sessionStorage.getItem('user_info')
@@ -23,8 +22,8 @@ export function setUserInfo(info: UserInfo) {
         }
         // console.log('设置好友值是 -> ', info)
         sessionStorage.setItem('user_info', JSON.stringify(info))
-        mainStore.userInfo = info
-        console.log('设置好友值是 -> ', mainStore.userInfo)
+        friendsListStore.userInfo = info
+        console.log('设置好友值是 -> ', friendsListStore.userInfo)
     }
 }
 
@@ -51,7 +50,7 @@ export async function updateUserInfo(data: UserInfo) {
             info.friends = JSON.parse(info.friends)
         }
         sessionStorage.setItem('user_info', JSON.stringify(info))
-        mainStore.userInfo = info
+        friendsListStore.userInfo = info
         console.log('sessionStorage, mainStore.userInfo -> ', info)
     }
 

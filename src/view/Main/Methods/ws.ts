@@ -1,6 +1,6 @@
 import { PingPong, WsConnectParams } from "@/interface/global"
 import { dbAdd } from "./indexDB"
-import { handleTips } from "./tips"
+import { handleTips } from "../../../components/chatWindow/Methods/tips"
 // import { store } from '@/store'
 import { FriendsListStore } from "@/components/friendsList/store"
 import { MainStore } from "@/view/Main/store"
@@ -10,7 +10,7 @@ import {
     centerVideoCallOffer,
     centerVideoCallAnwser,
     // destroyVideoCallOfferer,
-    destroyVideoCallAnwserer,
+    // destroyVideoCallAnwserer,
     centerVideoCallRequest,
     centerVideoCallResponse,
     centerVideoCallLeave,

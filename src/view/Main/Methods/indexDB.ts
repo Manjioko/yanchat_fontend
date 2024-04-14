@@ -2,13 +2,14 @@
 
 import { DESC, DbOpenOptions } from '@/interface/indexDB'
 import { Box, UserInfo, Friend } from '@/interface/global'
-import typeIs from './type'
+import typeIs from '../../../utils/type'
 import { MainStore } from '@/view/Main/store'
+import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'
 
 const mainstore = MainStore()
 
-const { userInfo } = storeToRefs(mainstore)
+const { userInfo } = storeToRefs(FriendsListStore())
 // const vstore = store
   
 // indexDB 打开数据库

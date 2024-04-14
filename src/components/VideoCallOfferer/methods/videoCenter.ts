@@ -3,10 +3,11 @@ import { storeToRefs } from 'pinia'
 import { VideoConfig } from '@/interface/video'
 import { h } from 'vue'
 import { ElNotification, NotificationHandle } from 'element-plus'
-import { MainStore } from '@/view/Main/store'
+// import { MainStore } from '@/view/Main/store'
+import { FriendsListStore } from '@/components/friendsList/store'
 
 
-const { userInfo: user_info } = storeToRefs(MainStore())
+const { userInfo: user_info } = storeToRefs(FriendsListStore())
 
 const {
     showOfferer,

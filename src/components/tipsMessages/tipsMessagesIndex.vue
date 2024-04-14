@@ -28,15 +28,18 @@ import { ChatSquare } from '@element-plus/icons-vue'
 // import { useStore } from 'vuex'
 // import { useStore } from '@/store'
 import { watchEffect, ref, Ref } from 'vue'
-import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/utils/indexDB'
-import { localClickAddFriend } from '@/utils/friends'
+import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/view/Main/Methods/indexDB'
+import { localClickAddFriend } from '@/components/friendsList/Methods/index'
 import { Tips } from '@/interface/global'
 // import { Tips } from '@/interface/global'
 import { MainStore } from '@/view/Main/store'
+import { ChatWindowStore } from '../chatWindow/store'
 import { storeToRefs } from 'pinia'
 // const store = useStore()
 const mainStore = MainStore()
-const { ws, tips, dbname:dbName } = storeToRefs(mainStore)
+const chatWindowStore = ChatWindowStore()
+const { ws, dbname:dbName } = storeToRefs(mainStore)
+const { tips } = storeToRefs(chatWindowStore)
 
 const tipsShowList: Ref<Tips[]> = ref([])
 watchEffect(() => {
@@ -78,7 +81,7 @@ watchEffect(() => {
                 .catch((err: string) => {
                     console.log('读取 tips_messages 数据库失败 -> ', err)
                 })
-                mainStore.tips = []
+                chatWindowStore.tips = []
             })
         }
     }
@@ -153,4 +156,4 @@ function handleDelete(item: Tips, idx: number) {
 // .reject {
 //     color: #F56C6C;
 // }
-</style>
+</style>@/components/friendsList/Methods/friends@/view/Main/Methods/indexDB

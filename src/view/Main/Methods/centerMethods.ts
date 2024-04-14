@@ -6,22 +6,16 @@ import { Box, Judge, PingPong } from "@/interface/global"
 import { nextTick, watchEffect } from "vue"
 import { ElNotification } from "element-plus"
 import { scrollChatBoxToBottom, sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
-import { dbAdd } from "@/utils/indexDB"
+import { dbAdd } from "@/view/Main/Methods/indexDB"
 import { saveChatWindowPosition } from "./savePosition"
+import { ChatWindowStore } from "@/components/chatWindow/store"
+import { CommentQuoteStore } from "@/components/comentQuote/store"
 
-const  { 
-    activeFriend,
-    chatBox,
-    ws: websocket,
-    isLastChatList,
-    showQuote,
-    comment,
-    userInfo,
-    receivedShowGotoBottom
-} = storeToRefs(MainStore())
-const { freshDeleteTextTip } = storeToRefs(FriendsListStore())
-const { pongSaveCacheData, goToBottom } = storeToRefs(FootSendStore())
-
+const  { ws: websocket } = storeToRefs(MainStore())
+const { showQuote, comment } = storeToRefs(CommentQuoteStore())
+const { freshDeleteTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
+const { pongSaveCacheData, goToBottom, receivedShowGotoBottom } = storeToRefs(FootSendStore())
+const { isLastChatList, chatBox } = storeToRefs(ChatWindowStore())
 // 消息发送
 export function centerSend(chatData: Box) {
     console.log('发送信息 -> ', chatData)
