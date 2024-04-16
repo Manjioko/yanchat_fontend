@@ -1,7 +1,11 @@
 import { request } from "@/utils/api"
 
 // 获取 markdown 设置状态
-export function getMarkDownStatus(data: Record<string, any>) {
+interface GetMarkDownStatus_Inter {
+    user_id: string
+    is_use_md: boolean
+}
+export function getMarkDownStatus(data: GetMarkDownStatus_Inter) {
     return request({
         method: 'post',
         url: '/isUseMd',
@@ -10,7 +14,7 @@ export function getMarkDownStatus(data: Record<string, any>) {
 }
 
 // 获取头像
-export function getAvatar(data: Record<string, any>) {
+export function getAvatar(data: FormData) {
     return request({
         method: 'post',
         url: '/uploadAvatar',
@@ -19,7 +23,11 @@ export function getAvatar(data: Record<string, any>) {
 }
 
 // 保存昵称
-export function saveNickName(data: Record<string, any>) {
+interface SaveNickName_Inter {
+    phone_number: string
+    nick_name: string
+}
+export function saveNickName(data: SaveNickName_Inter) {
     return request({
         method: 'post',
         url: '/changeNickName',
@@ -28,7 +36,11 @@ export function saveNickName(data: Record<string, any>) {
 }
 
 // 获取好友列表
-export function getFriends(data: Record<string, any>) {
+interface GetFriends_Inter {
+    user_id: string,
+    get_user_info: boolean
+}
+export function getFriends(data: GetFriends_Inter) {
     return request({
         method: 'post',
         url: '/getFriends',

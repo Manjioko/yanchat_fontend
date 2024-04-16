@@ -1,5 +1,3 @@
-// import { deleteLocalDataBaseData } from '@/utils/withdraw'
-// import { chatBox, freshDeleteTextTip, websocket } from '@/components/chatWindow/store'
 import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
 import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'

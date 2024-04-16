@@ -181,7 +181,7 @@ async function saveNickName() {
         placeholder.value = nickName.value
         nickName.value = ''
         const [err, res] = await to(API.getFriends({
-                user_id: user_id,
+                user_id: user_id || '',
                 get_user_info: true
             }))
         if (err) return
@@ -190,7 +190,6 @@ async function saveNickName() {
 }
 function handleNickNameChange(fri: any) {
     user_info.value = fri
-    // sessionStorage.setItem('user_info', JSON.stringify(fri))
     setUserInfo(fri)
 }
 function handleError() {
