@@ -10,6 +10,7 @@ import { Tips, Box } from "@/interface/global"
 import { dbDeleteByIndex } from "@/view/Main/Methods/indexDB"
 import { computed, ComputedRef, watchEffect } from "vue"
 import { centerDeleted } from "@/view/Main/Methods/centerMethods"
+import * as API from '../api'
 const mainstore = MainStore()
 
 const { freshDeleteTextTip, activeFriend } = storeToRefs(FriendsListStore())
@@ -46,16 +47,7 @@ export async function handleWithdraw(idx: number) {
 export async function handleDeleted(idx: number) {
     const user_id = sessionStorage.getItem('user_id')
     const chat = chatBox.value[idx]
-    const [err, res] = await to(
-        request({
-            method: 'post',
-            url: api.deleteChat,
-            data: {
-                chat,
-                del_flag: user_id
-            }
-        })
-    )
+    const [err, res] = await to(API.deleteChat({ chat, del_flag: user_id || '' }))
     if (err) {
         console.log('删除失败 -> ', err)
     }
@@ -113,16 +105,8 @@ export function handleWithdrawUtils(data: Tips) {
 
 function serverWithdraw(chatBox:Box): Promise<boolean | string> {
     return new Promise((resolve, reject) => {
-        request({
-            method: 'post',
-            url: api.deleteChat,
-            data: {
-                chat: {
-                    ...chatBox,
-                    thumbnail: '', // 缩略图可能很大,撤回并不需要带那么大的东西回后台
-                },
-            }
-        }).then(res => {
+        API.revokeChat({ chat: { ...chatBox, thumbnail: ''}  })
+        .then(res => {
             if (res?.data === 'ok') {
                 console.log('服务器撤回成功 -> ', res)
                 resolve(true)
