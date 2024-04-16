@@ -50,7 +50,6 @@
 import { defineProps, ref, defineExpose, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import to from 'await-to-js'
-import { request, api } from '@/utils/api'
 import { getAvatarImage } from '@/utils/thumbnail'
 
 import { MainStore } from '@/view/Main/store'
@@ -61,6 +60,7 @@ import { clearUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { AppSettingStore } from './store'
 import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { FriendsListStore } from '../friendsList/store'
+import * as API from './api'
 // import { MainStore } from '@/view/Main/store'
 const { ws: websocket,  isUseMd } = storeToRefs(MainStore())
 // import avatarErrHandler from '@/utils/avatarErrHandler'
@@ -87,14 +87,10 @@ isUseMd.value = md === 'true' || md === '1' ? true : false
 watchEffect(async () => {
     if (isUseMd.value !== undefined) {
         // console.log('changed markdown -> ', isUseMd.value)
-        const [err] = await to(request({
-            method: 'post',
-            url: api.markdown,
-            data: {
+        const [err] = await to(API.getMarkDownStatus({
                 user_id: user_info.value.user_id,
                 is_use_md: isUseMd.value
-            }
-        }))
+            }))
         if (err) {
             ElMessage.error('操作失败!')
         } else {
@@ -143,11 +139,7 @@ async function uploadAvatar(e: Event) {
     console.log('文件是什么 -> ', handledFile)
     if (!handledFile) return
     formData.append("avatar", handledFile || '')
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.avatar,
-        data: formData
-    }))
+    const [err, res] = await to(API.getAvatar(formData))
 
     if (err) {
         // console.log('上传头像失败 -> ', err)
@@ -173,14 +165,10 @@ const nickName = ref('')
 async function saveNickName() {
     console.log('user_info.value -> ', user_info.value)
     if (!nickName.value) return console.log('昵称为空')
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.changeNickName,
-        data: {
+    const [err, res] = await to(API.saveNickName({
             nick_name: nickName.value,
             phone_number: user_info.value.phone_number
-        }
-    }))
+        }))
     if (err) {
         ElMessage.error('修改昵称失败')
         return
@@ -192,14 +180,10 @@ async function saveNickName() {
         })
         placeholder.value = nickName.value
         nickName.value = ''
-        const [err, res] = await to(request({
-            method: 'post',
-            url: api.getFriends,
-            data: {
+        const [err, res] = await to(API.getFriends({
                 user_id: user_id,
                 get_user_info: true
-            }
-        }))
+            }))
         if (err) return
         handleNickNameChange(res.data)
     }

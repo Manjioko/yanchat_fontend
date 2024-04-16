@@ -11,28 +11,32 @@
     </section>
     <section v-else>
         <div class="quote-style-box">
-            <span class="quote-span">{{ comment }}</span>
+            <span class="quote-span">{{ quote }}</span>
         </div>
     </section>
 </template>
 <!-- script setup -->
 <script setup lang="ts">
 import { Close } from '@element-plus/icons-vue'
-import { defineProps, watch } from 'vue'
+import { defineProps } from 'vue'
 import {handleQuoteCloseEvent } from './Methods/quote'
 // import { MainStore } from '@/view/Main/store'
 import { CommentQuoteStore } from './store'
 import { storeToRefs } from 'pinia'
 
 const { comment } = storeToRefs(CommentQuoteStore())
-watch(() => comment.value, () => {
-    console.log('comment.value23333333 -> ', comment.value)
-})
+// watch(() => comment.value, () => {
+//     console.log('comment.value23333333 -> ', comment.value)
+// })
 // const emit = defineEmits(['close'])
 defineProps({
     showInputQuote: {
         type: Boolean,
         default: false
+    },
+    quote: {
+        type: String,
+        default: ''
     }
 })
 
