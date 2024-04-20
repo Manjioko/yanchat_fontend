@@ -2,7 +2,7 @@ import { MainStore } from "../store"
 import { FriendsListStore } from "@/components/friendsList/store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { storeToRefs } from "pinia"
-import { Box, Judge, PingPong } from "@/interface/global"
+// import { Box, Judge, PingPong } from "@/interface/global"
 import { nextTick, watchEffect } from "vue"
 import { ElNotification } from "element-plus"
 import { scrollChatBoxToBottom, sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
@@ -53,7 +53,7 @@ export function centerSend(chatData: Box) {
 
     // core
     // chatBox.value.push(chatData)
-    if (isLastChatList.value === Judge.YES) {
+    if (isLastChatList.value === 'Yes') {
         chatBox.value.push(chatData)
         nextTick(() => {
             scrollChatBoxToBottom()
@@ -114,12 +114,12 @@ export function centerReceived(chatData: Box) {
         if (chatData.user_id === activeFriend?.value?.user_id) {
             // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
             // 先处理撤回信息
-            if (receivedShowGotoBottom.value === Judge.YES) {
+            if (receivedShowGotoBottom.value === 'Yes') {
                 chatBox.value.push(chatData)
-                goToBottom.value = Judge.YES
+                goToBottom.value = 'Yes'
                 pongSaveCacheData.value.push(chatData)
             } else {
-                if (isLastChatList.value === Judge.YES) {
+                if (isLastChatList.value === 'Yes') {
                     chatBox.value.push(chatData)
                     nextTick(() => {
                         scrollChatBoxToBottom()
@@ -158,7 +158,7 @@ export function centerDeleted(chat: Box) {
 
 export function centerPong(data: PingPong) {
     if (activeFriend.value.chat_table === data.to_table) {
-        if (isLastChatList.value === Judge.YES) {
+        if (isLastChatList.value === 'Yes') {
             const boxIndex = chatBox.value.findIndex(
                 chat => chat.chat_id === data.chat_id
             )

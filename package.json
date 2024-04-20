@@ -56,7 +56,15 @@
     "parserOptions": {
       "parser": "@typescript-eslint/parser"
     },
-    "rules": {}
+    "rules": {},
+    "overrides": [
+      {
+        "files": ["*.ts", "*.vue"],
+        "rules": {
+          "no-undef": "off"
+        }
+      }
+    ]
   },
   "browserslist": [
     "> 1%",

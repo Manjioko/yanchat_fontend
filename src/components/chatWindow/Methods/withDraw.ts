@@ -3,10 +3,9 @@ import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'
 import { ChatWindowStore } from '../store'
-import { request, api } from '@/utils/api'
 import { to } from 'await-to-js'
 
-import { Tips, Box } from "@/interface/global"
+// import { Tips, Box } from "@/interface/global"
 import { dbDeleteByIndex } from "@/view/Main/Methods/indexDB"
 import { computed, ComputedRef, watchEffect } from "vue"
 import { centerDeleted } from "@/view/Main/Methods/centerMethods"

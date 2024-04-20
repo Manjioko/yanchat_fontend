@@ -1,42 +1,42 @@
-import { request } from "./api"
 import { ElNotification } from 'element-plus'
 import { v4 as uuidv4 } from 'uuid'
-import { api } from '@/utils/api'
 import { AxiosProgressEvent } from "axios"
-// import to from 'await-to-js'
+import * as API from '@/api'
 
 export default function download(url: string, name: string, cb: Function) {
     const progressFn = (pgEvent: AxiosProgressEvent) => {
         const percent = Math.round((pgEvent.loaded * 100) / (pgEvent.total || 1))
         if (typeof cb === 'function') cb(null, percent)
     }
-    request({
-        url,
-        method: 'get',
-        responseType: 'arraybuffer',
-        timeout: 10 * 60 * 1000, // 下载一些大文件,可能需要很长时间,这里设置 10 分钟
-        onDownloadProgress: progressFn
-    }).then(res => {
-        const blob = new Blob([res.data])
-        const a = document.createElement('a')
-        const ObUrl = window.URL.createObjectURL(blob)
-        a.download = name
-        a.href = ObUrl
-        a.click()
-        window.URL.revokeObjectURL(ObUrl)
-        a.remove()
-    })
-        .catch(err => {
-            console.log('下载错误 -> ', err)
-            if (typeof cb === 'function') {
-                cb(new Error('下载失败'))
-            }
-            ElNotification({
-                type: 'error',
-                title: '提示',
-                message: '下载错误'
-            })
+    // request({
+    //     url,
+    //     method: 'get',
+    //     responseType: 'arraybuffer',
+    //     timeout: 10 * 60 * 1000, // 下载一些大文件,可能需要很长时间,这里设置 10 分钟
+    //     onDownloadProgress: progressFn
+    // }).then(res => {
+    //     const blob = new Blob([res.data])
+    //     const a = document.createElement('a')
+    //     const ObUrl = window.URL.createObjectURL(blob)
+    //     a.download = name
+    //     a.href = ObUrl
+    //     a.click()
+    //     window.URL.revokeObjectURL(ObUrl)
+    //     a.remove()
+    // })
+
+    API.download(url, name, progressFn, 10 * 60 * 1000)
+    .catch(err => {
+        console.log('下载错误 -> ', err)
+        if (typeof cb === 'function') {
+            cb(new Error('下载失败'))
+        }
+        ElNotification({
+            type: 'error',
+            title: '提示',
+            message: '下载错误'
         })
+    })
 
 }
 
@@ -45,25 +45,27 @@ export async function upload(url: string, data: any, cb: Function) {
         const percent = Math.round((pgEvent.loaded * 100) / (pgEvent.total || 1))
         if (typeof cb === 'function') cb(null, percent, null)
     }
-    request({
-        url,
-        method: 'post',
-        onUploadProgress: progressFn,
-        data
-    }).then(res => {
+    // request({
+    //     url,
+    //     method: 'post',
+    //     onUploadProgress: progressFn,
+    //     data
+    // })
+    API.upload(url, data, progressFn)
+    .then(res => {
         cb(null, null, res)
     })
-        .catch(err => {
-            console.log('上传错误 -> ', err)
-            if (typeof cb === 'function') {
-                cb(new Error('上传失败'))
-            }
-            ElNotification({
-                type: 'error',
-                title: '提示',
-                message: '上传错误'
-            })
+    .catch(err => {
+        console.log('上传错误 -> ', err)
+        if (typeof cb === 'function') {
+            cb(new Error('上传失败'))
+        }
+        ElNotification({
+            type: 'error',
+            title: '提示',
+            message: '上传错误'
         })
+    })
 
 }
 
@@ -76,26 +78,26 @@ class uploadSliceClass {
     uid: string
 
     // 分片参数
-    #sliceOptions = {
-        url: api.sliceFile,
-        method: 'post',
-        data: '',
-        onUploadProgress: this.getPercent.bind(this),
-        params: {
-            index: 0,
-            uid: null,
-        }
-    }
+    // #sliceOptions = {
+    //     url: api.sliceFile,
+    //     method: 'post',
+    //     data: '',
+    //     onUploadProgress: this.getPercent.bind(this),
+    //     params: {
+    //         index: 0,
+    //         uid: null,
+    //     }
+    // }
 
     // 确认参数
-    #confirmOption = {
-        url: api.joinFile,
-        method: 'post',
-        data: {
-            uid: null,
-            fileName: ''
-        }
-    }
+    // #confirmOption = {
+    //     url: api.joinFile,
+    //     method: 'post',
+    //     data: {
+    //         uid: null,
+    //         fileName: ''
+    //     }
+    // }
 
     // 构造函数
     constructor() {
@@ -139,27 +141,25 @@ class uploadSliceClass {
     }
 
     // 设置分片参数
-    setSliceOptions(data: FormData, index: number, uid: string) {
-        return {
-            ...this.#sliceOptions,
-            data,
-            params: {
-                index,
-                uid,
-            }
-        }
-    }
+    // setSliceOptions(data: FormData, index: number, uid: string) {
+    //     return {
+    //         ...this.#sliceOptions,
+    //         data,
+    //         params: {
+    //             index,
+    //             uid,
+    //         }
+    //     }
+    // }
 
     // 设置确认参数
-    setConfirmOptions(fileName: string, uid:string) {
-        return {
-            ...this.#confirmOption,
-            data: {
-                fileName,
-                uid
-            }
-        }
-    }
+    // setConfirmOptions(fileName: string, uid:string) {
+    //     return {
+    //         // ...this.#confirmOption,
+    //         fileName,
+    //         uid
+    //     }
+    // }
 
 
     // 提示信息
@@ -173,22 +173,23 @@ class uploadSliceClass {
 
     // 确认合并
     confirmCombine(fileName: string, dirName: string) {
-        request(this.setConfirmOptions(fileName, dirName))
-            .then(res => {
-                if (res.status === 200) {
-                    if (this.cb) {
-                        this.cb(null, null, res.data)
-                    }
+        // request(this.setConfirmOptions(fileName, dirName))
+        API.joinFile({ fileName, uid: dirName })
+        .then(res => {
+            if (res.status === 200) {
+                if (this.cb) {
+                    this.cb(null, null, res.data)
                 }
-            })
-            .catch(err => {
-                if (err) {
-                    if (this.cb) {
-                        this.cb(new Error(`确认合并错误 -> ${err}`))
-                    }
-                    return
+            }
+        })
+        .catch(err => {
+            if (err) {
+                if (this.cb) {
+                    this.cb(new Error(`确认合并错误 -> ${err}`))
                 }
-            })
+                return
+            }
+        })
     }
 
     // 文件切片上传
@@ -198,15 +199,16 @@ class uploadSliceClass {
         return new Promise((resolve, reject) => {
             const fd = new FormData()
             fd.append('file', d, uuidv4())
-            request(this.setSliceOptions(fd, i, uid))
-                .then(res => {
-                    if (res.status === 200) {
-                        resolve('Ok')
-                    }
-                })
-                .catch(err => {
-                    reject(new Error(`上传错误 -> ${err}`))
-                })
+            // request(this.setSliceOptions(fd, i, uid))
+            API.sliceFile(fd, this.getPercent.bind(this), { index: i, uid })
+            .then(res => {
+                if (res.status === 200) {
+                    resolve('Ok')
+                }
+            })
+            .catch(err => {
+                reject(new Error(`上传错误 -> ${err}`))
+            })
         })
     }
 
@@ -238,13 +240,14 @@ class uploadSliceClass {
         if (this.cb) {
             this.cb(new Error('文件上传失败'))
         }
-        request({
-            url: api.clearDir,
-            method: 'post',
-            data: {
-                dirName: this.uid
-            }
-        })
+        // request({
+        //     url: api.clearDir,
+        //     method: 'post',
+        //     data: {
+        //         dirName: this.uid
+        //     }
+        // })
+        API.clearDir({ dirName: this.uid })
     }
 
     // 处理文件,发送切片

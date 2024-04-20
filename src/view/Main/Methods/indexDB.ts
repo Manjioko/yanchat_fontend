@@ -1,8 +1,8 @@
 // import { store, key, useStore } from '@/store'
 
-import { DESC, DbOpenOptions } from '@/interface/indexDB'
-import { Box, UserInfo, Friend } from '@/interface/global'
-import typeIs from '../../../utils/type'
+// import { DESC, DbOpenOptions } from '@/interface/indexDB'
+// import { Box, UserInfo, Friend } from '@/interface/global'
+import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'
@@ -229,7 +229,7 @@ export function dbReadByIndex<T>(tableName: string, indexName: string, searchStr
 }
 
 // 精确指定 offset 读取 10 条数据(可以指定从头读还是从尾读)
-export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC.UP, size:number = 10): Promise<Box[]> {
+export function dbReadRange(tableName: string, offset: number, desc: DESC = 'prev', size:number = 10): Promise<Box[]> {
     // console.log('获取数据 参数 -> ', desc, offset)
     return new Promise((resolve, reject) => {
         if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
@@ -238,13 +238,13 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC = DESC
             .objectStore(tableName)
         const box:Box[] = []
         let time:number = 0
-        const bound = desc === DESC.DOWN ? IDBKeyRange.lowerBound(offset, true) : IDBKeyRange.upperBound(offset, true)
+        const bound = desc === 'next' ? IDBKeyRange.lowerBound(offset, true) : IDBKeyRange.upperBound(offset, true)
         const curReq = store.openCursor(bound, desc)
         curReq.onsuccess = (e: Event) => {
             const cur = (e.target as IDBRequest).result
             if (cur) {
                 if (time < size) {
-                    desc === DESC.UP ? box.unshift(cur.value) : box.push(cur.value)
+                    desc === 'prev' ? box.unshift(cur.value) : box.push(cur.value)
                     time++
                     cur.continue()
                 } else {
@@ -290,7 +290,7 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
 }
 
 // 不通过 offset 获取数据(默认获取最新的 10 条)
-export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, size: number = 10): Promise<Box[]> {
+export function dbReadRangeNotOffset(tableName: string, desc: DESC = 'prev' as DESC, size: number = 10): Promise<Box[]> {
     return new Promise((resolve,reject) => {
         if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
         console.log('获取数据 参数 -> ', tableName, desc, size)
@@ -306,7 +306,7 @@ export function dbReadRangeNotOffset(tableName: string, desc: DESC = DESC.UP, si
                 const cursor = (res.target as IDBRequest).result
                 if (cursor) {
                     if (time < size) {
-                        desc === DESC.UP ? data.unshift(cursor.value) : data.push(cursor.value)
+                        desc === 'prev' ? data.unshift(cursor.value) : data.push(cursor.value)
                         time++
                         cursor.continue()
                     } else {

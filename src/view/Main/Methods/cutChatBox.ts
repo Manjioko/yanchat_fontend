@@ -1,5 +1,5 @@
 // import { MainStore } from "../store"
-import { Lock } from "@/interface/global"
+// import { Locked } from "@/interface/global"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 
 // const mainStore = MainStore()
@@ -22,6 +22,6 @@ export function cutChatBox(elList: HTMLElement[]) {
         console.log('顶部数据超过窗口距离的 4 倍了')
         chatWindowStore.chatBox = chatWindowStore.chatBox.slice(Math.ceil(2 / 3 * Number(screenFirstIndex)))
         // 一旦裁剪完毕，一定记得将锁设置为解锁
-        chatWindowStore.scrollUpLock = Lock.UnLock
+        chatWindowStore.scrollUpLock = 'UnLock'
     }
 }

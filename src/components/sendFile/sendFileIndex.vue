@@ -39,14 +39,10 @@
 </template>
 
 <script setup>
-// import { InfoFilled } from '@element-plus/icons-vue'
 import download from '@/utils/download'
-// import ContextMenu from '@imengyu/vue3-context-menu'
 import menu from '@/utils/contextMenu'
-import { defineEmits, ref, watch } from 'vue'
-import { api } from '@/utils/api'
-// import { ElNotification } from 'element-plus'
-// eslint-disable-next-line no-undef
+import { defineEmits, defineProps, ref, watch } from 'vue'
+
 const props = defineProps({
     progress: Number,
     type: String,
@@ -71,7 +67,7 @@ const items = [
         label: "下载到本地", 
         onClick: () => {
             // const token = sessionStorage.getItem('Token')
-            const url = `${api.source}/${props.response}`
+            const url = `/source/${props.response}`
             download(url, props.fileName, function(err, progress) {
                 if (err) downloadProgress.value = null
                 downloadProgress.value = progress

@@ -1,6 +1,6 @@
 import { MainStore } from "../store"
 import { FootSendStore } from "@/components/sendFoot/store"
-import { Judge } from "@/interface/global"
+// import { Judge } from "@/interface/global"
 import { deleteActionFriendPositionData } from '../Methods/positionOperator'
 // import typeIs from "@/utils/type"
 import { storeToRefs } from "pinia"
@@ -27,9 +27,9 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
     // 判断是否超过了一个屏幕
     if (safeNumber && safeNumber > screenHeight) {
 
-        if (goToBottom.value === Judge.NO && isLastChatList.value === Judge.YES) {
+        if (goToBottom.value === 'No' && isLastChatList.value === 'Yes') {
             console.log('超过一个屏幕的距离')
-            receivedShowGotoBottom.value = Judge.YES
+            receivedShowGotoBottom.value = 'Yes'
         }
     }
 
@@ -37,7 +37,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
     if (
         (box.length - 1) === Number(elList[elList.length - 1].dataset.checkIndex)
         &&
-        isLastChatList.value === Judge.YES
+        isLastChatList.value === 'Yes'
     ) {
 
         // 判断是否到底,计算量和应用较大，将它包裹在一个独立的作用域里，防止内存占用过大
@@ -47,7 +47,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
                 if (bar.scrollTop && bar.clientHeight && bar.scrollHeight) {
                     if (bar.scrollTop + bar.clientHeight >= bar.scrollHeight) {
                         console.log('已经到底了😂')
-                        goToBottom.value = Judge.NO
+                        goToBottom.value = 'No'
                         // 一旦到底了, 就不需要定位，不然可能会出现问题
                         deleteActionFriendPositionData()
                     }

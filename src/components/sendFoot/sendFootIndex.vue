@@ -1,6 +1,6 @@
 <template>
     <header>
-        <section v-if="showGotoBottom === Judge.YES" style="position: relative;">
+        <section v-if="showGotoBottom === 'Yes'" style="position: relative;">
             <div class="goto-bottom" @click="handleGotoBottom">
                 <span>回到最新位置 {{ pongSaveCacheData.length ? pongSaveCacheData.length : ''}}</span>
                 <!-- <span>回到最新位置</span> -->
@@ -41,13 +41,12 @@
 import { ref, reactive } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
-import { api } from '@/utils/api'
 import { uploadSlice } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
-import { Box, Judge } from '@/interface/global'
-import { UploadCallback } from '@/interface/download'
+// import { Box, Judge } from '@/interface/global'
+// import { UploadCallback } from '@/interface/download'
 import { FootSendStore } from './store'
 import { storeToRefs } from 'pinia'
 import { centerSend } from '@/view/Main/Methods/centerMethods'
@@ -66,10 +65,13 @@ const { activeFriend } = storeToRefs(FriendsListStore())
 
 const chatText = ref('')
 
+// const jugeYes = ref(1)
+
 // 键盘 摁下 enter 键触发事件
 function hdkeydown() {
     sendMessage()
 }
+
 
 // 发送文本到聊天框的处理器
 function sendMessage(chatData?:Box) {
@@ -154,7 +156,7 @@ async function uploadFile(e:Event) {
         const thumbnail = await getImageBase64(getURL)
         box.thumbnail = thumbnail
     }
-    uploadSliceFile(target.files[0], function(err, progress, response) {
+    uploadSliceFile(target.files[0], function(err:any, progress:any, response:any) {
         if (err) {
             box.progress = 0
             box.response = ''
@@ -173,7 +175,7 @@ async function uploadFile(e:Event) {
 
         if (response) {
             box.response = response
-            box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response}`
+            box.src = `${sessionStorage.getItem('baseUrl')}/source/${response}`
         }
 
     })

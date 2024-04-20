@@ -1,4 +1,4 @@
-import { request } from "@/utils/api"
+import { request } from "@/utils/request"
 
 // 获取 markdown 设置状态
 interface GetMarkDownStatus_Inter {

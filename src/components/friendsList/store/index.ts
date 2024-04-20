@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { RefreshMessage, Friend, UserInfo } from '@/interface/global'
+// import { RefreshMessage, Friend, UserInfo } from '@/interface/global'
 
 export interface FriendsListState {
     friendsList: any[],

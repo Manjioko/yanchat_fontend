@@ -1,4 +1,4 @@
-import { PingPong, WsConnectParams } from "@/interface/global"
+// import { PingPong, WsConnectParams } from "@/interface/global"
 import { dbAdd } from "./indexDB"
 import { handleTips } from "../../../components/chatWindow/Methods/tips"
 // import { store } from '@/store'

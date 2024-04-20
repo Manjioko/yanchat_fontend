@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ScrollData } from '@/interface/chatWindow'
-import { Judge, Lock, Tips, Box } from '@/interface/global'
+// import { ScrollData } from '@/interface/chatWindow'
+// import { Judge, Locked, Tips, Box } from '@/interface/global'
 
 export interface ChatWindowState {
     scrollBar: any
@@ -8,8 +8,8 @@ export interface ChatWindowState {
     scrollData: ScrollData
     boxScrollTop: number
     isLastChatList: Judge
-    scrollUpLock: Lock
-    scrollDownLock: Lock
+    scrollUpLock: Locked
+    scrollDownLock: Locked
     reloadChatData: boolean
     scrollSafeLength: number
     chatBox: Box[] // 用户的聊天信息放在这里
@@ -23,9 +23,9 @@ export const ChatWindowStore = defineStore('components/chatWindow', {
         chatListEle: null,
         scrollData: {},
         boxScrollTop: 0,
-        isLastChatList: Judge.NO,
-        scrollUpLock: Lock.UnLock,
-        scrollDownLock: Lock.UnLock,
+        isLastChatList: 'No',
+        scrollUpLock: 'UnLock',
+        scrollDownLock: 'UnLock',
         chatBox: [],
         tips: [],
         reloadChatData: false,

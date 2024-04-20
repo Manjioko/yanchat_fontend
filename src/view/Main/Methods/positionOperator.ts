@@ -1,6 +1,6 @@
 // import { MainStore } from "../store"
 import { FriendsListStore } from "@/components/friendsList/store"
-import { Position } from "@/interface/global"
+// import { Position } from "@/interface/global"
 // const mainStore = MainStore()
 const friendsListStore = FriendsListStore()
 

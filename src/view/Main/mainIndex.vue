@@ -56,17 +56,17 @@ import friendsList from '@/components/friendsList/friendsListIndex.vue'
 import AppSetting from '@/components/appSetting/appSettingIndex.vue'
 import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
 import to from 'await-to-js'
-import { request, api } from '@/utils/api'
+import * as API from './api'
 import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
 // import videoCallOfferer from '@/components/VideoCallOfferer/videoCallOffererIndex.vue'
 // import videoCallAnwserer from '@/components/videoCallAnwserer/videoCallAnwsererIndex.vue'
 import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
 
-import {
-    WsConnectParams,
-    Judge,
-    Lock,
-} from '@/interface/global'
+// import {
+//     WsConnectParams,
+//     Judge,
+//     Locked,
+// } from '@/interface/global'
 import { FootSendStore } from '@/components/sendFoot/store'
 import { storeToRefs } from 'pinia'
 import { MainStore } from './store'
@@ -148,16 +148,7 @@ function getRefreshToken() {
     const phone_number = userInfo.value.phone_number
     const user_id = userInfo.value.user_id
     refreshTokenTime = setInterval(async () => {
-        const [err, res] = await to(
-            request({
-                url: api.refreshToken,
-                method: 'post',
-                data: {
-                    phone_number,
-                    user_id
-                }
-            })
-        )
+        const [err, res] = await to(API.A_RefreshToken({ phone_number, user_id }))
         if (!err) {
             // console.log('新 refreshToken -> ', res.data)
             sessionStorage.setItem('RefreshToken', res.data.refreshToken)
@@ -174,11 +165,11 @@ function showSettingDialog() {
 // websocket 重连刷新
 function handleWsReconnect() {
     // store.commit('footSend/setGotoBottomState', true)
-    footSendStore.goToBottom = Judge.YES
+    footSendStore.goToBottom = 'Yes'
     // 如果上锁了，就将锁解开，让它自由的获取到数据
-    if (scrollDownLock.value === Lock.Locked) {
-        scrollDownLock.value = Lock.UnLock
-        isLastChatList.value = Judge.NO
+    if (scrollDownLock.value === 'Locked') {
+        scrollDownLock.value = 'UnLock'
+        isLastChatList.value = 'No'
     }
 
     // 关掉 realoadChatData
@@ -367,4 +358,4 @@ function handleWsReconnect() {
     align-items: center;
     justify-content: center;
 }
-</style>@/view/Main/Methods/ws
+</style>

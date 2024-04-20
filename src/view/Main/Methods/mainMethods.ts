@@ -3,7 +3,7 @@ import { FriendsListStore } from "@/components/friendsList/store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 // import { MainStore } from "../store"
-import { Judge, Box, Friend } from "@/interface/global"
+// import { Judge, Box, Friend } from "@/interface/global"
 import { dbReadRangeNotOffset } from "@/view/Main/Methods/indexDB"
 import { nextTick, watchEffect } from "vue"
 // import { FriendsListStore } from "@/components/friendsList/store"
@@ -22,7 +22,7 @@ export function scrollChatBoxToBottom(start_sp?: number) {
         start_sp ? end_sp - start_sp : end_sp
     )
     // 滚动到底部时，应该负责关掉回到最新按钮
-    goToBottom.value = Judge.NO
+    goToBottom.value = 'No'
 }
 
 
@@ -60,7 +60,7 @@ export function notifyToWindow(textOb: { text: any; user_id: any }) {
 }
 
 export async function handleGotoBottom() {
-    if (isLastChatList.value === Judge.YES) {
+    if (isLastChatList.value === 'Yes') {
         scrollChatBoxToBottom()
         // console.log('直接到底部了')
     } else {

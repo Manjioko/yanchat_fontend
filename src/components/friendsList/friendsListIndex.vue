@@ -92,23 +92,22 @@ import {
 } from 'vue'
 import { FriendsListStore } from './store'
 import { Search } from '@element-plus/icons-vue'
-import antiShake from '@/utils/antiShake'
+import debounce from '@/utils/debounce'
 import to from 'await-to-js'
-import { request, api } from '@/utils/api'
 import { dbAdd, updateDatabase } from '@/view/Main/Methods/indexDB'
 import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
-import {
-  Box,
-  Friend,
-  RefreshMessage,
-  Tip,
-  // UserInfo,
-  Tips,
-  Judge,
-  Lock,
-  IsSwitchFriend,
-} from '@/interface/global'
-import { DESC } from '@/interface/indexDB'
+// import {
+//   Box,
+//   Friend,
+//   RefreshMessage,
+//   Tip,
+//   // UserInfo,
+//   Tips,
+//   Judge,
+//   Locked,
+//   IsSwitchFriend,
+// } from '@/interface/global'
+// import { DESC } from '@/interface/indexDB'
 // import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { FootSendStore } from '../sendFoot/store'
@@ -116,6 +115,7 @@ import { AppSettingStore } from '../appSetting/store'
 import { storeToRefs } from 'pinia'
 import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
 import { ChatWindowStore } from '../chatWindow/store'
+import * as API from './api'
 // import { FriendsListStore } from './store'
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
@@ -149,21 +149,21 @@ async function handleActiveFriend(f: Friend) {
     // 设置好友信息
     friendStore.setActiveFriend(f)
     // 不管有没有保存到磁盘,只要切换好友,就必须把获取记录的锁打开
-    scrollUpLock.value = Lock.UnLock
-    scrollDownLock.value = Lock.UnLock
+    scrollUpLock.value = 'UnLock'
+    scrollDownLock.value = 'UnLock'
     // 记录的结尾标识也需要重置
-    isLastChatList.value = Judge.NO
+    isLastChatList.value = 'No'
     // 存在回到最新提示的也需要重置
-    goToBottom.value = Judge.NO
+    goToBottom.value = 'No'
     // 未显示内容需要重置
     pongSaveCacheData.value = []
-    getChatFromServer(IsSwitchFriend.Yes, DESC.UP)
+    getChatFromServer('Yes' as IsSwitchFriend, 'prev' as DESC)
 }
 
 // 重连刷新内容
 watch(() => reconnectFresh.value, val => {
   if (val) {
-    handleUnread(Judge.YES)
+    handleUnread('Yes')
   }
 })
 
@@ -232,7 +232,7 @@ function handleSelect(idx: number, row: Friend) {
 const friend_phone_number = ref('')
 const missFri = ref(false)
 const repFri = ref(false)
-const getFriendErr = antiShake(() => {
+const getFriendErr = debounce(() => {
   missFri.value = true
 })
 async function addFriend() {
@@ -240,15 +240,9 @@ async function addFriend() {
     return
   }
   // let phone_number = user_info.value.phone_number
-  const [uerr, udata] = await to(
-    request({
-      method: 'post',
-      url: api.getUserInfoByPhone,
-      data: {
-        phone_number: friend_phone_number.value
-      }
-    })
-  )
+  const [uerr, udata] = await to(API.getUserInfoByPhone({
+    phone_number: friend_phone_number.value
+  }))
   if (uerr) {
     console.log('获取用户信息错误: ', uerr)
     return dShow.value = false
@@ -322,7 +316,7 @@ watch(() => freshTextTip.value, (ob: RefreshMessage) => {
 })
 
 // 处理未读信息(红点提示部分)
-async function handleUnread(isWsReconnect: Judge = Judge.NO) {
+async function handleUnread(isWsReconnect: Judge = 'No') {
   const c = sessionStorage.getItem('chatDataOb')
   if (c) {
       chatDataOb.value = JSON.parse(c)
@@ -334,16 +328,10 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
   if (typeof flist === 'string') {
     flist = JSON.parse(flist)
   }
-  const [err, unRead] = await to(
-    request({
-      method: 'post',
-      url: api.unread,
-      data: {
-        friends: flist?.map((i: Friend) => i.chat_table),
-        user_id: user_info.value.user_id
-      }
-    })
-  )
+  const [err, unRead] = await to(API.getUnread({
+      friends: flist?.map((i: Friend) => i.chat_table),
+      user_id: user_info.value.user_id
+    }))
 
   // 错误处理
   if (err) {
@@ -365,7 +353,7 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
       dbAdd(key, unRead.data[key].chat)
       .then(() => {
         console.log('成功将未读信息保存到数据库中！')
-        if (isWsReconnect === Judge.YES) {
+        if (isWsReconnect === 'Yes') {
           // if (store.state.global.activeFriend?.chat_table === key) {
           if (friendStore.activeFriend?.chat_table === key) {
             if (len) {
@@ -397,7 +385,7 @@ async function handleUnread(isWsReconnect: Judge = Judge.NO) {
     }
   })
   chatDataOb.value = setTipData
-  if (isWsReconnect === Judge.YES) {
+  if (isWsReconnect === 'Yes') {
     friendStore.fresh = false
   }
 }
@@ -434,7 +422,7 @@ function handleClose() {
 
 // 搜索好友
 const searchText = ref('')
-const shake = antiShake(() => {
+const shake = debounce(() => {
   // console.log('friends filter -> ', searchText.value)
   const reg = new RegExp(`${searchText.value}`, 'ig')
 
@@ -601,3 +589,4 @@ function handleError(i: Friend) {
   padding: 0 5px;
 }
 </style>@/view/Main/Methods/indexDB
+@/utils/debounce/debounce

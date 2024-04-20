@@ -1,6 +1,6 @@
 import {VideoCallOfferer} from '@/components/VideoCallOfferer/store'
 import { storeToRefs } from 'pinia'
-import { VideoConfig } from '@/interface/video'
+// import { VideoConfig } from '@/interface/video'
 import { h } from 'vue'
 import { ElNotification, NotificationHandle } from 'element-plus'
 // import { MainStore } from '@/view/Main/store'

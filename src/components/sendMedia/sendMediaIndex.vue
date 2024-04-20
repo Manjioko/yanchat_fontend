@@ -81,11 +81,6 @@ import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import download from '@/utils/download'
 import menu from '@/utils/contextMenu'
-import { 
-    // request,
-     api 
-    } from '@/utils/api'
-// import { to } from 'await-to-js'
 
 const props = defineProps({
     progress: Number,
@@ -215,7 +210,7 @@ const videoMenu = [
         label: "下载到本地", 
         onClick: () => {
             if (!options.value.length) return
-            const url = `${api.source}/${props.response}`
+            const url = `/source/${props.response}`
             download(url, props.fileName, function(err, progress) {
                 if (err) return downloadProgress.value = null
                 downloadProgress.value = progress
@@ -259,7 +254,7 @@ const imgMenu = [
             if (!mediaSrc.value) return
             // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
-            const url = `${api.source}/${props.response}`
+            const url = `/source/${props.response}`
             download(url, props.fileName,function(progress) {
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
@@ -336,7 +331,7 @@ async function getSource() {
     //     mediaSrc.value = newUrl
     // }
 
-    const src =`${sessionStorage.getItem('baseUrl')}${api.source}/${props.response}`
+    const src =`${sessionStorage.getItem('baseUrl')}/source/${props.response}`
     // console.log('src -> ', src)
     options.value = [{
         type: props.type.includes('video') ? 'video/mp4' : props.type,
@@ -493,4 +488,4 @@ function handleElImageErr() {
             padding-bottom: 25px;
         }
     }
-</style>
+</style>@/utils/contextMenu/contextMenu@/utils/download/download

@@ -1,5 +1,5 @@
-import { Box } from "@/interface/global"
-import { request } from "@/utils/api"
+// import { Box } from "@/interface/global"
+import { request } from "@/utils/request"
 
 // 删除聊天
 interface deleteChat_Inter {

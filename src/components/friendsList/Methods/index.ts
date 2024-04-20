@@ -1,27 +1,22 @@
 
 import to from 'await-to-js'
-import { request, api } from '@/utils/api'
-import { UserInfo } from '@/interface/global'
+// import { UserInfo } from '@/interface/global'
 import { updateDatabase } from '@/view/Main/Methods/indexDB'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
 import { setUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { A_getUserInfo } from '@/api'
 import { FriendsListStore } from '@/components/friendsList/store'
+import * as API from '../api'
 const mainstore = MainStore()
 const { userInfo } = storeToRefs(FriendsListStore())
 
 // 点击添加好友 同意按钮后会触发这个函数
 export async function localClickAddFriend(friData: any) {
     const getUserInfo: UserInfo = userInfo.value
-    const [err, res] = await to(request({
-        method: 'post',
-        url: api.addFri,
-        // url: api.addFriTest, // 好友添加功能更改,这里是测试用的 API
-        data: {
-            phone_number: getUserInfo.phone_number,
-            friend_phone_number: friData.friend_phone_number
-        }
+    const [err, res] = await to(API.addFri({
+        phone_number: getUserInfo.phone_number,
+        friend_phone_number: friData.friend_phone_number
     }))
     if (err) {
         console.log('添加好友错误: ', err)

@@ -1,8 +1,8 @@
-import { Box, IsSwitchFriend, Position, Lock, Judge } from "@/interface/global"
-import { DESC } from '@/interface/indexDB'
+// import { Box, IsSwitchFriend, Position, Locked, Judge } from "@/interface/global"
+// import { DESC } from '@/interface/indexDB'
 import { getActionFriendPositionData } from '@/view/Main/Methods/positionOperator'
 import { scrollChatBoxToBottom } from "@/view/Main/Methods/mainMethods"
-import { MainStore } from "@/view/Main/store"
+// import { MainStore } from "@/view/Main/store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { FriendsListStore } from "@/components/friendsList/store"
 import { ChatWindowStore } from "../store"
@@ -26,7 +26,7 @@ export async function getChatFromServer(
     isSwitchFriend: IsSwitchFriend,
     rollingDeriction: DESC
 ) {
-    if (isSwitchFriend === IsSwitchFriend.Yes) {
+    if (isSwitchFriend === 'Yes') {
         firstTimeGetChatData()
     } else {
         normalGetChatData(rollingDeriction)
@@ -62,18 +62,18 @@ async function handlePositionAfterFirstTimeGetChatData() {
                 if (lastId && chatData.length && lastId === chatData[chatData.length - 1].id) {
                     // console.log('到底了 -> ', lastId)
                     // 向下锁 锁死ß
-                    scrollDownLock.value = Lock.Locked
-                    isLastChatList.value = Judge.YES
+                    scrollDownLock.value = 'Locked'
+                    isLastChatList.value = 'Yes'
 
                     if (!scrollData?.value?.el) return
 
                     const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
                     if (scrollTop + clientHeight < scrollHeight - 10) {
                         // 用于显示 "回到最新" Tip 按钮
-                        goToBottom.value = Judge.YES
+                        goToBottom.value = 'Yes'
                     }
                 } else {
-                    goToBottom.value = Judge.YES
+                    goToBottom.value = 'Yes'
                 }
             })
         }
@@ -81,24 +81,24 @@ async function handlePositionAfterFirstTimeGetChatData() {
         // 随便设置值，后期需要优化
         mediaDelayPosition(chatData, () => {
             scrollChatBoxToBottom()
-            isLastChatList.value = Judge.YES
+            isLastChatList.value = 'Yes'
         })
     }
 
     // 释放锁
-    scrollUpLock.value = Lock.UnLock
+    scrollUpLock.value = 'UnLock'
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) scrollUpLock.value = Lock.Locked
+    if (chatData?.length === 0) scrollUpLock.value = 'Locked'
 }
 
 // 平常滚动获取数据
 async function normalGetChatData(rollingDeriction: DESC) {
     // 看下之前的 定位记录存不存在
     console.log(
-        `向哪个方向处理 -> ${rollingDeriction === DESC.DOWN ? '向下' : '向上'}`
+        `向哪个方向处理 -> ${rollingDeriction === 'next' ? '向下' : '向上'}`
     )
-    if (rollingDeriction === DESC.DOWN) {
+    if (rollingDeriction === 'next') {
         handlePositionAfterGetChatDataFromDown()
     } else {
         handlePositionAfterGetChatDataFromUp()
@@ -128,7 +128,7 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
                 clearActionFriendPositionData()
                 data = await dbReadRangeNotOffset(
                     chat_table,
-                    DESC.UP,
+                    'prev' as DESC,
                     scrollSafeLength.value
                 )
             }
@@ -137,7 +137,7 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
         } else {
             const data = await dbReadRangeNotOffset(
                 chat_table,
-                DESC.UP,
+                'prev' as DESC,
                 scrollSafeLength.value
             )
             // console.log('获取聊天记录 首次获取 2 ->', chatData)
@@ -203,14 +203,14 @@ async function handlePositionAfterGetChatDataFromDown() {
 
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
-    scrollDownLock.value = Lock.Locked
+    scrollDownLock.value = 'Locked'
 
     const chat_table = activeFriend.value.chat_table
     const offset = chatBox.value.length ? chatBox.value[chatBox.value.length - 1].id : 0
     // console.log('最后一个box数据 -> ', chatBox.value[chatBox.value.length - 1])
     const chatData: Box[] = []
-    // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? DESC.DOWN : DESC.UP))
-    chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.DOWN)))
+    // chatData.push(...await dbReadRange(chat_table, position[chat_table].offset, isFromDown ? 'next' : 'prev'))
+    chatData.push(...(await dbReadRange(chat_table, offset as number, 'next')))
     const lastId = await dbGetLastPrimaryKey(chat_table)
     console.log('获取聊天记录 向下 -> ', chatData.length)
     const tmpScrollTopValue = boxScrollTop.value
@@ -221,18 +221,18 @@ async function handlePositionAfterGetChatDataFromDown() {
             scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
             if (!chatData.length || lastId === chatData[chatData.length - 1]?.id) {
                 console.log('donwn 到底了 ->', lastId)
-                isLastChatList.value = Judge.YES
-                scrollDownLock.value = Lock.Locked
+                isLastChatList.value = 'Yes'
+                scrollDownLock.value = 'Locked'
                 deleteActionFriendPositionData()
             }
         })
     })
 
     // 释放锁
-    scrollDownLock.value = Lock.UnLock
+    scrollDownLock.value = 'UnLock'
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) scrollDownLock.value = Lock.Locked
+    if (chatData?.length === 0) scrollDownLock.value = 'Locked'
 }
 
 // 获取数据后处理文件定位
@@ -241,14 +241,14 @@ async function handlePositionAfterGetChatDataFromUp() {
 
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
-    scrollUpLock.value = Lock.Locked
+    scrollUpLock.value = 'Locked'
 
     const chat_table = activeFriend.value.chat_table
     const offset = chatBox.value[0].id
     // 没有定位信息，就不要拉数据了
     if (!offset) return
     const chatData: Box[] = []
-    chatData.push(...(await dbReadRange(chat_table, offset as number, DESC.UP)))
+    chatData.push(...(await dbReadRange(chat_table, offset as number, 'prev' as DESC)))
     console.log('获取聊天记录 向上 -> ', chatData.length)
 
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
@@ -264,10 +264,10 @@ async function handlePositionAfterGetChatDataFromUp() {
     })
 
     // 释放锁
-    scrollUpLock.value = Lock.UnLock
+    scrollUpLock.value = 'UnLock'
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) scrollUpLock.value = Lock.Locked
+    if (chatData?.length === 0) scrollUpLock.value = 'Locked'
 }
 
 function handleChatData(data: Box[]): Box[] {

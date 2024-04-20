@@ -56,27 +56,27 @@ export function request (ob:AxiosRequestConfig) {
     })
 }
 
-export const api = {
-    login: '/login', // 登录
-    register: '/register', // 注册
-    markdown: '/isUseMd', // 是否使用 markdown
-    avatar: '/uploadAvatar', // 加载头像
-    changeNickName: '/changeNickName', // 修改昵称
-    getFriends: '/getFriends', // 获取好友列表
-    addFri: '/addFriend', // 新增好友
-    addFriTest: '/addFriendTest', // 新增好友测试
-    unread: '/unread', // 获取未读信息
-    file: '/uploadFile', // 上传文件
-    sliceFile: '/uploadSliceFile', // 上传切片文件
-    chatData: '/chatData', // 获取聊天记录
-    deleteChat: '/deleteChat', // 删除聊天记录
-    refreshToken: '/refreshToken', // 更新refreshToken
-    quote: '/quote', // 获取引用
-    source: '/source', // 文件资源
-    verifyAuth: '/verifyAuth', // 用于更新 token
-    joinFile: '/joinFile', // 确认合并文件
-    clearDir: 'clearDir', // 清空文件夹
-    getUserInfoByPhone: 'getUserInfoByPhone', // 根据手机号获取用户
-    updateVersion: '/updateVersion', // 更新版本号
-    updateUserInfo: '/updateUserInfo', // 更新用户信息
-}
+// export const api = {
+//     login: '/login', // 登录
+//     register: '/register', // 注册
+//     markdown: '/isUseMd', // 是否使用 markdown
+//     avatar: '/uploadAvatar', // 加载头像
+//     changeNickName: '/changeNickName', // 修改昵称
+//     getFriends: '/getFriends', // 获取好友列表
+//     addFri: '/addFriend', // 新增好友
+//     addFriTest: '/addFriendTest', // 新增好友测试
+//     unread: '/unread', // 获取未读信息
+//     file: '/uploadFile', // 上传文件
+//     sliceFile: '/uploadSliceFile', // 上传切片文件
+//     chatData: '/chatData', // 获取聊天记录
+//     deleteChat: '/deleteChat', // 删除聊天记录
+//     refreshToken: '/refreshToken', // 更新refreshToken
+//     quote: '/quote', // 获取引用
+//     source: '/source', // 文件资源
+//     verifyAuth: '/verifyAuth', // 用于更新 token
+//     joinFile: '/joinFile', // 确认合并文件
+//     clearDir: '/clearDir', // 清空文件夹
+//     getUserInfoByPhone: '/getUserInfoByPhone', // 根据手机号获取用户
+//     updateVersion: '/updateVersion', // 更新版本号
+//     updateUserInfo: '/updateUserInfo', // 更新用户信息
+// }

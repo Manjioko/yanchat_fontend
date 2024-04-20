@@ -1,6 +1,6 @@
 // import {  store } from '@/store'
 import { receivedFriendAddSuccessSingle } from '@/components/friendsList/Methods/index'
-import { Tips } from '@/interface/global'
+// import { Tips } from '@/interface/global'
 import { handleWithdrawUtils } from '@/components/chatWindow/Methods/withDraw'
 import { MainStore } from '@/view/Main/store'
 import { ChatWindowStore } from '@/components/chatWindow/store'

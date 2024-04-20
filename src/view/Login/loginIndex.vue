@@ -4,21 +4,11 @@ import { ref, onMounted } from 'vue'
 // import { useStore } from '@/store'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import antiShake from '@/utils/antiShake'
+import debounce from '@/utils/debounce'
 import to from 'await-to-js'
-import { request, api } from '@/utils/api'
+import * as API from './api'
 import { setUserInfo } from '../Main/Methods/userInfoOperator'
-// import { MainStore } from './Main/store'
-// import { FriendsListStore } from '@/components/friendsList/store'
-// const mainStore = MainStore()
-// const friendstore = FriendsListStore()
-// const store = useStore()
-// import { dbOpen } from '@/utils/indexDB'
-// const op = {dbName: 'dddd', version: 1}
-// dbOpen(op)
-// dbOpen({})
 
-// const store = useStore()
 let router = ref()
 // 用户输入的电话号码
 let phone = ref('')
@@ -31,22 +21,18 @@ let repeatErr = ref(false)
 onMounted(() => {
     router.value = useRouter()
 })
-const delayToShowErr = antiShake(() => {
+const delayToShowErr = debounce(() => {
     pwErr.value = true
 }, 300)
-const delayToShowRepeatErr = antiShake(() => {
+const delayToShowRepeatErr = debounce(() => {
     repeatErr.value = true
 }, 300)
 async function login() {
     if (phone.value && pw.value) {
         // 发送登录请求
-        const [err, res] = await to(request({
-            method: 'post',
-            url: api.login,
-            data: {
-                phone_number: phone.value,
-                password: pw.value
-            }
+        const [err, res] = await to(API.A_login({
+            phone_number: phone.value,
+            password: pw.value
         }))
 
         if (err) {
@@ -127,14 +113,10 @@ async function login() {
             return
         }
 
-        const [err, res] = await to(request({
-            method: 'post',
-            url: api.register,
-            data: {
+        const [err, res] = await to(API.A_register({
                 phone_number: phone.value,
                 password: pw.value
-            }
-        }))
+            }))
 
         if (err) {
             console.log('注册错误：', err)
@@ -329,4 +311,4 @@ async function login() {
     position: absolute;
     right: 15px;
 }
-</style>
+</style>@/utils/debounce/debounce
