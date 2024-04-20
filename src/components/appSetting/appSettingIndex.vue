@@ -278,4 +278,4 @@ function handleError() {
         padding: 4px 11px;
     }
 }
-</style>@/utils/resetAllPiniaStore/resetAllPiniaStore@/utils/thumbnail/thumbnail
+</style>

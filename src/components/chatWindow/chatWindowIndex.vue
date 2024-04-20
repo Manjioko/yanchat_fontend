@@ -72,8 +72,8 @@ import comentQuote from '../comentQuote/comentQuoteIndex.vue'
 // import { useStore } from 'vuex'
 import { ChatWindowStore } from './store'
 import { WarningFilled } from '@element-plus/icons-vue'
-import { Box } from '@/interface/global'
-import { ScrollData } from '@/interface/chatWindow'
+// import { Box } from '@/interface/global'
+// import { ScrollData } from '@/interface/chatWindow'
 import { scrollEvent } from './Methods/scroll'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
@@ -474,4 +474,4 @@ function handleLoaded(chat_id: string) {
 .not-padding {
   padding: 0 !important;
 }
-</style>@/utils/contextMenu/contextMenu
+</style>

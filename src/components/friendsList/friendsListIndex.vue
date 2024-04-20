@@ -588,5 +588,4 @@ function handleError(i: Friend) {
   height: 16px;
   padding: 0 5px;
 }
-</style>@/view/Main/Methods/indexDB
-@/utils/debounce/debounce
+</style>

@@ -30,7 +30,7 @@ import { ChatSquare } from '@element-plus/icons-vue'
 import { watchEffect, ref, Ref } from 'vue'
 import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/view/Main/Methods/indexDB'
 import { localClickAddFriend } from '@/components/friendsList/Methods/index'
-import { Tips } from '@/interface/global'
+// import { Tips } from '@/interface/global'
 // import { Tips } from '@/interface/global'
 import { MainStore } from '@/view/Main/store'
 import { ChatWindowStore } from '../chatWindow/store'
@@ -156,4 +156,4 @@ function handleDelete(item: Tips, idx: number) {
 // .reject {
 //     color: #F56C6C;
 // }
-</style>@/components/friendsList/Methods/friends@/view/Main/Methods/indexDB
+</style>
