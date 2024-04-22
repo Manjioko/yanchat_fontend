@@ -1,4 +1,4 @@
-import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
+import { saveChatWindowPosition } from '@/components/chatWindow/Methods/savePosition'
 import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'

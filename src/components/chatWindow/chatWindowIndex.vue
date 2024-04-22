@@ -135,7 +135,7 @@ const md = MarkdownIt({
   }
 })
 function textToMarkdown(text: string) {
-  return isUseMd.value ? md.render(text) : text
+  return isUseMd.value ? md.render(text) : text.replace(/\n/g, '<br>')
 }
 
 // 更新滚动数据

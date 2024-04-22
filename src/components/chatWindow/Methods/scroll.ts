@@ -1,5 +1,5 @@
 import debounce from '@/utils/debounce'
-import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
+import { saveChatWindowPosition } from '@/components/chatWindow/Methods/savePosition'
 import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { storeToRefs } from 'pinia'

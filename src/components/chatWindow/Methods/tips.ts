@@ -1,12 +1,9 @@
-// import {  store } from '@/store'
 import { receivedFriendAddSuccessSingle } from '@/components/friendsList/Methods/index'
-// import { Tips } from '@/interface/global'
 import { handleWithdrawUtils } from '@/components/chatWindow/Methods/withDraw'
 import { MainStore } from '@/view/Main/store'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
-// const store = store
 // 处理消息通知
 export function handleTips(tips: { data: Tips[] }) {
     if (!tips.data || !Array.isArray(tips.data)) return

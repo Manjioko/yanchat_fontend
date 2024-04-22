@@ -22,6 +22,7 @@ export const download = async (url: string, name: string, onDownloadProgress: (p
         timeout,
         onDownloadProgress,
     })
+    console.log('名字是什么？ -> ', name, url)
     const blob = new Blob([res.data])
     const a = document.createElement('a')
     const ObUrl = window.URL.createObjectURL(blob)

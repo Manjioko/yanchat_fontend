@@ -1,11 +1,7 @@
 import { ChatWindowStore } from '@/components/chatWindow/store'
-// import { MainStore } from '../store'
-// import { elementFilter } from './ElementFilter'
-// import { Position } from '@/interface/global'
 import { jugeScrollOverScreen } from './jugeScrollOverScreen'
 import { cutChatBox } from './cutChatBox'
 import { setActionFriendPositionData } from './positionOperator'
-// const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 
 // 保存聊天窗口

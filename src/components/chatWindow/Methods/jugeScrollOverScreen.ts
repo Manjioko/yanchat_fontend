@@ -1,8 +1,6 @@
-import { MainStore } from "../store"
+import { MainStore } from "../../../view/Main/store"
 import { FootSendStore } from "@/components/sendFoot/store"
-// import { Judge } from "@/interface/global"
 import { deleteActionFriendPositionData } from '../Methods/positionOperator'
-// import typeIs from "@/utils/type"
 import { storeToRefs } from "pinia"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 
@@ -45,7 +43,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
             const bar = scrollData.value?.scrollBar?.wrapRef
             if (bar) {
                 if (bar.scrollTop && bar.clientHeight && bar.scrollHeight) {
-                    if (bar.scrollTop + bar.clientHeight >= bar.scrollHeight) {
+                    if (Math.ceil(bar.scrollTop + bar.clientHeight) >= bar.scrollHeight) {
                         console.log('已经到底了😂')
                         goToBottom.value = 'No'
                         // 一旦到底了, 就不需要定位，不然可能会出现问题

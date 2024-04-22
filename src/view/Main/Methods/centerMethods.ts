@@ -7,7 +7,7 @@ import { nextTick, watchEffect } from "vue"
 import { ElNotification } from "element-plus"
 import { scrollChatBoxToBottom, sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
 import { dbAdd } from "@/view/Main/Methods/indexDB"
-import { saveChatWindowPosition } from "./savePosition"
+import { saveChatWindowPosition } from "../../../components/chatWindow/Methods/savePosition"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 import { CommentQuoteStore } from "@/components/comentQuote/store"
 

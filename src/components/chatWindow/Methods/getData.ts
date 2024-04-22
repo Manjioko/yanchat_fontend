@@ -1,6 +1,6 @@
 // import { Box, IsSwitchFriend, Position, Locked, Judge } from "@/interface/global"
 // import { DESC } from '@/interface/indexDB'
-import { getActionFriendPositionData } from '@/view/Main/Methods/positionOperator'
+import { getActionFriendPositionData } from '@/components/chatWindow/Methods/positionOperator'
 import { scrollChatBoxToBottom } from "@/view/Main/Methods/mainMethods"
 // import { MainStore } from "@/view/Main/store"
 import { FootSendStore } from "@/components/sendFoot/store"
@@ -15,7 +15,7 @@ import {
     dbReadRangeByArea,
     dbGetLastPrimaryKey
 } from '@/view/Main/Methods/indexDB'
-import { deleteActionFriendPositionData, clearActionFriendPositionData } from '@/view/Main/Methods/positionOperator'
+import { deleteActionFriendPositionData, clearActionFriendPositionData } from '@/components/chatWindow/Methods/positionOperator'
 
 const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, imgLoadList } = storeToRefs(ChatWindowStore())
 const { goToBottom } = storeToRefs(FootSendStore())

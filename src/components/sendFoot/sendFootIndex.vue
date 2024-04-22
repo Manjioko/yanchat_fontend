@@ -3,37 +3,39 @@
         <section v-if="showGotoBottom === 'Yes'" style="position: relative;">
             <div class="goto-bottom" @click="handleGotoBottom">
                 <span>回到最新位置 {{ pongSaveCacheData.length ? pongSaveCacheData.length : ''}}</span>
-                <!-- <span>回到最新位置</span> -->
             </div>
         </section>
     </header>
     <main>
         <section class="select-tab">
-            <div class="video-call">
+            <!-- <div class="video-call">
                 <img src="../../assets/videoCall.png" alt="video-call" @click="videoCall">
             </div>
             <div class="call">
                 <img src="../../assets/call.png" alt="call">
-            </div>
+            </div> -->
             <div class="upload">
                 <img src="../../assets/folder.png" alt="upload">
-                <input type="file" @change="uploadFile" v-if="!!activeFriend">
+                <input type="file" @change="clickFileUpload" v-if="!!activeFriend">
             </div>
         </section>
         <div class="text-send">
             <!-- @keyup.shift.enter.exact="hdkeydown" -->
-            <el-input
+            <!-- <el-input
                 v-model="chatText"
                 :autosize="{ minRows: 1, maxRows: 5 }"
                 type="textarea"
-                placeholder="在这里输入你的消息..."
+                placeholder="在这里输入你的消息...
                 @keydown.shift.enter.prevent="hdkeydown"
-            />
+            /> -->
+
+
+            <RichText ref="richText" @rich-text-data="richTextData" @keydown="hdkeydown" />
             
-            <button @click="sendMessage()" class="send-btn">
+            <!-- <button @click="clickSendBtn()" class="send-btn">
                 <span>发送</span>
                 <img src="../../assets/send.png" alt="send">
-            </button>
+            </button> -->
         </div>
     </main>
 </template>
@@ -45,31 +47,60 @@ import { uploadSlice } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
-// import { Box, Judge } from '@/interface/global'
-// import { UploadCallback } from '@/interface/download'
 import { FootSendStore } from './store'
 import { storeToRefs } from 'pinia'
 import { centerSend } from '@/view/Main/Methods/centerMethods'
-import { handleVideoCallStart } from '../VideoCallOfferer/methods/videoCenter'
+// import { handleVideoCallStart } from '../VideoCallOfferer/methods/videoCenter'
 import { handleGotoBottom } from '@/view/Main/Methods/mainMethods'
-// import { MainStore } from '@/view/Main/store'
 import { CommentQuoteStore } from '../comentQuote/store'
 import { FriendsListStore } from '../friendsList/store'
+import RichText from './component/richText/richTextIndex.vue'
+
 
 const sfStore = FootSendStore()
-// const emit = defineEmits(['progress', 'response', 'gotoBottom'])
 const { goToBottom: showGotoBottom, pongSaveCacheData } = storeToRefs(sfStore)
-// const { activeFriend } = storeToRefs(MainStore())
 const { comment } = storeToRefs(CommentQuoteStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
 
 const chatText = ref('')
 
-// const jugeYes = ref(1)
+
+function hdkeydown(e: any) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        clickSendBtn()
+    }
+}
+
 
 // 键盘 摁下 enter 键触发事件
-function hdkeydown() {
+// function hdkeydown() {
+//     sendMessage()
+// }
+const richText = ref()
+function richTextData(data: RichTextData) {
+    const { textAry, listMap } = data
+    let tmpAry = [...textAry]
+    textAry.forEach((item, index)=> {
+        if (item.type === 'img') {
+            const file = listMap.get(item.data) as File
+            chatText.value = tmpAry.slice(0, index).reduce((a, b) => a + b.data + '\n', '')
+            sendMessage()
+            uploadFile(file)
+            tmpAry = tmpAry.slice(index + 1)
+        }
+    })
+
+    chatText.value = tmpAry.reduce((a, b) => a + b.data + '\n', '')
     sendMessage()
+
+    richText.value.clearRichText()
+        
+}
+
+function clickSendBtn() {
+    console.log('clickSendBtn -> ')
+    richText.value.handleSend()
 }
 
 
@@ -107,27 +138,36 @@ function sendMessage(chatData?:Box) {
 
     // 清空聊天框
     chatText.value = ''
+    richText.value.clearRichText()
 }
 
 // 文件分段上传测试
 function uploadSliceFile(file:File, cb: UploadCallback) {
     uploadSlice.handleFile(file, cb)
 }
-// 文件上传
-async function uploadFile(e:Event) {
-    const formData = new FormData()
+
+function clickFileUpload(e: Event) {
     const target = e.target as HTMLInputElement
     if (!target.files?.length) return
-    formData.append("file", target.files[0])
-    const size = byteCovert(target.files[0]?.size)
+    let fileData = target.files[0]
+    uploadFile(fileData)
+    // 清空 targt,不然上传同一个文件会没有反应
+    target.value = ''
+}
+// 文件上传
+async function uploadFile(fileData:File) {
+    const formData = new FormData()
+    formData.append("file", fileData)
+    const size = byteCovert(fileData?.size)
+    console.log('filename -> ', fileData)
     if (!size) return 
     const uuid = uuidv4()
     const box:Box = reactive({
         progress: 0,
-        type: target.files[0]?.type,
-        fileName: target.files[0]?.name,
+        type: fileData?.type,
+        fileName: fileData?.name,
         // text 文本描述主要用于好友栏的提示
-        text: `[文件]${target.files[0]?.name ?? ''}`,
+        text: `[文件]${fileData?.name ?? ''}`,
         size,
         time: timeFormat(),
         response: '',
@@ -143,20 +183,20 @@ async function uploadFile(e:Event) {
     })
     // 发送信息到文本框
     sendMessage(box)
-    // console.log('target.files[0] -> ', box.type)
+    // console.log('fileData -> ', box.type)
     // 获取缩略图
     if (box.type.includes('video')) {
         // console.log('video -> ', 'video')
-        const getURL = window.URL.createObjectURL(target.files[0])
+        const getURL = window.URL.createObjectURL(fileData)
         const thumbnail = await getVideoBase64(getURL)
         box.thumbnail = thumbnail
     }
     if (box.type.includes('image')) {
-        const getURL = window.URL.createObjectURL(target.files[0])
+        const getURL = window.URL.createObjectURL(fileData)
         const thumbnail = await getImageBase64(getURL)
         box.thumbnail = thumbnail
     }
-    uploadSliceFile(target.files[0], function(err:any, progress:any, response:any) {
+    uploadSliceFile(fileData, function(err:any, progress:any, response:any) {
         if (err) {
             box.progress = 0
             box.response = ''
@@ -180,8 +220,6 @@ async function uploadFile(e:Event) {
 
     })
 
-    // 清空 targt,不然上传同一个文件会没有反应
-    target.value = ''
     // upload(api.file, formData, function(err, progress, response) {
     //     if (err) {
     //         box.progress = 0
@@ -202,11 +240,11 @@ async function uploadFile(e:Event) {
 
 // 视频通话
 // const showOfferer = ref(false)
-function videoCall() {
-    // emit('videoCallStart', { videoCallStart: true })
-    handleVideoCallStart()
-    // showOfferer.value = true
-}
+// function videoCall() {
+//     // emit('videoCallStart', { videoCallStart: true })
+//     handleVideoCallStart()
+//     // showOfferer.value = true
+// }
 
 // function handleGotoBottom() {
 //     // store.commit('footSend/setGotoBottomState', false)

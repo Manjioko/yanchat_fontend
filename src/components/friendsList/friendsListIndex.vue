@@ -95,7 +95,7 @@ import { Search } from '@element-plus/icons-vue'
 import debounce from '@/utils/debounce'
 import to from 'await-to-js'
 import { dbAdd, updateDatabase } from '@/view/Main/Methods/indexDB'
-import { saveChatWindowPosition } from '@/view/Main/Methods/savePosition'
+import { saveChatWindowPosition } from '@/components/chatWindow/Methods/savePosition'
 // import {
 //   Box,
 //   Friend,
