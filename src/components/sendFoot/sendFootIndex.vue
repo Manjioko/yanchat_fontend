@@ -2,7 +2,7 @@
     <header>
         <section v-if="showGotoBottom === 'Yes'" style="position: relative;">
             <div class="goto-bottom" @click="handleGotoBottom">
-                <span>回到最新位置 {{ pongSaveCacheData.length ? pongSaveCacheData.length : ''}}</span>
+                <span>回到最新位置 {{ chatBoxCacheList.length ? chatBoxCacheList.length : ''}}</span>
             </div>
         </section>
     </header>
@@ -58,7 +58,7 @@ import RichText from './component/richText/richTextIndex.vue'
 
 
 const sfStore = FootSendStore()
-const { goToBottom: showGotoBottom, pongSaveCacheData } = storeToRefs(sfStore)
+const { isShowGoToNewBtn: showGotoBottom, chatBoxCacheList } = storeToRefs(sfStore)
 const { comment } = storeToRefs(CommentQuoteStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
 

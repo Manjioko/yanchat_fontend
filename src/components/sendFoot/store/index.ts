@@ -2,23 +2,23 @@ import { defineStore } from 'pinia'
 // import { Box, Judge } from '@/interface/global'
 
 export interface FootSendState {
-    goToBottom: Judge
-    pongSaveCacheData: Box[]
-    receivedShowGotoBottom: Judge
+    isShowGoToNewBtn: Judge
+    chatBoxCacheList: Box[]
+    isGetGoToNewSingle: Judge
 }
 
 export const FootSendStore = defineStore('components/sendFoot', {
     state:(): FootSendState => ({
-        goToBottom: 'No',
-        pongSaveCacheData: [],
-        receivedShowGotoBottom: 'No',
+        isShowGoToNewBtn: 'No',
+        chatBoxCacheList: [],
+        isGetGoToNewSingle: 'No',
     }),
     actions: {
         setGotoBottomState(payload: any) {
-            this.goToBottom = payload
+            this.isShowGoToNewBtn = payload
         },
         setPongSaveCacheData(payload: Array<Box>) {
-            this.pongSaveCacheData = payload
+            this.chatBoxCacheList = payload
         }
     }
 })

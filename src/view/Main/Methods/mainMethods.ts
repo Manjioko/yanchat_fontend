@@ -10,7 +10,7 @@ import { nextTick, watchEffect } from "vue"
 
 const { scrollData, isLastChatList, chatBox, imgLoadList } = storeToRefs(ChatWindowStore())
 const { freshTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
-const { goToBottom } = storeToRefs(FootSendStore())
+const { isShowGoToNewBtn } = storeToRefs(FootSendStore())
 // const {  } = storeToRefs(MainStore())
 
 // 滚动聊天框到底部
@@ -22,7 +22,7 @@ export function scrollChatBoxToBottom(start_sp?: number) {
         start_sp ? end_sp - start_sp : end_sp
     )
     // 滚动到底部时，应该负责关掉回到最新按钮
-    goToBottom.value = 'No'
+    isShowGoToNewBtn.value = 'No'
 }
 
 

@@ -165,7 +165,7 @@ function showSettingDialog() {
 // websocket 重连刷新
 function handleWsReconnect() {
     // store.commit('footSend/setGotoBottomState', true)
-    footSendStore.goToBottom = 'Yes'
+    footSendStore.isShowGoToNewBtn = 'Yes'
     // 如果上锁了，就将锁解开，让它自由的获取到数据
     if (scrollDownLock.value === 'Locked') {
         scrollDownLock.value = 'UnLock'

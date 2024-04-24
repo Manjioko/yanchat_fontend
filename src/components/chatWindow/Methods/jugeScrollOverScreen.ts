@@ -9,7 +9,7 @@ const footSendStore = FootSendStore()
 
 const chatWindowStore = ChatWindowStore()
 
-const { goToBottom, receivedShowGotoBottom } = storeToRefs(footSendStore)
+const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(footSendStore)
 // const {   } = storeToRefs(mainStore)
 
 const { scrollData } = storeToRefs(chatWindowStore)
@@ -25,9 +25,9 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
     // 判断是否超过了一个屏幕
     if (safeNumber && safeNumber > screenHeight) {
 
-        if (goToBottom.value === 'No' && isLastChatList.value === 'Yes') {
+        if (isShowGoToNewBtn.value === 'No' && isLastChatList.value === 'Yes') {
             console.log('超过一个屏幕的距离')
-            receivedShowGotoBottom.value = 'Yes'
+            isGetGoToNewSingle.value = 'Yes'
         }
     }
 
@@ -45,7 +45,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
                 if (bar.scrollTop && bar.clientHeight && bar.scrollHeight) {
                     if (Math.ceil(bar.scrollTop + bar.clientHeight) >= bar.scrollHeight) {
                         console.log('已经到底了😂')
-                        goToBottom.value = 'No'
+                        isShowGoToNewBtn.value = 'No'
                         // 一旦到底了, 就不需要定位，不然可能会出现问题
                         deleteActionFriendPositionData()
                     }

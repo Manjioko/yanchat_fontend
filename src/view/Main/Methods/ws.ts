@@ -4,7 +4,7 @@ import { handleTips } from "../../../components/chatWindow/Methods/tips"
 // import { store } from '@/store'
 import { FriendsListStore } from "@/components/friendsList/store"
 import { MainStore } from "@/view/Main/store"
-import { centerDeleted, centerReceived, centerPong } from "@/view/Main/Methods/centerMethods"
+import { centerDeleted, centerReceived, centerSentPondEcho } from "@/view/Main/Methods/centerMethods"
 import { storeToRefs } from "pinia"
 import {
     centerVideoCallOffer,
@@ -114,7 +114,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
             case 'pong':
                 console.log('对方确认收到')
                 // pingPongFn(chatData, 'pong')
-                centerPong(chatData)
+                centerSentPondEcho(chatData)
                 break
             case 'videoCallRequest':
                 // videoFn(chatData, 'videoCallRequest')

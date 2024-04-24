@@ -135,7 +135,7 @@ const {
   scrollDownLock,
   isLastChatList,
 }  = storeToRefs(chatWindowStore)
-const { goToBottom, pongSaveCacheData } = storeToRefs(FootSendStore())
+const { isShowGoToNewBtn, chatBoxCacheList } = storeToRefs(FootSendStore())
 const { avatarRefresh } = storeToRefs(AppSettingStore())
 
 // const emit = defineEmits(['handleActiveFriend'])
@@ -154,9 +154,9 @@ async function handleActiveFriend(f: Friend) {
     // 记录的结尾标识也需要重置
     isLastChatList.value = 'No'
     // 存在回到最新提示的也需要重置
-    goToBottom.value = 'No'
+    isShowGoToNewBtn.value = 'No'
     // 未显示内容需要重置
-    pongSaveCacheData.value = []
+    chatBoxCacheList.value = []
     getChatFromServer('Yes' as IsSwitchFriend, 'prev' as DESC)
 }
 

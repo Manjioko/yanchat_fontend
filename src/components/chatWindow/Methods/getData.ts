@@ -18,7 +18,7 @@ import {
 import { deleteActionFriendPositionData, clearActionFriendPositionData } from '@/components/chatWindow/Methods/positionOperator'
 
 const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, imgLoadList } = storeToRefs(ChatWindowStore())
-const { goToBottom } = storeToRefs(FootSendStore())
+const { isShowGoToNewBtn } = storeToRefs(FootSendStore())
 const { activeFriend, userInfo } = storeToRefs(FriendsListStore())
 // const { activeFriend } = storeToRefs(FriendsListStore())
 
@@ -70,10 +70,10 @@ async function handlePositionAfterFirstTimeGetChatData() {
                     const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
                     if (scrollTop + clientHeight < scrollHeight - 10) {
                         // 用于显示 "回到最新" Tip 按钮
-                        goToBottom.value = 'Yes'
+                        isShowGoToNewBtn.value = 'Yes'
                     }
                 } else {
-                    goToBottom.value = 'Yes'
+                    isShowGoToNewBtn.value = 'Yes'
                 }
             })
         }

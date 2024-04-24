@@ -14,7 +14,7 @@ import { CommentQuoteStore } from "@/components/comentQuote/store"
 const  { ws: websocket } = storeToRefs(MainStore())
 const { showQuote, comment } = storeToRefs(CommentQuoteStore())
 const { freshDeleteTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
-const { pongSaveCacheData, goToBottom, receivedShowGotoBottom } = storeToRefs(FootSendStore())
+const { chatBoxCacheList, isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
 const { isLastChatList, chatBox } = storeToRefs(ChatWindowStore())
 // 消息发送
 export function centerSend(chatData: Box) {
@@ -59,7 +59,7 @@ export function centerSend(chatData: Box) {
             scrollChatBoxToBottom()
         })
     } else {
-        pongSaveCacheData.value.push(chatData)
+        chatBoxCacheList.value.push(chatData)
     }
     if (chatData.progress !== undefined) {
         const stop = watchEffect(() => {
@@ -114,10 +114,10 @@ export function centerReceived(chatData: Box) {
         if (chatData.user_id === activeFriend?.value?.user_id) {
             // 发给自己的信息主要分两种 <1> 是展示用的信息 <2> 是撤回信息
             // 先处理撤回信息
-            if (receivedShowGotoBottom.value === 'Yes') {
+            if (isGetGoToNewSingle.value === 'Yes') {
                 chatBox.value.push(chatData)
-                goToBottom.value = 'Yes'
-                pongSaveCacheData.value.push(chatData)
+                isShowGoToNewBtn.value = 'Yes'
+                // chatBoxCacheList.value.push(chatData)
             } else {
                 if (isLastChatList.value === 'Yes') {
                     chatBox.value.push(chatData)
@@ -125,7 +125,12 @@ export function centerReceived(chatData: Box) {
                         scrollChatBoxToBottom()
                     })
                 } else {
-                    pongSaveCacheData.value.push(chatData)
+                    // 这里将消息存起来有啥用？我为什脑抽了写这个？
+                    // chatBoxCacheList.value.push(chatData)
+
+                    // 写上面的目的在于给 “回到最新” tips 提供未读信息计数
+                    // 不能和 centerSend 混用一个缓存，不然可能造成不必要的
+                    // 理解困难，所以需要重新定义一个list专门做缓存用
                 }
             }
             sendTipToFriendModel(0, chatData)
@@ -156,51 +161,59 @@ export function centerDeleted(chat: Box) {
     freshDeleteTextTip.value = { chat }
 }
 
-export function centerPong(data: PingPong) {
-    if (activeFriend.value.chat_table === data.to_table) {
-        if (isLastChatList.value === 'Yes') {
-            const boxIndex = chatBox.value.findIndex(
-                chat => chat.chat_id === data.chat_id
-            )
-            // console.log(chatBox.value[boxIndex], chatBox, data)
-            if (boxIndex !== -1) {
-                const chatData = chatBox.value[boxIndex]
-                if (chatData.loading) {
-                    chatData.loading = false
-                    chatData.id = data.id
-                }
-                dbAdd(chatData.to_table, [{ ...chatData, id: data.id }])
-                    .then(res => {
-                        console.log('存入数据库成功了 -> ', res)
-                        // 重新保存定位信息定位，防止位置丢失
-                        saveChatWindowPosition()
-                    })
-                    .catch(err => {
-                        console.log('存入数据库失败了 -> ', err)
-                    })
-            } else {
-                console.log('发送了消息，但是pond没有存储')
-            }
-        } else {
-            // console.log(3)
-            // 发送的消息，先滚动到最新的页面，再存入数据库
-            handleGotoBottom()
-            const index = pongSaveCacheData.value.findIndex(d => d.chat_id === data.chat_id)
-            if (index !== -1) {
-                if (pongSaveCacheData.value[index].loading) {
-                    pongSaveCacheData.value[index].loading = false
-                    pongSaveCacheData.value[index].id = data.id
-                }
-                chatBox.value.push(pongSaveCacheData.value[index])
-                console.log(4)
-                dbAdd(data.to_table, [{ ...pongSaveCacheData.value[index], id: data.id }])
-                    .then(res => {
-                        console.log('存入数据库成功了 -> ', res)
-                    })
-                    .catch(err => {
-                        console.log('存入数据库失败了 -> ', err)
-                    })
-            }
+export async function centerSentPondEcho(data: PingPong) {
+    if (activeFriend.value.chat_table !== data.to_table) {
+        return
+    }
+
+    if (isLastChatList.value === 'Yes') {
+        const boxIndex = chatBox.value.findIndex(
+            chat => chat.chat_id === data.chat_id
+        )
+        // console.log(chatBox.value[boxIndex], chatBox, data)
+        if (boxIndex === -1) {
+            // console.log(1)
+            console.log('发送了消息，但是pond没有存储')
+            return
         }
+
+        const chatData = chatBox.value[boxIndex]
+        if (chatData.loading) {
+            chatData.loading = false
+            chatData.id = data.id
+        }
+        dbAdd(chatData.to_table, [{ ...chatData, id: data.id }])
+        .then(res => {
+            console.log('存入数据库成功了 -> ', res)
+            // 重新保存定位信息定位，防止位置丢失
+            saveChatWindowPosition()
+        })
+        .catch(err => {
+            console.log('存入数据库失败了 -> ', err)
+        })
+    } else {
+        // console.log(3)
+        // 发送的消息，先滚动到最新的页面，再存入数据库
+        await handleGotoBottom()
+        const index = chatBoxCacheList.value.findIndex(d => d.chat_id === data.chat_id)
+        if (index === -1) {
+            return
+        }
+        if (chatBoxCacheList.value[index].loading) {
+            chatBoxCacheList.value[index].loading = false
+            chatBoxCacheList.value[index].id = data.id
+        }
+        chatBox.value.push(chatBoxCacheList.value[index])
+        dbAdd(data.to_table, [{ ...chatBoxCacheList.value[index], id: data.id }])
+        .then(res => {
+            console.log('存入数据库成功了 -> ', res)
+        })
+        .catch(err => {
+            console.log('存入数据库失败了 -> ', err)
+        })
+        .finally(() => {
+            // 应该清空 chatBoxCacheList
+            chatBoxCacheList.value = []
+        })
     }
 }
