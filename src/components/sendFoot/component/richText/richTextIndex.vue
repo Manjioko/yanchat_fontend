@@ -20,7 +20,7 @@ const richTextEl = ref()
 const textAry = ref<any[]>([])
 
 function onopentag(tag: string, attr: any) {
-    console.log('标签开始解析', tag)
+    // console.log('标签开始解析', tag)
     if (tag === 'img') {
         const src = attr.src
         // console.log('src -> ', src)
@@ -33,7 +33,7 @@ function onopentag(tag: string, attr: any) {
 
 // 文本解析时触发
 function ontext(text: string) {
-    console.log('标签解析时触发', text)
+    // console.log('标签解析时触发', text)
     textAry.value.push({
         type: 'text',
         data: text
@@ -41,7 +41,7 @@ function ontext(text: string) {
 }
 
 function onend() {
-    console.log('标签结束解析')
+    // console.log('标签结束解析')
     // textAry.value.forEach((item: any, index: number) => {
     //     textAry.value[index].data = `${item.data}\n`
     // })

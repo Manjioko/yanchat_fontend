@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import download from '@/utils/download'
+import mediaDownload from '@/utils/download'
 import menu from '@/utils/contextMenu'
 import { defineEmits, defineProps, ref, watch } from 'vue'
 
@@ -68,7 +68,7 @@ const items = [
         onClick: () => {
             // const token = sessionStorage.getItem('Token')
             const url = `/source/${props.response}`
-            download(url, props.fileName, function(err, progress) {
+            mediaDownload(url, props.fileName, function(err, progress) {
                 if (err) downloadProgress.value = null
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)

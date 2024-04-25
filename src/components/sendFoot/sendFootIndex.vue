@@ -43,7 +43,7 @@
 import { ref, reactive } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
-import { uploadSlice } from '@/utils/download'
+import {  mediaUpload } from '@/utils/download'
 import { v4 as uuidv4 } from 'uuid'
 import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
@@ -99,7 +99,6 @@ function richTextData(data: RichTextData) {
 }
 
 function clickSendBtn() {
-    console.log('clickSendBtn -> ')
     richText.value.handleSend()
 }
 
@@ -112,7 +111,7 @@ function sendMessage(chatData?:Box) {
     }
 
     const message = chatText.value
-    console.log('commment.value -> ', comment.value)
+    // console.log('commment.value -> ', comment.value)
 
     if (!message) return
     
@@ -143,7 +142,8 @@ function sendMessage(chatData?:Box) {
 
 // 文件分段上传测试
 function uploadSliceFile(file:File, cb: UploadCallback) {
-    uploadSlice.handleFile(file, cb)
+    // uploadSlice.handleFile(file, cb)
+    mediaUpload(file, cb)
 }
 
 function clickFileUpload(e: Event) {

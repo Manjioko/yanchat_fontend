@@ -79,7 +79,7 @@
 import { defineProps, ref, defineEmits, inject, watch, nextTick } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
-import download from '@/utils/download'
+import mediaDownload from '@/utils/download'
 import menu from '@/utils/contextMenu'
 
 const props = defineProps({
@@ -211,7 +211,7 @@ const videoMenu = [
         onClick: () => {
             if (!options.value.length) return
             const url = `/source/${props.response}`
-            download(url, props.fileName, function(err, progress) {
+            mediaDownload(url, props.fileName, function(err, progress) {
                 if (err) return downloadProgress.value = null
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
