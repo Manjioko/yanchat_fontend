@@ -44,7 +44,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
             if (bar) {
                 if (bar.scrollTop && bar.clientHeight && bar.scrollHeight) {
                     if (Math.ceil(bar.scrollTop + bar.clientHeight) >= bar.scrollHeight) {
-                        console.log('已经到底了😂')
+                        // console.log('已经到底了😂')
                         isShowGoToNewBtn.value = 'No'
                         // 一旦到底了, 就不需要定位，不然可能会出现问题
                         deleteActionFriendPositionData()

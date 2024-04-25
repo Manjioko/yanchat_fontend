@@ -39,7 +39,7 @@ export function saveChatWindowPosition() {
     }
     // 存储位置信息
     setActionFriendPositionData(saveData)
-    console.log('定位信息 -> ', saveData)
+    // console.log('定位信息 -> ', saveData)
     // 判断聊天记录向下滚动是否超过了一个屏幕
     jugeScrollOverScreen(ary)
     // 计算多余的聊天记录，如果数量过多，需要裁掉一部分，节省内存

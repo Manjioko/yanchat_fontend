@@ -354,7 +354,7 @@ async function mediaUpload(fileData:File, callback:Function) {
         if (percent === 100) {
             if (typeof cb === 'function') {
                 uploadedSize += (pgEvent.total || 1)
-                console.log('%c file -> ', 'color: blue;', file, )
+                // console.log('%c file -> ', 'color: blue;', file, )
                 cb(null, Math.round(uploadedSize / fileSize * 100), null)
                 uploadedSize = 0
             }

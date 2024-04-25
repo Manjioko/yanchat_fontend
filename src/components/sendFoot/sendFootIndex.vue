@@ -80,19 +80,28 @@ function hdkeydown(e: any) {
 const richText = ref()
 function richTextData(data: RichTextData) {
     const { textAry, listMap } = data
-    let tmpAry = [...textAry]
-    textAry.forEach((item, index)=> {
+    const ary: any = []
+    textAry.forEach((item)=> {
         if (item.type === 'img') {
-            const file = listMap.get(item.data) as File
-            chatText.value = tmpAry.slice(0, index).reduce((a, b) => a + b.data + '\n', '')
-            sendMessage()
-            uploadFile(file)
-            tmpAry = tmpAry.slice(index + 1)
+            ary.push(item)
+        } else {
+            if (ary.length && Array.isArray(ary[ary.length - 1])) {
+                ary[ary.length - 1].push(item)
+            } else {
+                ary.push([item])
+            }
         }
     })
 
-    chatText.value = tmpAry.reduce((a, b) => a + b.data + '\n', '')
-    sendMessage()
+    ary.forEach((item:any) => {
+        if (Array.isArray(item)) {
+            chatText.value = item.reduce((a, b) => a + b.data + '\n', '')
+            sendMessage()
+        } else {
+            const file = listMap.get(item.data) as File
+            uploadFile(file)
+        }
+    })
 
     richText.value.clearRichText()
         

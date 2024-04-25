@@ -66,7 +66,7 @@ export function centerSend(chatData: Box) {
             if ((chatData.progress || 0) >= 100 && chatData.response) {
                 if (websocket.value) {
                     const ws = websocket.value as WebSocket
-                    console.log('mainUI 发送消息 -> ', chatData)
+                    // console.log('mainUI 发送消息 -> ', chatData)
                     ws.send(JSON.stringify(chatData))
                 }
                 stop()
