@@ -244,7 +244,7 @@ async function handlePositionAfterGetChatDataFromUp() {
     scrollUpLock.value = 'Locked'
 
     const chat_table = activeFriend.value.chat_table
-    const offset = chatBox.value[0].id
+    const offset = chatBox.value?.[0]?.id
     // 没有定位信息，就不要拉数据了
     if (!offset) return
     const chatData: Box[] = []

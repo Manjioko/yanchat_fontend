@@ -6,6 +6,7 @@ import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'
+// import { v4 as uuidv4 } from 'uuid'
 
 const mainstore = MainStore()
 
@@ -62,54 +63,33 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 }
 
 // 数据库新增数据
-export function dbAdd<T>(tableName: String, data: T[]):Promise<string> {
+export function dbAdd(tableName: String, data: Box):Promise<any> {
     return new Promise((resolve, reject) => {
         if (!mainstore.db || !data) return
-        if (Array.isArray(data)) {
-            // console.log('tablename -> ', tableName)
-            const tran = mainstore.db.transaction([tableName], 'readwrite')
-            const store = tran.objectStore(tableName)
 
-            data.forEach(item => {
-                // console.log('data is -> ', item)
-                store.add(item)
-            })
+        const tran = mainstore.db.transaction([tableName], 'readwrite')
+        const store = tran.objectStore(tableName)
+        const req = store.add(data)
 
-            // 事务完成
-            tran.oncomplete = (res: Event) => {
-                resolve(res.type)
-            }
-
-            // 事务失败
-            tran.onerror = (err: Event) => {
-
-                const target = err.target as IDBRequest
-                console.log('事务失败 -> ', target)
-                reject(target.error?.message)
-            }
-
-            store.onerror = (err: Event) => {
-                const target = err.target as IDBRequest
-                console.log('store 失败 -> ', target)
-                reject(target.error?.message)
-            }
-
-        } else {
-            const tran = mainstore.db.transaction([tableName], 'readwrite')
-            const store = tran.objectStore(tableName)
-            store.add(data)
-            // 事务完成
-            tran.oncomplete = (res: Event) => {
-                resolve(res.type)
-            }
-
-            // 事务失败
-            tran.onerror = (err: Event) => {
-
-                const target = err.target as IDBRequest
-                reject(target.error?.message)
-            }
+        req.onsuccess = (res: Event) => {
+            const target = res.target as IDBRequest
+            resolve(target.result)
         }
+
+        req.onerror = (err: Event) => {
+            reject(err)
+        }
+        // 事务完成
+        // tran.oncomplete = (res: Event) => {
+        //     resolve(res.type)
+        // }
+
+        // 事务失败
+        // tran.onerror = (err: Event) => {
+
+        //     const target = err.target as IDBRequest
+        //     reject(target.error?.message)
+        // }
     })
 }
 
@@ -365,6 +345,29 @@ export function dbGetLastPrimaryKey(tableName: string): Promise<number | undefin
     })
 }
 
+export function dbGetLastAutoKey(tableName: string): Promise<number | undefined> {
+    return new Promise((resolve, reject) => {
+        if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
+        const store = (mainstore.db as IDBDatabase)
+            .transaction([tableName], 'readonly')
+            .objectStore(tableName)
+        const keyCursorRequest = store.openKeyCursor(null, 'prev')
+        keyCursorRequest.onsuccess = (res: Event) => {
+            const result = (res.target as IDBRequest).result
+            if (result) {
+                resolve(result.key)
+            } else {
+                resolve(undefined)
+            }
+        }
+
+        keyCursorRequest.onerror = (err: Event) => {
+            const target = err.target as IDBRequest
+            reject(target.error?.message)
+        }
+    })
+}
+
 // 通过 key 删除数据库字段
 export function dbDeleteByKey(tableName: string, key: number): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -412,6 +415,37 @@ export function dbDeleteByIndex(tableName: string, indexName: string, searchStr:
     })
 }
 
+// 通过 index 来设置id
+export function dbSetId(tableName: string, indexName: string, searchStr: string): Promise<any> { 
+    return new Promise((resolve, reject) => {
+        if (!mainstore.db || !indexName) return
+        const tran = mainstore.db.transaction([tableName], 'readwrite') as IDBTransaction
+        const sto = tran.objectStore(tableName) as IDBObjectStore
+        const cursor = sto.openCursor(null, 'prev') as IDBRequest
+        cursor.onsuccess = () => {
+            const cur = cursor.result as IDBCursorWithValue
+            if (cur) {
+                if (cur.value[indexName] === searchStr) {
+                    const request = sto.put({ ...cur.value, id: cur.key }, cur.key)
+                    request.onsuccess = (res: Event) => {
+                        resolve(res.type)
+                    }
+                    request.onerror = (err: Event) => {
+                        reject(err.type)
+                    }
+                    return
+                }
+                cur.continue()
+            } else {
+                resolve('success')
+            }
+        }
+        cursor.onerror = (err: Event) => {
+            reject(err.type)
+        }
+    })
+}
+
 // 更新数据库字段
 export function dbUpdate(tableName: string, data: Box): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -421,7 +455,8 @@ export function dbUpdate(tableName: string, data: Box): Promise<string> {
         const objectStore = transaction.objectStore(tableName)
 
         // 使用 key 参数来指定键
-        const request = objectStore.put(data)
+        console.log('更新的id -> ', data.id)
+        const request = objectStore.put(data, data.id)
 
         request.onsuccess = function (event: Event) {
             console.log('更新成功 -> ', event)
@@ -448,6 +483,7 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
         { name: 'table_id', unique: false },
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },
+        { name: 'chat_id', unique: false }
     ]
     // 消息系统表结构
     const tipsTable =  {
@@ -459,7 +495,11 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
             { name: 'messages_type', unique: false }
         ]
     }
-    const initConfig = friends?.map((item: Friend) => ({ name: item.chat_table, key: 'id', indexList })) || []
+    const initConfig = friends?.map((item: Friend) => ({
+        name: item.chat_table,
+        // key: 'chat_id',
+        indexList
+    })) || []
     initConfig.push(tipsTable)
     console.log('initConfig 数据是 -> ', initConfig, userInfo.value)
     return dbOpen({

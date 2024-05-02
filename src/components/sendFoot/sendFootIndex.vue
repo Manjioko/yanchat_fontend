@@ -78,7 +78,7 @@ function hdkeydown(e: any) {
 //     sendMessage()
 // }
 const richText = ref()
-function richTextData(data: RichTextData) {
+async function richTextData(data: RichTextData) {
     const { textAry, listMap } = data
     const ary: any = []
     textAry.forEach((item)=> {
@@ -93,15 +93,15 @@ function richTextData(data: RichTextData) {
         }
     })
 
-    ary.forEach((item:any) => {
+    for (const item of ary) {
         if (Array.isArray(item)) {
             chatText.value = item.reduce((a, b) => a + b.data + '\n', '')
-            sendMessage()
+            await sendMessage()
         } else {
             const file = listMap.get(item.data) as File
-            uploadFile(file)
+            await uploadFile(file)
         }
-    })
+    }
 
     richText.value.clearRichText()
         
@@ -113,9 +113,9 @@ function clickSendBtn() {
 
 
 // 发送文本到聊天框的处理器
-function sendMessage(chatData?:Box) {
+async function sendMessage(chatData?:Box) {
     if (chatData) {
-        centerSend(chatData)
+        await centerSend(chatData)
         return
     }
 
@@ -140,9 +140,7 @@ function sendMessage(chatData?:Box) {
     if (comment.value) {
         dataOb.quote = comment.value
     }
-    // Center(dataOb, 'sent')
-    // emit('center', dataOb, 'sent')
-    centerSend(dataOb)
+    await centerSend(dataOb)
 
     // 清空聊天框
     chatText.value = ''
@@ -168,7 +166,7 @@ async function uploadFile(fileData:File) {
     const formData = new FormData()
     formData.append("file", fileData)
     const size = byteCovert(fileData?.size)
-    console.log('filename -> ', fileData)
+    // console.log('filename -> ', fileData)
     if (!size) return 
     const uuid = uuidv4()
     const box:Box = reactive({
@@ -190,9 +188,7 @@ async function uploadFile(fileData:File) {
         user_id: '',
         loading: true
     })
-    // 发送信息到文本框
-    sendMessage(box)
-    // console.log('fileData -> ', box.type)
+
     // 获取缩略图
     if (box.type.includes('video')) {
         // console.log('video -> ', 'video')
@@ -220,6 +216,7 @@ async function uploadFile(fileData:File) {
 
         if (progress) {
             box.progress = progress
+            console.log('progress -> ', progress)
         }
 
         if (response) {
@@ -229,22 +226,8 @@ async function uploadFile(fileData:File) {
 
     })
 
-    // upload(api.file, formData, function(err, progress, response) {
-    //     if (err) {
-    //         box.progress = 0
-    //         box.response = ''
-    //         return
-    //     }
-
-    //     if (progress) {
-    //         box.progress = progress
-    //     }
-
-    //     if (response) {
-    //         box.response = response.data
-    //         box.src = `${sessionStorage.getItem('baseUrl')}/${api.source}/${response.data}`
-    //     }
-    // })
+    // 发送信息到文本框
+    await sendMessage(box)
 }
 
 // 视频通话

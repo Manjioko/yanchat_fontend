@@ -6,8 +6,8 @@ import { storeToRefs } from "pinia"
 import { nextTick, watchEffect } from "vue"
 import { ElNotification } from "element-plus"
 import { scrollChatBoxToBottom, sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
-import { dbAdd } from "@/view/Main/Methods/indexDB"
-import { saveChatWindowPosition } from "../../../components/chatWindow/Methods/savePosition"
+import { dbAdd, dbUpdate } from "@/view/Main/Methods/indexDB"
+// import { saveChatWindowPosition } from "../../../components/chatWindow/Methods/savePosition"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 import { CommentQuoteStore } from "@/components/comentQuote/store"
 
@@ -18,7 +18,42 @@ const { chatBoxCacheList, isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(F
 const { isLastChatList, chatBox } = storeToRefs(ChatWindowStore())
 // 消息发送
 export function centerSend(chatData: Box) {
-    console.log('发送信息 -> ', chatData)
+    return new Promise((resolve, reject) => {
+        _centerSendBefore(chatData)
+        .then(res => {
+            if (chatData.progress === undefined) {
+                const ws = websocket.value as WebSocket
+                ws?.send(JSON.stringify(chatData))
+                return resolve(chatData)
+            }
+        
+            const stop = watchEffect(() => {
+                if ((chatData.progress || 0) >= 100 && chatData.response) {
+                    const ws = websocket.value as WebSocket
+                    // console.log('mainUI 发送消息 -> ', chatData)
+                    ws?.send(JSON.stringify(chatData))
+                    resolve(chatData)
+                    stop()
+                }
+                if (chatData.destroy) {
+                    console.log('mainUI 上传失败提示!')
+                    const ws = websocket.value as WebSocket
+                    ws?.send(JSON.stringify(chatData))
+                    resolve(chatData)
+                    stop()
+                }
+            })
+            // resolve(res)
+        })
+        .catch(err => {
+            console.log('centerSend -> ', err)
+            reject(err)
+        })
+    })
+}
+
+async function _centerSendBefore(chatData: Box) {
+    // console.log('发送信息 -> ', chatData)
     if (!websocket.value) {
         ElNotification({
             type: 'error',
@@ -59,35 +94,14 @@ export function centerSend(chatData: Box) {
             scrollChatBoxToBottom()
         })
     } else {
+        // 将信息放到缓存中，主要的目的是为了更新 progress 和 loading 这两个属性
+        // 如果将 信息丢弃，这两个属性的值就会丢失
         chatBoxCacheList.value.push(chatData)
-    }
-    if (chatData.progress !== undefined) {
-        const stop = watchEffect(() => {
-            if ((chatData.progress || 0) >= 100 && chatData.response) {
-                if (websocket.value) {
-                    const ws = websocket.value as WebSocket
-                    // console.log('mainUI 发送消息 -> ', chatData)
-                    ws.send(JSON.stringify(chatData))
-                }
-                stop()
-            }
-            if (chatData.destroy) {
-                console.log('mainUI 上传失败提示!')
-                if (websocket.value) {
-                    const ws = websocket.value as WebSocket
-                    ws.send(JSON.stringify(chatData))
-                }
-            }
-        })
-    } else {
-        if (websocket.value) {
-            const ws = websocket.value as WebSocket
-            ws.send(JSON.stringify(chatData))
-            // console.log('mainUI 发送消息!', chatData, ws)
-        }
     }
 
     // 等待 pong, 显示 loading 图标
+    // 在保存数据到数据库前，先将 loading 设置为 true
+    // echo 会在收到 pong 时将 loading 设置为 false
     if (!('progress' in chatData)) {
         chatData.loading = true
     } else {
@@ -100,6 +114,11 @@ export function centerSend(chatData: Box) {
             stopLoading()
         }
     })
+
+    // 保存到本地
+    const id = await dbAdd(chatData.to_table, {...chatData})
+    chatData.id = id
+    return id
 }
 
 // 接收消息处理
@@ -180,16 +199,16 @@ export async function centerSentPondEcho(data: PingPong) {
         const chatData = chatBox.value[boxIndex]
         if (chatData.loading) {
             chatData.loading = false
-            chatData.id = data.id
         }
-        dbAdd(chatData.to_table, [{ ...chatData, id: data.id }])
-        .then(res => {
-            console.log('存入数据库成功了 -> ', res)
-            // 重新保存定位信息定位，防止位置丢失
-            saveChatWindowPosition()
-        })
-        .catch(err => {
-            console.log('存入数据库失败了 -> ', err)
+
+        nextTick(() => {
+            dbUpdate(chatData.to_table, { ...chatData })
+            .then(res => {
+                console.log('更新数据库成功了 update * -> ', res)
+            })
+            .catch(err => {
+                console.log('更新数据库失败了 update * -> ', err)
+            })
         })
     } else {
         // console.log(3)
@@ -204,16 +223,18 @@ export async function centerSentPondEcho(data: PingPong) {
             chatBoxCacheList.value[index].id = data.id
         }
         chatBox.value.push(chatBoxCacheList.value[index])
-        dbAdd(data.to_table, [{ ...chatBoxCacheList.value[index], id: data.id }])
-        .then(res => {
-            console.log('存入数据库成功了 -> ', res)
-        })
-        .catch(err => {
-            console.log('存入数据库失败了 -> ', err)
-        })
-        .finally(() => {
-            // 应该清空 chatBoxCacheList
-            chatBoxCacheList.value = []
+        nextTick(() => {
+            dbUpdate(data.to_table, { ...chatBoxCacheList.value[index] })
+            .then(res => {
+                console.log('更新数据库成功了 update * -> ', res)
+            })
+            .catch(err => {
+                console.log('更新数据库失败了 update * -> ', err)
+            })
+            .finally(() => {
+                // 应该清空 chatBoxCacheList
+                chatBoxCacheList.value = []
+            })
         })
     }
 }

@@ -351,12 +351,13 @@ async function mediaUpload(fileData:File, callback:Function) {
     const getPercent = (pgEvent: AxiosProgressEvent) =>  {
         const fileSize = file?.size || 0
         const percent = Math.round((pgEvent.loaded * 100) / (pgEvent.total || 1))
+        console.log('percent -> ', percent)
         if (percent === 100) {
             if (typeof cb === 'function') {
                 uploadedSize += (pgEvent.total || 1)
                 // console.log('%c file -> ', 'color: blue;', file, )
                 cb(null, Math.round(uploadedSize / fileSize * 100), null)
-                uploadedSize = 0
+                // uploadedSize = 0
             }
         }
     }

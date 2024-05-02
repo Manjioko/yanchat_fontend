@@ -59,30 +59,32 @@ watchEffect(() => {
         })
 
         if (tips.value.length) {
-            dbAdd('tips_messages', [...JSON.parse(JSON.stringify(tips.value))])
-            .then(() => {
-                console.log('成功将 Tips 信息保存到数据库中！')
-            })
-            .catch((err: string) => {
-                console.log('将 Tips 信息保存到数据库中失败了 -> ', err)
-            })
-            .finally(() => {
-                dbReadAll('tips_messages')
-                .then((res: any) => {
-                    // console.log('tips_messages2 -> ', res)
-                    res?.forEach((item: Tips) => {
-                        const exist = tipsShowList.value.find((v: any) => v.messages_id === item.messages_id)
-                        if (!exist) {
-                            item.messages_box = JSON.parse(item.messages_box)
-                            tipsShowList.value.push(item)
-                        }
-                    })
+            for (const chatBox of tips.value) {
+                dbAdd('tips_messages', JSON.parse(JSON.stringify(chatBox)))
+                .then(() => {
+                    console.log('成功将 Tips 信息保存到数据库中！')
                 })
                 .catch((err: string) => {
-                    console.log('读取 tips_messages 数据库失败 -> ', err)
+                    console.log('将 Tips 信息保存到数据库中失败了 -> ', err)
                 })
-                chatWindowStore.tips = []
-            })
+                .finally(() => {
+                    dbReadAll('tips_messages')
+                    .then((res: any) => {
+                        // console.log('tips_messages2 -> ', res)
+                        res?.forEach((item: Tips) => {
+                            const exist = tipsShowList.value.find((v: any) => v.messages_id === item.messages_id)
+                            if (!exist) {
+                                item.messages_box = JSON.parse(item.messages_box)
+                                tipsShowList.value.push(item)
+                            }
+                        })
+                    })
+                    .catch((err: string) => {
+                        console.log('读取 tips_messages 数据库失败 -> ', err)
+                    })
+                    chatWindowStore.tips = []
+                })
+            }
         }
     }
 })
