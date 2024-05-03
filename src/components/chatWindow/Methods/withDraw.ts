@@ -22,6 +22,18 @@ export async function handleWithdraw(idx: number) {
         .then(() => {
             chatBox.value[idx].text = '[撤回一条信息]'
             freshDeleteTextTip.value = { chat: chatBox.value[idx] }
+
+            const ws = websocket.value as WebSocket
+            if (chatBox.value[idx]?.thumbnail) {
+                delete chatBox.value[idx].thumbnail
+            }
+            const tipsParams: Tips = {
+                messages_type: 'withdraw',
+                messages_box: chatBox.value[idx],
+                to_id: activeFriend.value.user_id
+            }
+            ws.send(JSON.stringify(tipsParams))
+
             chatBox.value.splice(idx, 1)
 
             // 撤回或者删除后，需要重新设置定位信息
@@ -30,16 +42,6 @@ export async function handleWithdraw(idx: number) {
         .catch(err => {
             console.log('撤回失败 uj -> ', err)
         })
-    const ws = websocket.value as WebSocket
-    if (chatBox.value[idx]?.thumbnail) {
-        delete chatBox.value[idx].thumbnail
-    }
-    const tipsParams: Tips = {
-        messages_type: 'withdraw',
-        messages_box: chatBox.value[idx],
-        to_id: activeFriend.value.user_id
-    }
-    ws.send(JSON.stringify(tipsParams))
 }
 
 // 删除处理

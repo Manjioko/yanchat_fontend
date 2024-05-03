@@ -174,10 +174,6 @@ const vSpinner = {
   },
 }
 
-// 更新数据库id
-// function updateDBId(chatBox: Box) {
-  
-// }
 // let metaData
 // 头像处理
 function handleAvatar(ob: Box) {

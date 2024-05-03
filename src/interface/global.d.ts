@@ -33,7 +33,7 @@ declare global {
         to_id: string // 聊天对象的 id
         user_id: string // 自己的 id
         phone_number?: string // 手机号
-        loading: boolean // 是否正在上传
+        loading?: boolean // 是否正在上传
         id?: number // 数据库自己保存chatbox到数据库后，返回的id值放这里，用于客户端自己保存时的唯一 id,
         // 视频通话可能需要以下这些类型
         from?: string // 发送者

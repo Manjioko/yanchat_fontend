@@ -169,6 +169,7 @@ async function uploadFile(fileData:File) {
     // console.log('filename -> ', fileData)
     if (!size) return 
     const uuid = uuidv4()
+    
     const box:Box = reactive({
         progress: 0,
         type: fileData?.type,
@@ -186,7 +187,7 @@ async function uploadFile(fileData:File) {
         to_table: '',
         to_id: '',
         user_id: '',
-        loading: true
+        // loading: true
     })
 
     // 获取缩略图
@@ -196,11 +197,13 @@ async function uploadFile(fileData:File) {
         const thumbnail = await getVideoBase64(getURL)
         box.thumbnail = thumbnail
     }
+
     if (box.type.includes('image')) {
         const getURL = window.URL.createObjectURL(fileData)
         const thumbnail = await getImageBase64(getURL)
         box.thumbnail = thumbnail
     }
+
     uploadSliceFile(fileData, function(err:any, progress:any, response:any) {
         if (err) {
             box.progress = 0

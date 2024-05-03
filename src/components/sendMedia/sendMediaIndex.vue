@@ -255,7 +255,7 @@ const imgMenu = [
             // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
             const url = `/source/${props.response}`
-            download(url, props.fileName,function(progress) {
+            mediaDownload(url, props.fileName,function(progress) {
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
             })

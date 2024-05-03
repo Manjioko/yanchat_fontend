@@ -1,17 +1,13 @@
-import { MainStore } from "../../../view/Main/store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { deleteActionFriendPositionData } from '../Methods/positionOperator'
 import { storeToRefs } from "pinia"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 
-const mainStore = MainStore()
 const footSendStore = FootSendStore()
 
 const chatWindowStore = ChatWindowStore()
 
 const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(footSendStore)
-// const {   } = storeToRefs(mainStore)
-
 const { scrollData } = storeToRefs(chatWindowStore)
 const { isLastChatList, chatBox } = storeToRefs(chatWindowStore)
 
@@ -46,6 +42,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
                     if (Math.ceil(bar.scrollTop + bar.clientHeight) >= bar.scrollHeight) {
                         // console.log('已经到底了😂')
                         isShowGoToNewBtn.value = 'No'
+                        isGetGoToNewSingle.value = 'No'
                         // 一旦到底了, 就不需要定位，不然可能会出现问题
                         deleteActionFriendPositionData()
                     }
