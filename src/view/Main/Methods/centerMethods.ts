@@ -218,7 +218,7 @@ export async function centerSentPondEcho(data: PingPong) {
         }
         if (chatBoxCacheList.value[index].loading) {
             chatBoxCacheList.value[index].loading = false
-            chatBoxCacheList.value[index].id = data.id
+            // chatBoxCacheList.value[index].id = data.id
         }
         chatBox.value.push(chatBoxCacheList.value[index])
         nextTick(() => {

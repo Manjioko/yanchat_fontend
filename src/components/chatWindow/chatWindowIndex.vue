@@ -81,7 +81,7 @@ import { handleWithdraw, handleDeleted } from './Methods/withDraw'
 import { handleQuoteEvent } from '@/components/comentQuote/Methods/quote'
 import { handleLoadedEvent } from './Methods/mediaLoad'
 import { AppSettingStore } from '../appSetting/store'
-import { dbSetId } from '@/view/Main/Methods/indexDB'
+// import { dbSetId } from '@/view/Main/Methods/indexDB'
 
 const { isUseMd } = storeToRefs(MainStore())
 const { avatarRefresh } = storeToRefs(AppSettingStore())
@@ -167,7 +167,7 @@ const vSpinner = {
       if (binding.value.loading) {
         binding.value.inaccessible = true
         // 如果 loading 加载过时，需要自己更新id,因为 dbUpdata 不会触发
-        dbSetId(binding.value.to_table, 'chat_id', binding.value.chat_id)
+        // dbSetId(binding.value.to_table, 'chat_id', binding.value.chat_id)
         el.remove()
       }
     }, 3000)

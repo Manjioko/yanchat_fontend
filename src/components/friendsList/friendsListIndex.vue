@@ -96,19 +96,6 @@ import debounce from '@/utils/debounce'
 import to from 'await-to-js'
 import { dbAdd, updateDatabase } from '@/view/Main/Methods/indexDB'
 import { saveChatWindowPosition } from '@/components/chatWindow/Methods/savePosition'
-// import {
-//   Box,
-//   Friend,
-//   RefreshMessage,
-//   Tip,
-//   // UserInfo,
-//   Tips,
-//   Judge,
-//   Locked,
-//   IsSwitchFriend,
-// } from '@/interface/global'
-// import { DESC } from '@/interface/indexDB'
-// import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { FootSendStore } from '../sendFoot/store'
 import { AppSettingStore } from '../appSetting/store'
@@ -345,29 +332,28 @@ async function handleUnread(isWsReconnect: Judge = 'No') {
   const setTipData: { [key: string]: Tip } = {}
 
   // 处理一开始返回最后一条数据正好被用户删除时的情况
-  Object.keys(unRead.data).forEach(key => {
+  for (const key of Object.keys(unRead.data)) {
     const len = unRead.data[key].chat.length
     const lastChat = unRead.data[key].chat[len - 1 < 0 ? 0 : len - 1]
 
     if (unRead.data[key].unread !== 0) {
-      dbAdd(key, unRead.data[key].chat)
-      .then(() => {
-        console.log('成功将未读信息保存到数据库中！')
-        if (isWsReconnect === 'Yes') {
-          // if (store.state.global.activeFriend?.chat_table === key) {
-          if (friendStore.activeFriend?.chat_table === key) {
-            if (len) {
-              // 通知聊天页面，可以重新加载数据
-              // store.commit('global/setReloadChatData', true)
-              chatWindowStore.reloadChatData = true
-              console.log('%c readUnread 已经发出通知', 'color: red')
-            }
+      const chatList  = unRead.data[key].chat as Box[]
+      for (const chat of chatList) {
+        const id = await dbAdd(key, chat)
+        chat.id = id
+        // await dbSetId(key, 'chat_id', chat.chat_id)
+      }
+
+      if (isWsReconnect === 'Yes') {
+        // if (store.state.global.activeFriend?.chat_table === key) {
+        if (friendStore.activeFriend?.chat_table === key) {
+          if (len) {
+            // 通知聊天页面，可以重新加载数据
+            chatWindowStore.reloadChatData = true
+            // console.log('%c readUnread 已经发出通知', 'color: red')
           }
         }
-      })
-      .catch((err: string) => {
-        console.log('将未读信息保存到数据库中失败了 -> ', err)
-      })
+      }
     }
     if (lastChat.del_self || lastChat.del_other) {
       lastChat.text = '[已删除一条消息]'
@@ -383,7 +369,7 @@ async function handleUnread(isWsReconnect: Judge = 'No') {
       0 :
       unRead.data[key].unread + unread
     }
-  })
+  }
   chatDataOb.value = setTipData
   if (isWsReconnect === 'Yes') {
     friendStore.fresh = false

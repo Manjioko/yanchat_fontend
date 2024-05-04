@@ -63,7 +63,7 @@ export function dbOpen(options: DbOpenOptions): Promise<IDBDatabase> {
 }
 
 // 数据库新增数据
-export function dbAdd(tableName: String, data: Box):Promise<any> {
+export function dbAdd(tableName: String, data: Box):Promise<number> {
     return new Promise((resolve, reject) => {
         if (!mainstore.db || !data) return
 
@@ -71,25 +71,24 @@ export function dbAdd(tableName: String, data: Box):Promise<any> {
         const store = tran.objectStore(tableName)
         const req = store.add(data)
 
+        const saveId = (id: number) => {
+            const request = store.put({ ...data, id }, id)
+            request.onsuccess = (res: Event) => {
+                resolve(id)
+            }
+            request.onerror = (err: Event) => {
+                reject(err)
+            }
+        }
+
         req.onsuccess = (res: Event) => {
             const target = res.target as IDBRequest
-            resolve(target.result)
+            saveId(target.result)
         }
 
         req.onerror = (err: Event) => {
             reject(err)
         }
-        // 事务完成
-        // tran.oncomplete = (res: Event) => {
-        //     resolve(res.type)
-        // }
-
-        // 事务失败
-        // tran.onerror = (err: Event) => {
-
-        //     const target = err.target as IDBRequest
-        //     reject(target.error?.message)
-        // }
     })
 }
 
@@ -403,37 +402,6 @@ export function dbDeleteByIndex(tableName: string, indexName: string, searchStr:
                     request.onerror = (err: Event) => {
                         reject(err.type)
                     }
-                }
-                cur.continue()
-            } else {
-                resolve('success')
-            }
-        }
-        cursor.onerror = (err: Event) => {
-            reject(err.type)
-        }
-    })
-}
-
-// 通过 index 来设置id
-export function dbSetId(tableName: string, indexName: string, searchStr: string): Promise<any> { 
-    return new Promise((resolve, reject) => {
-        if (!mainstore.db || !indexName) return
-        const tran = mainstore.db.transaction([tableName], 'readwrite') as IDBTransaction
-        const sto = tran.objectStore(tableName) as IDBObjectStore
-        const cursor = sto.openCursor(null, 'prev') as IDBRequest
-        cursor.onsuccess = () => {
-            const cur = cursor.result as IDBCursorWithValue
-            if (cur) {
-                if (cur.value[indexName] === searchStr) {
-                    const request = sto.put({ ...cur.value, id: cur.key }, cur.key)
-                    request.onsuccess = (res: Event) => {
-                        resolve(res.type)
-                    }
-                    request.onerror = (err: Event) => {
-                        reject(err.type)
-                    }
-                    return
                 }
                 cur.continue()
             } else {

@@ -1,5 +1,5 @@
 // import { PingPong, WsConnectParams } from "@/interface/global"
-import { dbAdd, dbGetLastAutoKey, dbSetId } from "./indexDB"
+import { dbAdd } from "./indexDB"
 import { handleTips } from "../../../components/chatWindow/Methods/tips"
 // import { store } from '@/store'
 import { FriendsListStore } from "@/components/friendsList/store"
@@ -157,9 +157,9 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                     websocket?.send(JSON.stringify(pong))
 
                     dbAdd(chatData.to_table, chatData)
-                    .then(() => {
+                    .then((res) => {
+                        chatData.id = res
                         console.log('ws.ts 保存数据到数据库成功 -> ', chatData.id)
-                        dbSetId(chatData.to_table, 'chat_id', chatData.chat_id)
                     })
                     .catch((err: string) => {
                         console.log('ws.ts 保存数据到数据库失败 -> ', err)
