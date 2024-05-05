@@ -72,12 +72,16 @@ export function dbAdd(tableName: String, data: Box):Promise<number> {
         const req = store.add(data)
 
         const saveId = (id: number) => {
-            const request = store.put({ ...data, id }, id)
-            request.onsuccess = (res: Event) => {
+            try {
+                const request = store.put({ ...data, id }, id)
+                request.onsuccess = (res: Event) => {
+                    resolve(id)
+                }
+                request.onerror = (err: Event) => {
+                    reject(err)
+                }
+            } catch {
                 resolve(id)
-            }
-            request.onerror = (err: Event) => {
-                reject(err)
             }
         }
 

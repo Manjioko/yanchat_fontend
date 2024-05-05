@@ -1,6 +1,6 @@
 // import { PingPong, WsConnectParams } from "@/interface/global"
 import { dbAdd } from "./indexDB"
-import { handleTips } from "../../../components/chatWindow/Methods/tips"
+import { handleTips } from "@/components/chatWindow/Methods/tips"
 // import { store } from '@/store'
 import { FriendsListStore } from "@/components/friendsList/store"
 import { MainStore } from "@/view/Main/store"
@@ -16,6 +16,7 @@ import {
     centerVideoCallLeave,
     // handleVideoCallStart
 } from '@/components/VideoCallOfferer/methods/videoCenter'
+import { handleProgress } from '@/components/sendFoot/Methods'
 
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
@@ -136,6 +137,11 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
             case 'videoCallLeave':
                 // videoFn(chatData, 'videoCallLeave')
                 centerVideoCallLeave(chatData)
+                break
+            case 'progress':
+                // videoFn(chatData, 'progress')
+                // console.log('进度 -> ', chatData)
+                handleProgress(chatData)
                 break
             case 'tips':
                 // console.log('这是消息系统发来的消息 -> ', chatData)

@@ -107,6 +107,15 @@ function onContextMenu(e) {
             }
         }
     }
+    if (props.destroy) {
+        const shouldRemoveMenus = ['下载到本地']
+        for(const m of shouldRemoveMenus) {
+            const idx = menuList.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuList.splice(idx, 1)
+            }
+        }
+    }
     menu(e, menuList)
 }
 

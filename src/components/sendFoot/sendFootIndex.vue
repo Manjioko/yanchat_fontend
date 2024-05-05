@@ -55,12 +55,14 @@ import { handleGotoBottom } from '@/view/Main/Methods/mainMethods'
 import { CommentQuoteStore } from '../comentQuote/store'
 import { FriendsListStore } from '../friendsList/store'
 import RichText from './component/richText/richTextIndex.vue'
+import { MainStore } from '@/view/Main/store'
 
 
 const sfStore = FootSendStore()
 const { isShowGoToNewBtn: showGotoBottom, chatBoxCacheList } = storeToRefs(sfStore)
 const { comment } = storeToRefs(CommentQuoteStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
+const { ws } = storeToRefs(MainStore())
 
 const chatText = ref('')
 
@@ -219,7 +221,18 @@ async function uploadFile(fileData:File) {
 
         if (progress) {
             box.progress = progress
-            console.log('progress -> ', progress)
+            // console.log('progress -> ', progress)
+            const eventParam: EventParams = {
+                event: 'progress',
+                data: {
+                    chat_id: box.chat_id,
+                    progress: progress
+                },
+                to_id: box.to_id,
+                to_table: box.to_table,
+                user_id: box.user_id
+            }
+            ws.value?.send(JSON.stringify(eventParam))
         }
 
         if (response) {

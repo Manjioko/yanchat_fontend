@@ -19,24 +19,61 @@ export function centerSend(chatData: Box) {
     return new Promise((resolve, reject) => {
         _centerSendBefore(chatData)
         .then(res => {
+            const ws = websocket.value as WebSocket
+            ws?.send(JSON.stringify(chatData))
+
             if (chatData.progress === undefined) {
-                const ws = websocket.value as WebSocket
-                ws?.send(JSON.stringify(chatData))
                 return resolve(chatData)
             }
         
             const stop = watchEffect(() => {
                 if ((chatData.progress || 0) >= 100 && chatData.response) {
                     const ws = websocket.value as WebSocket
-                    // console.log('mainUI 发送消息 -> ', chatData)
-                    ws?.send(JSON.stringify(chatData))
+                    // // console.log('mainUI 发送消息 -> ', chatData)
+                    // ws?.send(JSON.stringify(chatData))
+                    // 发文件上传成功的消息到服务器
+                    const uploadSuccessTips: Tips = {
+                        to_id: chatData.to_id,
+                        // messages_type: 'uploadSuccess',
+                        messages_type: 'uploadSuccess',
+                        messages_box: {
+                            uploadState: 'success',
+                            progress: chatData.progress,
+                            response: chatData.response,
+                            chat_id: chatData.chat_id,
+                            src: chatData.src
+                        }
+                    }
+                    ws?.send(JSON.stringify(uploadSuccessTips))
+
+                    // 为什么要更新数据库？因为上传的进度和其他一些数据是在上传成功后
+                    // 才能从服务器返回的，而之前的数据库数据没有这些数据，所以要更新
+                    dbUpdate(chatData.to_table, { ...chatData })
+
                     resolve(chatData)
                     stop()
                 }
                 if (chatData.destroy) {
                     console.log('mainUI 上传失败提示!')
                     const ws = websocket.value as WebSocket
-                    ws?.send(JSON.stringify(chatData))
+                    // ws?.send(JSON.stringify(chatData))
+                    // 发文件上传失败的消息到服务器
+                    const uploadSuccessTips: Tips = {
+                        to_id: chatData.to_id,
+                        messages_type: 'uploadFailed',
+                        messages_box: {
+                            uploadState: 'failed',
+                            progress: chatData.progress,
+                            chat_id: chatData.chat_id,
+                            destroy: true
+                        }
+                    }
+                    ws?.send(JSON.stringify(uploadSuccessTips))
+
+                    // 为什么要更新数据库？因为上传的进度和其他一些数据是在上传成功后
+                    // 才能从服务器返回的，而之前的数据库数据没有这些数据，所以要更新
+                    dbUpdate(chatData.to_table, { ...chatData })
+
                     resolve(chatData)
                     stop()
                 }

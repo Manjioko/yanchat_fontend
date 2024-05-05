@@ -25,17 +25,12 @@
 
 <script lang="ts" setup>
 import { ChatSquare } from '@element-plus/icons-vue'
-// import { useStore } from 'vuex'
-// import { useStore } from '@/store'
 import { watchEffect, ref, Ref } from 'vue'
 import { dbAdd, dbReadAll, dbDeleteByIndex } from '@/view/Main/Methods/indexDB'
 import { localClickAddFriend } from '@/components/friendsList/Methods/index'
-// import { Tips } from '@/interface/global'
-// import { Tips } from '@/interface/global'
 import { MainStore } from '@/view/Main/store'
 import { ChatWindowStore } from '../chatWindow/store'
 import { storeToRefs } from 'pinia'
-// const store = useStore()
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 const { ws, dbname:dbName } = storeToRefs(mainStore)
@@ -50,7 +45,9 @@ watchEffect(() => {
                 const exist = tipsShowList.value.find((v: Tips) => v.messages_id === item.messages_id)
                 if (!exist) {
                     item.messages_box = JSON.parse(item.messages_box)
-                    tipsShowList.value.push(item)
+                    if (item.messages_type === 'addFriend') {
+                        tipsShowList.value.push(item)
+                    }
                 }
             })
         })

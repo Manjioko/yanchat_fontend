@@ -13,7 +13,7 @@ declare global {
     type Locked = 'UnLock' | 'Locked'
 
     // 消息体
-    type tipType = 'addFriend' | 'clear' | 'withdrew' | 'addFriendRecieved' | 'withdraw'
+    type tipType = 'addFriend' | 'clear' | 'withdrew' | 'addFriendRecieved' | 'withdraw' | 'uploadSuccess' | 'uploadFailed'
 
     // 聊天记录体
     interface Box {
@@ -133,6 +133,17 @@ declare global {
         to_id: string
         from?: any
         data: any
+    }
+
+    // 事件参数
+    interface EventParams {
+        event: string
+        user_id: string
+        to_table: string
+        to_id: string
+        from?: any
+        data?: any
+        type?: string
     }
 
 

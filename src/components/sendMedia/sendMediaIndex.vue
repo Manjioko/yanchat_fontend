@@ -294,6 +294,15 @@ function onContextMenu(e) {
             }
         }
     }
+    if (props.destroy) {
+        const shouldRemoveMenus = ['下载到本地', '静音播放']
+        for(const m of shouldRemoveMenus) {
+            const idx = menuList.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuList.splice(idx, 1)
+            }
+        }
+    }
     menu(e, menuList)
 }
 function onContextMenuImg(e) {
@@ -302,6 +311,15 @@ function onContextMenuImg(e) {
         const shouldRemoveMenus = ['撤回']
         // const shouldAddMenus = []
         for (const m of shouldRemoveMenus) {
+            const idx = menuList.findIndex((item) => item.label === m)
+            if (idx > -1) {
+                menuList.splice(idx, 1)
+            }
+        }
+    }
+    if (props.destroy) {
+        const shouldRemoveMenus = ['下载到本地']
+        for(const m of shouldRemoveMenus) {
             const idx = menuList.findIndex((item) => item.label === m)
             if (idx > -1) {
                 menuList.splice(idx, 1)
