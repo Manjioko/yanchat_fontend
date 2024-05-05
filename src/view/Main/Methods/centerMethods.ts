@@ -41,7 +41,8 @@ export function centerSend(chatData: Box) {
                             progress: chatData.progress,
                             response: chatData.response,
                             chat_id: chatData.chat_id,
-                            src: chatData.src
+                            src: chatData.src,
+                            to_table: chatData.to_table
                         }
                     }
                     ws?.send(JSON.stringify(uploadSuccessTips))
@@ -65,7 +66,8 @@ export function centerSend(chatData: Box) {
                             uploadState: 'failed',
                             progress: chatData.progress,
                             chat_id: chatData.chat_id,
-                            destroy: true
+                            destroy: true,
+                            to_table: chatData.to_table
                         }
                     }
                     ws?.send(JSON.stringify(uploadSuccessTips))

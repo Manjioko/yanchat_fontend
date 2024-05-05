@@ -1,7 +1,7 @@
 import { FriendsListStore } from '@/components/friendsList/store'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { storeToRefs } from 'pinia'
-import { dbUpdate } from '@/view/Main/Methods/indexDB'
+import { dbUpdate, dbUpdateByChatId } from '@/view/Main/Methods/indexDB'
 const { activeFriend } = storeToRefs(FriendsListStore())
 const { chatBox } = storeToRefs(ChatWindowStore())
 export function handleProgress(chatData:EventParams) {
@@ -19,34 +19,34 @@ export function handleProgress(chatData:EventParams) {
 }
 
 export function handleUploadTipsSuccess(item:Tips) {
-    const { chat_id, response, src, progress } = JSON.parse(item.messages_box || '{}')
+    const { chat_id, response, src, progress, to_table } = JSON.parse(item.messages_box || '{}')
 
     if (!chat_id || !progress || !response || !src) return
-    // 更新数据
-    chatBox.value.forEach((chat:Box) => {
-        if (chat.chat_id === chat_id) {
-            chat.progress = progress
-            chat.response = response
-            chat.src = src
-            // 更新数据库
-            dbUpdate(chat.to_table, { ...chat })
-        }
-    })
+    const chatData = chatBox.value.find(chat => chat.chat_id === chat_id)
+    if (chatData) {
+        chatData.progress = progress
+        chatData.response = response
+        chatData.src = src
+        // 更新数据库
+        dbUpdate(chatData.to_table, { ...chatData })
+    } else {
+        // 更新数据库
+        dbUpdateByChatId(to_table, chat_id, { progress, response, src })
+    }
 }
 
 export function handleUploadTipsFailed(item:Tips) {
-    const { chat_id, destroy } = JSON.parse(item.messages_box || '{}')
+    const { chat_id, destroy, to_table } = JSON.parse(item.messages_box || '{}')
 
-    console.log('上传失败 -> ', item)
+    if (!chat_id || !destroy || !to_table) return
 
-    if (!chat_id || !destroy) return
-    // 更新数据
-
-    chatBox.value.forEach((chat:Box) => {
-        if (chat.chat_id === chat_id) {
-            chat.destroy = destroy
-            // 更新数据库
-            dbUpdate(chat.to_table, { ...chat })
-        }
-    })
+    const chatData = chatBox.value.find(chat => chat.chat_id === chat_id)
+    if (chatData) {
+        chatData.destroy = destroy
+        // 更新数据库
+        dbUpdate(chatData.to_table, { ...chatData })
+    } else {
+        // 更新数据库
+        dbUpdateByChatId(to_table, chat_id, { destroy })
+    }
 }

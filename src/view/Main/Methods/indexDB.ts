@@ -442,6 +442,34 @@ export function dbUpdate(tableName: string, data: Box): Promise<string> {
     })
 }
 
+// 通过聊天记录 chat_id 更新
+export function dbUpdateByChatId(tableName: string, chatId: string, data: Record<string, any>): Promise<string> {
+    return new Promise((resolve, reject) => {
+        if (!mainstore.db || !data) return
+
+        const transaction = mainstore.db.transaction([tableName], 'readwrite')
+        const objectStore = transaction.objectStore(tableName)
+
+        const index = objectStore.index('chat_id')
+        const request = index.get(chatId)
+        request.onsuccess = function (event: Event) {
+            const chatData = (event.target as IDBRequest).result
+            if (chatData) {
+                const request = objectStore.put({ ...chatData, ...data}, chatData.id)
+                request.onsuccess = function (event: Event) {
+                    console.log('更新成功 -> ', event)
+                    resolve(event.type);
+                }
+
+                request.onerror = function (error: Event) {
+                    console.log('更新失败 -> ', error)
+                    reject(error.type)
+                }
+            }
+        }
+    })
+}
+
 export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> {
     if (oldDB) {
         console.log('准备更新版本号, 更新数据库 -> ', oldDB)
@@ -455,7 +483,7 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
         { name: 'table_id', unique: false },
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },
-        { name: 'chat_id', unique: false }
+        { name: 'chat_id', unique: true }
     ]
     // 消息系统表结构
     const tipsTable =  {
