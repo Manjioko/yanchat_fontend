@@ -19,6 +19,9 @@
                     <el-icon :size="20" style="margin-left: 10px;"><ChatSquare @click="handleTips" /></el-icon>
                 </el-badge> -->
                 <tipsMessages />
+                <el-icon v-show="activeFriend?.chat_table" style="vertical-align: middle; margin-left: 8px" :size="18">
+                    <Search @click="searchText?.showSearch" />
+                </el-icon>
             </section>
             <ChatWindow v-if="activeFriend.chat_table" />
             <section class="zero-friend" v-else>还未选择聊天好友</section>
@@ -27,6 +30,7 @@
                 <SendFoot v-if="activeFriend.chat_table" />
             </section>
         </section>
+        <SearchText ref="searchText" />
     </main>
     <AppSetting ref="appSetting" />
     <!-- 测试模式用 -->
@@ -75,6 +79,11 @@ import { FriendsListStore } from '@/components/friendsList/store'
 import { getUserInfo } from './Methods/userInfoOperator'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { CommentQuoteStore } from '@/components/comentQuote/store'
+import { Search } from '@element-plus/icons-vue'
+import SearchText from '@/components/searchText/searchTextIndex.vue'
+
+
+const searchText = ref<InstanceType<typeof SearchText>>()
 
 
 // const { showOfferer, showAnwserer } = storeToRefs(VideoCallOfferer())

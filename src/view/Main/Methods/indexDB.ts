@@ -483,7 +483,8 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
         { name: 'table_id', unique: false },
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },
-        { name: 'chat_id', unique: true }
+        { name: 'chat_id', unique: true },
+        { name: 'text', unique: false },
     ]
     // 消息系统表结构
     const tipsTable =  {

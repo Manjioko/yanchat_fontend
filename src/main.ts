@@ -7,6 +7,7 @@ import 'highlight.js/styles/github-dark.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import VueDragResize from 'vue-drag-resize'
 import { createPinia } from 'pinia'
+import { getHost, getWsHost } from './utils/getHost'
 
 const Pinia = createPinia()
 
@@ -16,8 +17,12 @@ const Pinia = createPinia()
 // console.log('cookie的值是 -> ', document.cookie)
 if (process.env.NODE_ENV === 'development') {
     // console.log('开发环境')
-    sessionStorage.setItem('baseUrl', process.env.VUE_APP_BASE_URL)
-    sessionStorage.setItem('wsBaseUrl', process.env.VUE_APP_WS)
+    // sessionStorage.setItem('baseUrl', process.env.VUE_APP_BASE_URL)
+    // sessionStorage.setItem('wsBaseUrl', process.env.VUE_APP_WS)
+
+    sessionStorage.setItem('baseUrl', getHost())
+    sessionStorage.setItem('wsBaseUrl', getWsHost())
+    
 }
 const app = createApp(App)
 app.component('vue-drag-resize', VueDragResize)

@@ -27,8 +27,10 @@ export async function getChatFromServer(
     rollingDeriction: DESC
 ) {
     if (isSwitchFriend === 'Yes') {
+        console.log('切换了好友')
         firstTimeGetChatData()
     } else {
+        console.log('不是切换好友')
         normalGetChatData(rollingDeriction)
     }
 }
