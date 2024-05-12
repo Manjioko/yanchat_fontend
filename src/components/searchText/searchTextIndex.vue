@@ -53,16 +53,13 @@ function showSearch() {
 const chatData: Ref<Box[]> = ref([])
 
 watch(() => searchText.value, () => {
-    console.log(searchText.value)
     deb()
 })
 // 输入内容
 function handleSearch () {
-    // console.log('xxx -> ', searchText.value)
     if (searchText.value) {
         dbRead(activeFriend.value.chat_table, 'text', searchText.value)
         .then((res: any) => {
-            console.log('res -> ', res)
             
             res.forEach((chat: Box) => {
                 const textIndex = chat.text.indexOf(searchText.value)
