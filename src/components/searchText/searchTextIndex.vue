@@ -1,5 +1,5 @@
 <template>
-    <div class="container" :style="{ display: show ? 'block' : 'none'}">
+    <div v-if="show" class="container">
         <header class="f-header">
             <el-input
                 v-model="searchText"
@@ -11,23 +11,34 @@
         </header>
         <main>
             <div>
-                <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+                <el-tabs v-model="activeName" @tab-click="handleClick">
                     <el-tab-pane label="文本" name="text">
                         <div v-for="chat in textChatData" :key="chat.chat_id">
                             <div class="chat-text" v-html="chat.text" @click="gotoPosition(chat)"></div>
                             <el-divider />
                         </div>
                     </el-tab-pane>
-                    <el-tab-pane label="音视频" name="media">
+                    <el-tab-pane label="视频" name="media">
                         <div v-for="chat in textChatData" :key="chat.chat_id">
                             <div class="chat-text" @click="gotoPosition(chat)">
                                 <img :src="chat.thumbnail" alt="" style="width: 100px;">
                             </div>
-                            <!-- <el-divider /> -->
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="图片" name="picture">
+                        <div v-for="chat in textChatData" :key="chat.chat_id">
+                            <div class="chat-text" @click="gotoPosition(chat)">
+                                <img :src="chat.thumbnail" alt="" style="width: 100px;">
+                            </div>
                         </div>
                     </el-tab-pane>
                     <el-tab-pane label="文件" name="file">
-                        <!--  -->
+                        <div v-for="chat in textChatData" :key="chat.chat_id" class="chat-file" @click="gotoPosition(chat)">
+                            <div class="chat-file-img">    
+                                <img src="../../assets/uploadedFile.png" alt="uploadingZipFile" width="25">
+                            </div>
+                            <div class="chat-file-name">{{ chat.fileName }}</div>
+                        </div>
                     </el-tab-pane>
                 </el-tabs>
             </div>
@@ -67,11 +78,19 @@ function handleClick(tab: any) {
     if (tab.props.name === 'media') {
         console.log('音视频')
         handleSearch('type', 'video')
+        return
+    }
+
+    if (tab.props.name === 'picture') {
+        console.log('图片')
+        handleSearch('type', 'image')
+        return
     }
 
     if (tab.props.name === 'file') {
         console.log('文件')
         handleSearch('type', 'application')
+        return
     }
 }
 
@@ -185,5 +204,25 @@ defineExpose({
 }
 :deep(.el-divider--horizontal) {
     margin: 8px 0;
+}
+.chat-file {
+    display: flex;
+    background: #f4f4f4;
+    border-radius: 8px;
+    padding: 8px;
+    margin: 10px 0;
+    box-shadow: 2px 2px 1px 1px #fafafa;
+    align-items: center;
+
+    .chat-file-img {
+        margin-right: 12px;
+    }
+    .chat-file-name {
+        width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+    }
 }
 </style>
