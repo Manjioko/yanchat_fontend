@@ -22,6 +22,8 @@ declare module 'vue' {
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElTabPane: typeof import('element-plus/es')['ElTabPane']
+    ElTabs: typeof import('element-plus/es')['ElTabs']
     FriendsListIndex: typeof import('./src/components/friendsList/friendsListIndex.vue')['default']
     RichTextIndex: typeof import('./src/components/sendFoot/component/richText/richTextIndex.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

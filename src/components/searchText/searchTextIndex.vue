@@ -6,12 +6,30 @@
                 placeholder="搜索聊天内容"
                 :suffix-icon="Search"
                 clearable
+                :disabled="activeName !== 'text'"
             />
         </header>
         <main>
-            <div v-for="chat in chatData" :key="chat.chat_id">
-                <div class="chat-text" v-html="chat.text" @click="gotoPosition(chat)"></div>
-                <el-divider />
+            <div>
+                <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+                    <el-tab-pane label="文本" name="text">
+                        <div v-for="chat in textChatData" :key="chat.chat_id">
+                            <div class="chat-text" v-html="chat.text" @click="gotoPosition(chat)"></div>
+                            <el-divider />
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="音视频" name="media">
+                        <div v-for="chat in textChatData" :key="chat.chat_id">
+                            <div class="chat-text" @click="gotoPosition(chat)">
+                                <img :src="chat.thumbnail" alt="" style="width: 100px;">
+                            </div>
+                            <!-- <el-divider /> -->
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="文件" name="file">
+                        <!--  -->
+                    </el-tab-pane>
+                </el-tabs>
             </div>
         </main>
     </div>
@@ -36,10 +54,26 @@ const { searchTextLock } = storeToRefs(searchTextStore)
 const friendStore = FriendsListStore()
 const chatWindowStore = ChatWindowStore()
 const { activeFriend } = storeToRefs(friendStore)
-// const { scrollSafeLength } = storeToRefs(chatWindowStore)
 const { isLastChatList, scrollUpLock, scrollDownLock, scrollSafeLength } = storeToRefs(chatWindowStore)
 const { isShowGoToNewBtn, chatBoxCacheList } = storeToRefs(FootSendStore())
 
+
+const activeName = ref('text')
+function handleClick(tab: any) {
+
+    searchText.value = ''
+    textChatData.value = []
+
+    if (tab.props.name === 'media') {
+        console.log('音视频')
+        handleSearch('type', 'video')
+    }
+
+    if (tab.props.name === 'file') {
+        console.log('文件')
+        handleSearch('type', 'application')
+    }
+}
 
 const searchText = ref('')
 
@@ -50,37 +84,32 @@ function showSearch() {
 }
 
 // 聊天内容
-const chatData: Ref<Box[]> = ref([])
+const textChatData: Ref<Box[]> = ref([])
 
 watch(() => searchText.value, () => {
     deb()
 })
 // 输入内容
-function handleSearch () {
-    if (searchText.value) {
-        dbRead(activeFriend.value.chat_table, 'text', searchText.value)
-        .then((res: any) => {
-            
-            res.forEach((chat: Box) => {
-                const textIndex = chat.text.indexOf(searchText.value)
-                const textNewPosition = textIndex - 10 > 0 ? textIndex - 10 : 0
-                const newText = textNewPosition > 0 ?  '...' + chat.text.slice(textNewPosition) : chat.text.slice(textNewPosition)
-                chat.text = newText.replace(
-                    searchText.value,
-                    '<span style="color: red; background-color: #ffeb00;">'
-                        + searchText.value
-                        + '</span>'
-                    )
-            })
-
-            chatData.value = res as Box[]
+function handleSearch (type: string, str?: string) {
+    dbRead(activeFriend.value.chat_table, type || 'text', str || searchText.value || '')
+    .then((res: any) => {
+        // console.log('res -> ', res)
+        res.forEach((chat: Box) => {
+            const textIndex = chat.text.indexOf(searchText.value)
+            const textNewPosition = textIndex - 10 > 0 ? textIndex - 10 : 0
+            const newText = textNewPosition > 0 ?  '...' + chat.text.slice(textNewPosition) : chat.text.slice(textNewPosition)
+            chat.text = newText.replace(
+                searchText.value,
+                '<span style="color: red; background-color: #ffeb00;">'
+                    + searchText.value
+                    + '</span>'
+                )
         })
-        .catch(err => {
-            console.log('err -> ', err)
-        })
-    } else {
-        chatData.value = []
-    }
+        textChatData.value = res as Box[]
+    })
+    .catch(err => {
+        console.log('err -> ', err)
+    })
 }
 const deb = debounce(handleSearch, 1000)
 

@@ -15,6 +15,6 @@ export function getWsHost(wss: boolean = false) {
     if (process.env.NODE_ENV === 'development') {
         return wss ? 'wss://' + hostname + ':' + '9999' : 'ws://' + hostname + ':' + '9999'
     } else {
-        return wss ? 'wss://' + host + ':' + '9999' : 'ws://' + host + ':' + '9999'
+        return wss ? 'wss://' + host : 'ws://' + host
     }
 }
