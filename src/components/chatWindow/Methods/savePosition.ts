@@ -1,7 +1,7 @@
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { jugeScrollOverScreen } from './jugeScrollOverScreen'
 import { cutChatBox } from './cutChatBox'
-import { setActionFriendPositionData } from './positionOperator'
+import { setActionFriendPositionData, clearActionFriendPositionData } from './positionOperator'
 const chatWindowStore = ChatWindowStore()
 
 // 保存聊天窗口
@@ -30,6 +30,7 @@ export function saveChatWindowPosition() {
     if (!firstId ||  !lastId) {
         console.log('extendFirst 或 extendLast 不存在')
         // deleteActionFriendPositionData()
+        clearActionFriendPositionData()
         return
     }
     const saveData: Position = {
@@ -37,6 +38,9 @@ export function saveChatWindowPosition() {
         last: Number(lastId) + Math.ceil(chatWindowStore.scrollSafeLength / 2),
         use: Number(firstId)
     }
+
+    // 更新定位数据
+    console.log('定位信息 -> ', saveData)
     // 存储位置信息
     setActionFriendPositionData(saveData)
     // console.log('定位信息 -> ', saveData)

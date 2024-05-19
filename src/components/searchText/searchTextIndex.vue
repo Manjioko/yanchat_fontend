@@ -137,8 +137,8 @@ function gotoPosition (row: Box) {
     if (row.id) {
         setActionFriendPositionData({
             use: row.id,
-            first: row.id - (scrollSafeLength.value / 2) > 0 ? row.id - (scrollSafeLength.value / 2) : 0,
-            last: row.id + (scrollSafeLength.value / 2 || 10)
+            first: row.id - Math.ceil(scrollSafeLength.value / 2) > 0 ? row.id - Math.ceil(scrollSafeLength.value / 2) : 0,
+            last: row.id + Math.ceil(scrollSafeLength.value / 2 || 10)
         })
         // chatBox.value = []
         nextTick(() => {
