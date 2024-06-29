@@ -81,10 +81,13 @@ import { handleWithdraw, handleDeleted } from './Methods/withDraw'
 import { handleQuoteEvent } from '@/components/comentQuote/Methods/quote'
 import { handleLoadedEvent } from './Methods/mediaLoad'
 import { AppSettingStore } from '../appSetting/store'
+import { FriendsListStore } from '../friendsList/store'
 // import { dbSetId } from '@/view/Main/Methods/indexDB'
 
 const { isUseMd } = storeToRefs(MainStore())
 const { avatarRefresh } = storeToRefs(AppSettingStore())
+
+const { activeFriend } = storeToRefs(FriendsListStore())
 
 const scrollBar = ref()
 let chatListDiv: HTMLElement | null = null
@@ -155,6 +158,10 @@ function updatedScrollData() {
 
 function handleScroll(e: any) {
   updatedScrollData()
+  
+  // 如果是ai聊天，不做滚动处理
+  if (activeFriend.value.ai) return
+
   scrollEvent(e)
 }
 

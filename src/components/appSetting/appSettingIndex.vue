@@ -27,6 +27,26 @@
                     </el-input>
                 </div>
             </div>
+            <div class="nick">
+                <div class="nick-title">AI URL:</div>
+                <div class="nick-input">
+                    <el-input placeholder="" v-model="AI_URL">
+                        <template #suffix>
+                            <span class="save-text" @click="setAI_URL">保存</span>
+                        </template>
+                    </el-input>
+                </div>
+            </div>
+            <div class="nick">
+                <div class="nick-title">AI 模型:</div>
+                <div class="nick-input">
+                    <el-input placeholder="" v-model="AI_MODEL">
+                        <template #suffix>
+                            <span class="save-text" @click="setAI_MODEL">保存</span>
+                        </template>
+                    </el-input>
+                </div>
+            </div>
             <div class="markdown">
                 <div class="nick-title markdown-title">是否使用Markdown:</div>
                 <div class="m-sel">
@@ -195,6 +215,18 @@ function handleNickNameChange(fri: any) {
 function handleError() {
     // console.log('头像加载失败')
     avatarSrc.value = require('../../assets/default_avatar.png')
+}
+
+// 设置 AI URL
+const AI_URL = ref(localStorage.getItem('AI_URL') || 'http://127.0.0.1:11434')
+function setAI_URL() {
+    localStorage.setItem('AI_URL', AI_URL.value)
+}
+
+// 设置 AI 模型
+const AI_MODEL = ref(localStorage.getItem('AI_MODEL') || 'qwen2:latest')
+function setAI_MODEL() {
+    localStorage.setItem('AI_MODEL', AI_MODEL.value)
 }
 </script>
 <style lang="scss" scoped>

@@ -49,7 +49,7 @@ import { getVideoBase64, getImageBase64 } from '@/utils/thumbnail'
 import { ElNotification } from 'element-plus'
 import { FootSendStore } from './store'
 import { storeToRefs } from 'pinia'
-import { centerSend } from '@/view/Main/Methods/centerMethods'
+import { centerSend, centerAISend } from '@/view/Main/Methods/centerMethods'
 // import { handleVideoCallStart } from '../VideoCallOfferer/methods/videoCenter'
 import { handleGotoBottom } from '@/view/Main/Methods/mainMethods'
 import { CommentQuoteStore } from '../comentQuote/store'
@@ -142,7 +142,13 @@ async function sendMessage(chatData?:Box) {
     if (comment.value) {
         dataOb.quote = comment.value
     }
-    await centerSend(dataOb)
+
+    if (activeFriend.value && activeFriend.value.ai) {
+        // console.log('activeFriend.value.ai -> ', activeFriend.value.ai, dataOb)
+        centerAISend(dataOb)
+    } else {
+        await centerSend(dataOb)
+    }
 
     // 清空聊天框
     chatText.value = ''

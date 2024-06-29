@@ -2,16 +2,20 @@ import { MainStore } from "../store"
 import { FriendsListStore } from "@/components/friendsList/store"
 import { FootSendStore } from "@/components/sendFoot/store"
 import { storeToRefs } from "pinia"
-import { nextTick, watchEffect } from "vue"
+import { nextTick, watchEffect, reactive } from "vue"
 import { ElNotification } from "element-plus"
-import { scrollChatBoxToBottom, sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
+import { scrollChatBoxToBottom, scrollToBottom,sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
 import { dbAdd, dbUpdate } from "@/view/Main/Methods/indexDB"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 import { CommentQuoteStore } from "@/components/comentQuote/store"
+import { Ollama } from "ollama/dist/browser.mjs"
+import { timeFormat } from '@/utils/timeFormat'
+import { v4 as uuidv4 } from 'uuid'
+// import { reactive } from "vue"
 
 const  { ws: websocket } = storeToRefs(MainStore())
 const { showQuote, comment } = storeToRefs(CommentQuoteStore())
-const { freshDeleteTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
+const { freshDeleteTextTip, activeFriend, userInfo, ollama } = storeToRefs(FriendsListStore())
 const { chatBoxCacheList, isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
 const { isLastChatList, chatBox } = storeToRefs(ChatWindowStore())
 // 消息发送
@@ -274,4 +278,61 @@ export async function centerSentPondEcho(data: PingPong) {
             })
         })
     }
+}
+
+
+// ai 机器人聊天
+export async function centerAISend(chatData: Box) {
+    chatBox.value.push(chatData)
+
+    const uuid = uuidv4()
+    let message = '[AI机器人正在思考...]'
+    const dataOb:Box = reactive({
+        type: 'text',
+        text: message,
+        user: 0,
+        time: timeFormat(),
+        chat_id: uuid,
+        quote: '',
+        to_table: '',
+        to_id: '', 
+        user_id: '',
+        loading: true
+    })
+
+    chatBox.value.push(dataOb)
+
+    // const ollama = new Ollama({ host: 'http://192.168.9.99:11434', fetch(input, init) {
+    //     return fetch(input, {
+    //         ...init,
+    //         headers: {
+    //             ...init?.headers,
+    //             'Authorization': 'Bearer ' + sessionStorage.getItem('Token')
+    //         }
+    //     })
+    // }, })
+    const model = localStorage.getItem('AI_MODEL') || 'qwen2:latest'
+    const response = await ollama.value.chat({
+        model,
+        // model: 'qwen2:1.5b',
+        messages: [{ role: 'user', content: chatData.text }],
+        stream: true
+    })
+
+    for await (const part of response) {
+        // process.stdout.write(part.message.content)
+        // console.log(part)
+
+        if (message === '[AI机器人正在思考...]') {
+            message = part.message.content
+        } else {
+            message += part.message.content
+        }
+        // message += part.message.content
+        dataOb.text = message
+        nextTick(() => {
+            scrollToBottom()
+        })
+    }
+
 }

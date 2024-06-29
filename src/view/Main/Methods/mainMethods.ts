@@ -26,6 +26,15 @@ export function scrollChatBoxToBottom(start_sp?: number) {
     isGetGoToNewSingle.value = 'No'
 }
 
+// 滚动聊天框到底部, 不关掉回到最新按钮
+export function scrollToBottom(start_sp?: number) {
+    const end_sp = scrollData.value.chatListDiv?.scrollHeight
+    end_sp
+    &&
+    scrollData.value.scrollBar.setScrollTop(
+        start_sp ? end_sp - start_sp : end_sp
+    )
+}
 
 // 将信息发送到好友模块的提示栏中
 export function sendTipToFriendModel(unread: number, chat: Box) {

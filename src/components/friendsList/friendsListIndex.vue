@@ -103,6 +103,7 @@ import { storeToRefs } from 'pinia'
 import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
 import { ChatWindowStore } from '../chatWindow/store'
 import * as API from './api'
+import { Ollama } from "ollama/dist/browser.mjs"
 // import { FriendsListStore } from './store'
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
@@ -114,6 +115,7 @@ const {
   freshTextTip,
   userInfo: user_info,
   activeFriend,
+  ollama
 } = storeToRefs(friendStore)
 
 const { signal } = storeToRefs(mainStore)
@@ -128,6 +130,10 @@ const { avatarRefresh } = storeToRefs(AppSettingStore())
 // const emit = defineEmits(['handleActiveFriend'])
 // 点击好友（切换好友）
 async function handleActiveFriend(f: Friend) {
+    // 切换到AI宽口
+    if (f.ai) {
+        initAI()
+    }
     // 切走之前,把数据保存到本地
     if (activeFriend.value.chat_table) {
         saveChatWindowPosition()
@@ -315,6 +321,9 @@ async function handleUnread(isWsReconnect: Judge = 'No') {
   if (typeof flist === 'string') {
     flist = JSON.parse(flist)
   }
+
+  flist = flist.filter(f => !f.ai)
+
   const [err, unRead] = await to(API.getUnread({
       friends: flist?.map((i: Friend) => i.chat_table),
       user_id: user_info.value.user_id
@@ -432,6 +441,25 @@ function handleAvatarSelfErr() {
 }
 function handleError(i: Friend) {
   i.avatar_url = require('../../assets/default_avatar.png')
+}
+
+// 初始化AI
+async function initAI() {
+    console.log('initAI -> ')
+    const AI_URL = ref(localStorage.getItem('AI_URL') || 'http://127.0.0.1:11434')
+    const ol = new Ollama({ host: AI_URL.value, fetch(input, init) {
+        return fetch(input, {
+            ...init,
+            headers: {
+                ...init?.headers,
+                'Authorization': 'Bearer ' + sessionStorage.getItem('Token')
+            }
+        })
+    }, })
+    if (ol) {
+        console.log('ol -> ', ol)
+        ollama.value = ol
+    }
 }
 </script>
 <style lang="scss" scoped>

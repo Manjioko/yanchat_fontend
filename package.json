@@ -20,6 +20,7 @@
     "highlight.js": "^11.8.0",
     "htmlparser2": "^9.1.0",
     "markdown-it": "^13.0.1",
+    "ollama": "^0.5.2",
     "pinia": "^2.1.7",
     "sass": "^1.64.2",
     "sass-loader": "^13.3.2",

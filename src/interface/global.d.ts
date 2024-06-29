@@ -56,7 +56,8 @@ declare global {
         message?: string
         active: boolean // 用户点击
         searchActive: boolean, // 用户搜索
-        user?: string
+        user?: string,
+        ai?: boolean // 可能存在ai好友
     }
 
     // 用户信息

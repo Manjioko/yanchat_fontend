@@ -7,7 +7,8 @@ export interface FriendsListState {
     freshTextTip: RefreshMessage,
     freshDeleteTextTip: RefreshMessage
     activeFriend: Friend
-    userInfo: UserInfo
+    userInfo: UserInfo,
+    ollama:any,
 }
 export const FriendsListStore = defineStore('components/friendsList', {
     state:(): FriendsListState => ({
@@ -33,6 +34,7 @@ export const FriendsListStore = defineStore('components/friendsList', {
             user_id: '',
             user: ''
         },
+        ollama: null
     }),
     getters: {
         positionId(): string {
