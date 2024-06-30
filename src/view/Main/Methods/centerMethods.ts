@@ -344,14 +344,15 @@ export async function centerAISend(chatData: Box) {
         } else {
             message += part.response
         }
-        if (part.context) {
-            // 保存到本地
-            await dbUpdate(user_id, { ...context, id: firstKey, ai_context: [...part.context] })
-        }
         if (part.done) {
             // 保存到本地
             const id = await dbAdd(user_id, {...dataOb})
             dataOb.id = id
+
+            if (part.context) {
+                // 保存到本地
+                await dbUpdate(user_id, { ...context, id: firstKey, ai_context: [...part.context] })
+            }
         }
         dataOb.text = message
         nextTick(() => {
