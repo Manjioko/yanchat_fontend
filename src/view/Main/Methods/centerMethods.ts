@@ -5,15 +5,16 @@ import { storeToRefs } from "pinia"
 import { nextTick, watchEffect, reactive } from "vue"
 import { ElNotification } from "element-plus"
 import { scrollChatBoxToBottom, scrollToBottom,sendTipToFriendModel, notifyToWindow, handleGotoBottom } from './mainMethods'
-import { dbAdd, dbUpdate } from "@/view/Main/Methods/indexDB"
+import { dbAdd, dbReadByIndex, dbUpdate, dbGetLastPrimaryKey } from "@/view/Main/Methods/indexDB"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 import { CommentQuoteStore } from "@/components/comentQuote/store"
-import { Ollama } from "ollama/dist/browser.mjs"
+// import { Ollama } from "ollama/dist/browser.mjs"
 import { timeFormat } from '@/utils/timeFormat'
 import { v4 as uuidv4 } from 'uuid'
+// import { dbAdd, updateDatabase } from '@/view/Main/Methods/indexDB'
 // import { reactive } from "vue"
 
-const  { ws: websocket, AIContext } = storeToRefs(MainStore())
+const  { ws: websocket } = storeToRefs(MainStore())
 const { showQuote, comment } = storeToRefs(CommentQuoteStore())
 const { freshDeleteTextTip, activeFriend, userInfo, ollama } = storeToRefs(FriendsListStore())
 const { chatBoxCacheList, isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
@@ -284,6 +285,11 @@ export async function centerSentPondEcho(data: PingPong) {
 // ai 机器人聊天
 export async function centerAISend(chatData: Box) {
     chatBox.value.push(chatData)
+    const user_id = activeFriend.value.user_id
+    // 保存到本地, ai 只有user_id, 不存在 table_id
+    const id = await dbAdd(user_id, {...chatData})
+    chatData.id = id
+    // console.log('id 是 -> ', user_id)
     nextTick(() => {
         scrollToBottom()
     })
@@ -299,7 +305,7 @@ export async function centerAISend(chatData: Box) {
         quote: '',
         to_table: '',
         to_id: '', 
-        user_id: '',
+        user_id,
         // 客户端不需要这个字段，因为没有 loading 这个设置
         // loading: true
     })
@@ -317,12 +323,18 @@ export async function centerAISend(chatData: Box) {
     // }, })
 
     const model = localStorage.getItem('AI_MODEL') || 'qwen2:latest'
+    // 获取数据库第一个数据
+    const firstKey = await dbGetLastPrimaryKey(user_id, 'next')
+    // 从数据库中获取上下文
+    const context = await dbReadByIndex(user_id, 'id', firstKey || 1)
+
+    // console.log('context 是 -> ', context, firstKey)
     const response = await ollama.value.generate({
         model,
         // model: 'qwen2:1.5b',
         // messages: [{ role: 'user', content: chatData.text }],
         prompt: chatData.text,
-        context: AIContext.value || [],
+        context: context?.ai_context || [],
         stream: true
     })
 
@@ -333,7 +345,13 @@ export async function centerAISend(chatData: Box) {
             message += part.response
         }
         if (part.context) {
-            AIContext.value = part.context
+            // 保存到本地
+            await dbUpdate(user_id, { ...context, id: firstKey, ai_context: [...part.context] })
+        }
+        if (part.done) {
+            // 保存到本地
+            const id = await dbAdd(user_id, {...dataOb})
+            dataOb.id = id
         }
         dataOb.text = message
         nextTick(() => {

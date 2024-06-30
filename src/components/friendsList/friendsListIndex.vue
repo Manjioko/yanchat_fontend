@@ -85,16 +85,12 @@
   </div>
 </template>
 <script setup lang="ts">
-import {
-  ref,
-  watch,
-  Ref
-} from 'vue'
+import { ref, watch, Ref, nextTick } from 'vue'
 import { FriendsListStore } from './store'
 import { Search } from '@element-plus/icons-vue'
 import debounce from '@/utils/debounce'
 import to from 'await-to-js'
-import { dbAdd, updateDatabase } from '@/view/Main/Methods/indexDB'
+import { dbAdd, dbReadAll, updateDatabase } from '@/view/Main/Methods/indexDB'
 import { saveChatWindowPosition } from '@/components/chatWindow/Methods/savePosition'
 import { MainStore } from '@/view/Main/store'
 import { FootSendStore } from '../sendFoot/store'
@@ -104,6 +100,8 @@ import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
 import { ChatWindowStore } from '../chatWindow/store'
 import * as API from './api'
 import { Ollama } from "ollama/dist/browser.mjs"
+import { scrollToBottom } from '@/view/Main/Methods/mainMethods'
+import { v4 as uuidv4 } from 'uuid'
 // import { FriendsListStore } from './store'
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
@@ -123,6 +121,7 @@ const {
   scrollUpLock,
   scrollDownLock,
   isLastChatList,
+  chatBox
 }  = storeToRefs(chatWindowStore)
 const { isShowGoToNewBtn, chatBoxCacheList } = storeToRefs(FootSendStore())
 const { avatarRefresh } = storeToRefs(AppSettingStore())
@@ -130,10 +129,6 @@ const { avatarRefresh } = storeToRefs(AppSettingStore())
 // const emit = defineEmits(['handleActiveFriend'])
 // 点击好友（切换好友）
 async function handleActiveFriend(f: Friend) {
-    // 切换到AI宽口
-    if (f.ai) {
-        initAI()
-    }
     // 切走之前,把数据保存到本地
     if (activeFriend.value.chat_table) {
         saveChatWindowPosition()
@@ -150,6 +145,14 @@ async function handleActiveFriend(f: Friend) {
     isShowGoToNewBtn.value = 'No'
     // 未显示内容需要重置
     chatBoxCacheList.value = []
+
+    // 切换到AI宽口
+    if (f.ai) {
+        initAI()
+
+        // ai 不需要从服务器获取聊天记录
+        return
+    }
     getChatFromServer('Yes' as IsSwitchFriend, 'prev' as DESC)
 }
 
@@ -200,6 +203,8 @@ watch(() => user_info.value.friends, val => {
 
 let dShow = ref(false)
 const oldIdx: Ref<number | null> = ref(null)
+
+// 点击好友（切换好友）
 function handleSelect(idx: number, row: Friend) {
   // console.log(idx, row.to_table)
   friendsList.value.forEach((item, i) => {
@@ -322,6 +327,7 @@ async function handleUnread(isWsReconnect: Judge = 'No') {
     flist = JSON.parse(flist)
   }
 
+  // 过滤掉 ai
   flist = flist.filter(f => !f.ai)
 
   const [err, unRead] = await to(API.getUnread({
@@ -445,7 +451,27 @@ function handleError(i: Friend) {
 
 // 初始化AI
 async function initAI() {
-    // console.log('initAI -> ')
+    dbReadAll(activeFriend.value.user_id)
+    .then((res: Box[]) => {
+        if (!res.length) {
+            dbAdd(activeFriend.value.user_id, {
+                user_id: activeFriend.value.user_id,
+                text: '',
+                type: 'text',
+                time: '',
+                chat_id: uuidv4(),
+                to_table: '',
+                to_id: '',  
+                ai_context: [],
+                user: 1,
+            })
+        } else {
+            chatBox.value = res.slice(1)
+            nextTick(() => {
+                scrollToBottom()
+            })
+        }
+    })
     const AI_URL = ref(localStorage.getItem('AI_URL') || 'http://127.0.0.1:11434')
     const ol = new Ollama({ host: AI_URL.value, fetch(input, init) {
         return fetch(input, {

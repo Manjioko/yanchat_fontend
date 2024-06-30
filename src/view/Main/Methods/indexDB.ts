@@ -133,7 +133,7 @@ export function dbRead<T>(tableName: String, field: string, searchStr: string | 
 }
 
 // 读取所有数据
-export function dbReadAll<T>(tableName: string): Promise<T[]> {
+export function dbReadAll(tableName: string): Promise<Box[]> {
     return new Promise((resolve, reject) => {
         if (!mainstore.db) return reject('数据库报错: db 不存在')
         try {
@@ -190,7 +190,7 @@ export function dbReadSome(tableName: string, offset: number = 0): Promise<Box[]
 }
 
 // 精准搜索
-export function dbReadByIndex<T>(tableName: string, indexName: string, searchStr: string | number): Promise<T> {
+export function dbReadByIndex(tableName: string, indexName: string, searchStr: string | number): Promise<Box> {
     return new Promise((resolve, reject) => {
         const transaction = mainstore.db.transaction([tableName], 'readonly')
         const store = transaction.objectStore(tableName)
@@ -325,13 +325,13 @@ export function dbReadRangeNotOffset(tableName: string, desc: DESC = 'prev' as D
 }
 
 // 获取最后一条数据 key
-export function dbGetLastPrimaryKey(tableName: string): Promise<number | undefined> {
+export function dbGetLastPrimaryKey(tableName: string, desc: DESC = 'prev'): Promise<number | undefined> {
     return new Promise((resolve, reject) => {
         if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
         const store = (mainstore.db as IDBDatabase)
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
-        const keyCursorRequest = store.openKeyCursor(null, 'prev')
+        const keyCursorRequest = store.openKeyCursor(null, desc)
         keyCursorRequest.onsuccess = (res: Event) => {
             const result = (res.target as IDBRequest).result
             if (result) {
@@ -497,7 +497,8 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
         ]
     }
     const initConfig = friends?.map((item: Friend) => ({
-        name: item.chat_table,
+        // ai聊天室本身不存在 table_id, 因为是本质上不是个双人聊天室，而是个内容生成窗口
+        name: item.ai ? item.user_id : item.chat_table,
         // key: 'chat_id',
         indexList
     })) || []

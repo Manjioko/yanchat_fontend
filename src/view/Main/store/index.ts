@@ -8,7 +8,7 @@ export interface GlobalState {
     dbname: string | null
     dbversion: number | null,
     isUseMd: boolean
-    AIContext: Array<any>
+    // AIContext: Array<any>
 
 }
 export const MainStore = defineStore('view/Main', {
@@ -20,7 +20,7 @@ export const MainStore = defineStore('view/Main', {
         dbname: null,
         dbversion: null,
         isUseMd: false,
-        AIContext: []
+        // AIContext: []
     }),
     actions: {
         setWs(payload: WebSocket) {
