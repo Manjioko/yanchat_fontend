@@ -1,3 +1,4 @@
+// import { Ollama} from 'ollama/dist/browser'
 import { defineStore } from 'pinia'
 // import { RefreshMessage, Friend, UserInfo } from '@/interface/global'
 
@@ -8,7 +9,7 @@ export interface FriendsListState {
     freshDeleteTextTip: RefreshMessage
     activeFriend: Friend
     userInfo: UserInfo,
-    ollama:any,
+    ollama: any,
 }
 export const FriendsListStore = defineStore('components/friendsList', {
     state:(): FriendsListState => ({

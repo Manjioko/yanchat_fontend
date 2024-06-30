@@ -145,6 +145,7 @@ async function sendMessage(chatData?:Box) {
 
     if (activeFriend.value && activeFriend.value.ai) {
         // console.log('activeFriend.value.ai -> ', activeFriend.value.ai, dataOb)
+        // 如果走这里， 因为loading 是 false,所以加载中的图标就不会出来
         centerAISend(dataOb)
     } else {
         await centerSend(dataOb)

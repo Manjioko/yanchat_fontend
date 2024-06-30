@@ -13,7 +13,7 @@ import { timeFormat } from '@/utils/timeFormat'
 import { v4 as uuidv4 } from 'uuid'
 // import { reactive } from "vue"
 
-const  { ws: websocket } = storeToRefs(MainStore())
+const  { ws: websocket, AIContext } = storeToRefs(MainStore())
 const { showQuote, comment } = storeToRefs(CommentQuoteStore())
 const { freshDeleteTextTip, activeFriend, userInfo, ollama } = storeToRefs(FriendsListStore())
 const { chatBoxCacheList, isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
@@ -284,6 +284,9 @@ export async function centerSentPondEcho(data: PingPong) {
 // ai 机器人聊天
 export async function centerAISend(chatData: Box) {
     chatBox.value.push(chatData)
+    nextTick(() => {
+        scrollToBottom()
+    })
 
     const uuid = uuidv4()
     let message = '[AI机器人正在思考...]'
@@ -297,7 +300,8 @@ export async function centerAISend(chatData: Box) {
         to_table: '',
         to_id: '', 
         user_id: '',
-        loading: true
+        // 客户端不需要这个字段，因为没有 loading 这个设置
+        // loading: true
     })
 
     chatBox.value.push(dataOb)
@@ -311,24 +315,26 @@ export async function centerAISend(chatData: Box) {
     //         }
     //     })
     // }, })
+
     const model = localStorage.getItem('AI_MODEL') || 'qwen2:latest'
-    const response = await ollama.value.chat({
+    const response = await ollama.value.generate({
         model,
         // model: 'qwen2:1.5b',
-        messages: [{ role: 'user', content: chatData.text }],
+        // messages: [{ role: 'user', content: chatData.text }],
+        prompt: chatData.text,
+        context: AIContext.value || [],
         stream: true
     })
 
     for await (const part of response) {
-        // process.stdout.write(part.message.content)
-        // console.log(part)
-
         if (message === '[AI机器人正在思考...]') {
-            message = part.message.content
+            message = part.response
         } else {
-            message += part.message.content
+            message += part.response
         }
-        // message += part.message.content
+        if (part.context) {
+            AIContext.value = part.context
+        }
         dataOb.text = message
         nextTick(() => {
             scrollToBottom()

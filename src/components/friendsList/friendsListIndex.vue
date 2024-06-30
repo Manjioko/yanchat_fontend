@@ -445,7 +445,7 @@ function handleError(i: Friend) {
 
 // 初始化AI
 async function initAI() {
-    console.log('initAI -> ')
+    // console.log('initAI -> ')
     const AI_URL = ref(localStorage.getItem('AI_URL') || 'http://127.0.0.1:11434')
     const ol = new Ollama({ host: AI_URL.value, fetch(input, init) {
         return fetch(input, {
@@ -457,7 +457,7 @@ async function initAI() {
         })
     }, })
     if (ol) {
-        console.log('ol -> ', ol)
+        // console.log('ol -> ', ol)
         ollama.value = ol
     }
 }
