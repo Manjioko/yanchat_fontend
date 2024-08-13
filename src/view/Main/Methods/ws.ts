@@ -151,16 +151,16 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                 // centerFn(chatData, 'received')
                 centerReceived(chatData)
                 {
-                    // const pong: PingPong = {
-                    //     user_id: chatData.to_id,
-                    //     to_id: chatData.user_id,
-                    //     to_table: chatData.to_table,
-                    //     chat_id: chatData.chat_id,
-                    //     pingpong: 'pong',
-                    //     id: chatData.id // 这里应该是服务器数据库响应的 id
-                    // }
-                    // // console.log('客户端响应 -> ', pong)
-                    // websocket?.send(JSON.stringify(pong))
+                    const pong: PingPong = {
+                        user_id: chatData.to_id,
+                        to_id: chatData.user_id,
+                        to_table: chatData.to_table,
+                        chat_id: chatData.chat_id,
+                        pingpong: 'pong',
+                        id: chatData?.id ?? '' // 这里应该是服务器数据库响应的 id
+                    }
+                    // console.log('客户端响应 -> ', pong)
+                    websocket?.send(JSON.stringify(pong))
 
                     dbAdd(chatData.to_table, chatData)
                     .then((res) => {
