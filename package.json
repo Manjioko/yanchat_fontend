@@ -12,6 +12,8 @@
     "@types/uuid": "^9.0.8",
     "@videojs-player/vue": "^1.0.0",
     "@vueuse/core": "^10.9.0",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "await-to-js": "^3.0.0",
     "axios": "^1.4.0",
     "core-js": "^3.8.3",

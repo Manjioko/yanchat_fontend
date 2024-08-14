@@ -1,6 +1,13 @@
 <template>
     <!-- @keydown.delete="handleDelete" -->
-    <div contenteditable="true" id="rich-editor" class="w-e-text"></div>
+    <!-- <div contenteditable="true" id="rich-editor" class="w-e-text"></div> -->
+    <Editor
+        style="height: 100%; height: 100%; overflow-y: hidden;"
+        v-model="valueHtml"
+        :defaultConfig="editorConfig"
+        :mode="mode"
+        @onCreated="handleCreated"
+      />
 </template>
 
 <script setup lang="ts">
@@ -18,6 +25,20 @@ const emit = defineEmits(['richTextData'])
 const richTextEl = ref()
 
 const textAry = ref<any[]>([])
+
+const mode =  'default' // 或 'simple'
+const valueHtml = ref('')
+const editorConfig = ref({
+    placeholder: '在这里输入你的消息...',
+})
+// 编辑器实例，必须用 shallowRef
+// const editorRef = shallowRef()
+
+function handleCreated(editor: any) {
+    console.log(editor)
+    // editorRef.value = editor // 记录 editor 实例，重要！
+}
+
 
 function onopentag(tag: string, attr: any) {
     // console.log('标签开始解析', tag)
