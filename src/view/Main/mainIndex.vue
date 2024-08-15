@@ -22,6 +22,10 @@
                 <el-icon v-show="activeFriend?.chat_table" style="vertical-align: middle; margin-left: 8px" :size="18">
                     <Search @click="searchText?.showSearch" />
                 </el-icon>
+                <!-- <div class="full-screen" @click="handleFullScreen">全屏模式</div> -->
+                <el-icon :class="fullScreen ? 'full-screen' : ''" style="vertical-align: middle; margin-left: 8px" :size="18" >
+                    <FullScreen @click="handleFullScreen" />
+                </el-icon>
             </section>
             <ChatWindow v-if="activeFriend.chat_table" />
             <section class="zero-friend" v-else>还未选择聊天好友</section>
@@ -31,6 +35,7 @@
             </section>
         </section>
         <SearchText ref="searchText" />
+        
     </main>
     <AppSetting ref="appSetting" />
     <!-- 测试模式用 -->
@@ -79,7 +84,7 @@ import { FriendsListStore } from '@/components/friendsList/store'
 import { getUserInfo } from './Methods/userInfoOperator'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { CommentQuoteStore } from '@/components/comentQuote/store'
-import { Search } from '@element-plus/icons-vue'
+import { Search, FullScreen } from '@element-plus/icons-vue'
 import SearchText from '@/components/searchText/searchTextIndex.vue'
 
 
@@ -92,7 +97,8 @@ const searchText = ref<InstanceType<typeof SearchText>>()
 // websocket 客户端
 const {
     ws: websocket,
-    signal
+    signal,
+    fullScreen,
 }  = storeToRefs(MainStore())
 const friendsListStore = FriendsListStore()
 const { userInfo, activeFriend } = storeToRefs(friendsListStore)
@@ -152,6 +158,24 @@ onBeforeUnmount(() => {
     })
 })
 
+const chatWindowHeight = ref(92)
+const chatWindowWidth = ref(60)
+watch(() => fullScreen.value, val => {
+    console.log('全屏状态 -> ', val)
+    if (val) {
+        chatWindowHeight.value = 100
+        chatWindowWidth.value = 80
+    } else {
+        chatWindowHeight.value = 92
+        chatWindowWidth.value = 60
+    }
+})
+
+// 全屏
+function handleFullScreen() {
+    fullScreen.value = !fullScreen.value
+}
+
 // 刷新 refreshToken
 function getRefreshToken() {
     const phone_number = userInfo.value.phone_number
@@ -204,11 +228,11 @@ function handleWsReconnect() {
 }
 
 .chat-window {
-    width: 50vw;
-    height: 92vh;
-    min-width: 600px;
-    max-width: 700px;
-    max-height: 700px;
+    width: v-bind('chatWindowWidth + "vw"');
+    height: v-bind('chatWindowHeight + "vh"');
+    // min-width: 600px;
+    // max-width: 700px;
+    // max-height: 700px;
     background-color: #fff;
     display: flex;
     flex-direction: column;
@@ -366,5 +390,8 @@ function handleWsReconnect() {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+.full-screen {
+    color: #0087ff;
 }
 </style>

@@ -7,7 +7,8 @@ export interface GlobalState {
     db: any | null
     dbname: string | null
     dbversion: number | null,
-    isUseMd: boolean
+    isUseMd: boolean,
+    fullScreen: boolean
     // AIContext: Array<any>
 
 }
@@ -20,6 +21,7 @@ export const MainStore = defineStore('view/Main', {
         dbname: null,
         dbversion: null,
         isUseMd: false,
+        fullScreen: false,
         // AIContext: []
     }),
     actions: {

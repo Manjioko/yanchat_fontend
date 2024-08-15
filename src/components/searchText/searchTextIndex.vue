@@ -58,9 +58,11 @@ import { setActionFriendPositionData } from '../chatWindow/Methods/positionOpera
 import { getChatFromServer } from '../chatWindow/Methods/getData'
 import { SearchTextStore } from './store'
 import { FootSendStore } from '../sendFoot/store'
+import { MainStore } from '@/view/Main/store'
 
 const searchTextStore = SearchTextStore()
 const { searchTextLock } = storeToRefs(searchTextStore)
+const { fullScreen } = storeToRefs(MainStore())
 
 const friendStore = FriendsListStore()
 const chatWindowStore = ChatWindowStore()
@@ -101,6 +103,17 @@ const show = ref(false)
 function showSearch() {
     show.value = !show.value
 }
+
+
+const containerHeight = ref(92)
+watch(() => fullScreen.value, (val) => {
+    if (val) {
+        // show.value = false
+        containerHeight.value = 100
+    } else {
+        containerHeight.value = 92
+    }
+})
 
 // 聊天内容
 const textChatData: Ref<Box[]> = ref([])
@@ -170,9 +183,10 @@ defineExpose({
 </script>
 <style lang="scss" scoped>
 .container {
-    height: 92vh;
+    // height: 92vh;
+    height: v-bind('containerHeight + "vh"');
     width: 250px;
-    max-height: 700px;
+    // max-height: 700px;
     margin-left: 13px;
     border-radius: 5px;
     overflow: auto;

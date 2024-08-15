@@ -116,7 +116,7 @@ const {
   ollama
 } = storeToRefs(friendStore)
 
-const { signal } = storeToRefs(mainStore)
+const { signal, fullScreen } = storeToRefs(mainStore)
 const {
   scrollUpLock,
   scrollDownLock,
@@ -160,6 +160,17 @@ async function handleActiveFriend(f: Friend) {
 watch(() => reconnectFresh.value, val => {
   if (val) {
     handleUnread('Yes')
+  }
+})
+
+const listHeight = ref(92)
+watch(() => fullScreen.value, val => {
+  if (val) {
+    // document.documentElement.requestFullscreen()
+    listHeight.value = 100
+  } else {
+    // document.exitFullscreen()
+    listHeight.value = 92
   }
 })
 
@@ -493,10 +504,12 @@ async function initAI() {
   display: flex;
   flex-direction: column;
   background-color: #fff;
-  height: 92vh;
-  width: 260px;
+  // height: 92vh;
+  height: v-bind('listHeight + "vh"');
+  width: 20vw;
+  min-width: 260px;
   // width: 30vw;
-  max-height: 700px;
+  // max-height: 700px;
   border-right: 2px solid #f5f6fa;
   border-radius: 5px 0px 0px 5px;
 }
