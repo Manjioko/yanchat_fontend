@@ -320,6 +320,9 @@ function handleLoaded(chat_id: string) {
 }
 </script>
 <style lang="scss" scoped>
+:deep(.el-scrollbar__view) {
+  height: 100%;
+}
 .chat-box-remote {
   display: flex;
   align-items: center;

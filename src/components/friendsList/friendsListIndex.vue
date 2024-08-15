@@ -495,6 +495,7 @@ async function initAI() {
   background-color: #fff;
   height: 92vh;
   width: 260px;
+  // width: 30vw;
   max-height: 700px;
   border-right: 2px solid #f5f6fa;
   border-radius: 5px 0px 0px 5px;

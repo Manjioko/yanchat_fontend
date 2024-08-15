@@ -7,7 +7,8 @@
         </section>
     </header>
     <main>
-        <section class="select-tab">
+        <!--  -->
+        <section class="select-tab" @mousedown="handleMouseDown">
             <!-- <div class="video-call">
                 <img src="../../assets/videoCall.png" alt="video-call" @click="videoCall">
             </div>
@@ -19,7 +20,7 @@
                 <input type="file" @change="clickFileUpload" v-if="!!activeFriend">
             </div>
         </section>
-        <div class="text-send">
+        <div ref="text_send" class="text-send">
             <!-- @keyup.shift.enter.exact="hdkeydown" -->
             <!-- <el-input
                 v-model="chatText"
@@ -266,10 +267,49 @@ async function uploadFile(fileData:File) {
 //     // emit('gotoBottom')
 //     handleGotoBottom()
 // }
+const cx = ref(0)
+const cy = ref(0)
+const editorHeight = ref(100)
+const text_send = ref()
+// 鼠标点击
+function handleMouseDown(e: MouseEvent) {
+    console.log('鼠标点击了', e)
+    const { clientX, clientY } = e
+
+    cx.value = clientX
+    cy.value = clientY
+    // 监听鼠标移动
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+}
+
+// 鼠标移动
+function handleMouseMove(e: MouseEvent) {
+    // console.log('鼠标移动了', e)
+
+    const { clientY } = e
+    // y轴移动距离
+    const y = clientY - cy.value
+    console.log('y轴移动距离 -> ', y)
+    const height = parseFloat(text_send.value.getBoundingClientRect().height) ?? 0
+    editorHeight.value = height - y
+    cy.value = clientY
+    console.log('editorHeight.value -> ', text_send.value.getBoundingClientRect().height,editorHeight.value)
+}
+
+// 鼠标抬起
+function handleMouseUp(e: MouseEvent) {
+    console.log('鼠标抬起了', e)
+
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+}
 </script>
 <style lang="scss" scoped>
 .text-send {
-    min-height: 40px;
+    min-height: 100px;
+    height: v-bind('editorHeight + "px"');
+        max-height: 350px;
     display: flex;
     box-sizing: border-box;
     padding: 10px;
