@@ -1,13 +1,6 @@
 <template>
     <!-- @keydown.delete="handleDelete" -->
-    <!-- <div contenteditable="true" id="rich-editor" class="w-e-text"></div> -->
-    <Editor
-        style="height: 100%; height: 100%; overflow-y: hidden;"
-        v-model="valueHtml"
-        :defaultConfig="editorConfig"
-        :mode="mode"
-        @onCreated="handleCreated"
-      />
+    <div contenteditable="true" id="rich-editor" class="w-e-text"></div>
 </template>
 
 <script setup lang="ts">
@@ -25,20 +18,6 @@ const emit = defineEmits(['richTextData'])
 const richTextEl = ref()
 
 const textAry = ref<any[]>([])
-
-const mode =  'default' // 或 'simple'
-const valueHtml = ref('')
-const editorConfig = ref({
-    placeholder: '在这里输入你的消息...',
-})
-// 编辑器实例，必须用 shallowRef
-// const editorRef = shallowRef()
-
-function handleCreated(editor: any) {
-    console.log(editor)
-    // editorRef.value = editor // 记录 editor 实例，重要！
-}
-
 
 function onopentag(tag: string, attr: any) {
     // console.log('标签开始解析', tag)
@@ -89,6 +68,13 @@ function clearRichText() {
 
 onMounted(() => {
     richTextEl.value = document.getElementById('rich-editor')
+    // richTextEl.value?.addEventListener('keydown', (e: any) => {
+    //     if (e.key === 'Enter' && e.shiftKey) {
+    //         e.preventDefault()
+    //         console.log('xxxxxxxxxx')
+    //         // sendMessage()
+    //     }
+    // })
     richTextEl.value?.addEventListener('paste', (data: any) => {
         data.preventDefault()
         if (data.clipboardData?.items[0].type.includes('image/')) {
@@ -96,50 +82,56 @@ onMounted(() => {
             if (f) {
                 const dotName = data.clipboardData?.items[0].type.split('/')[1].toLowerCase()
                 const flie = new File([f], `yanchat_image_${new Date().getTime()}.${dotName}`, { type: f.type })
-                // 获取选定对象
+                const src = window.URL.createObjectURL(flie)
+                listMap.set(src, flie)
+                const img = document.createElement('img')
+                img.src = src
+                img.style.width = '200px'
+
+                // 操作光标
                 const selection = getSelection()
-                // 设置最后光标对象
-                const lastEditRange = selection?.getRangeAt(0)
-                if (lastEditRange) {
-                    const rangeStartOffset = lastEditRange.startOffset
-                    // console.log('rangeStartOffset ->', rangeStartOffset)
-                    const lastEl = lastEditRange.endContainer
-                    // console.log('存在文件')
-                    const src = window.URL.createObjectURL(flie)
-                    listMap.set(src, flie)
-                    // console.log('listMap -> ', listMap)
-                    const img = document.createElement('img')
-                    img.src = src
-                    img.style.width = '200px'
-                    lastEl?.insertBefore(img, lastEl?.lastChild)
-                    lastEditRange.setStart(lastEl, rangeStartOffset + 1)
-                    lastEditRange.collapse(true)
-                    // 清除选定对象的所有光标对象
-                    selection?.removeAllRanges()
-                    // 插入新的光标对象
-                    selection?.addRange(lastEditRange)
-                }
+                const range = selection?.getRangeAt(0)
+
+                if (!range?.collapsed) return console.log('不支持粘贴到选区中')
+
+                range?.insertNode(img)
+                // 插入一个空的 <div> 标签来实现换行
+                const emptyDiv = document.createElement('div');
+                emptyDiv.innerHTML = "<br>"; // 空白行效果
+                img.after(emptyDiv);
+
+                // 将光标移动到空的 <div> 内
+                range.setStart(emptyDiv, 0);
+                range.collapse(true);
+
+                selection?.removeAllRanges();
+                selection?.addRange(range);
             }
         }
         if (data.clipboardData?.items[0].type.includes('text/plain')) {
-            // 获取选定对象
+            // // 获取选定对象
             const selection = getSelection()
-            // 设置最后光标对象
-            const lastEditRange = selection?.getRangeAt(0)
-            if (!lastEditRange) return
-            const rangeStartOffset = lastEditRange.startOffset
-            const lastEl = lastEditRange.endContainer
-            const text = data.clipboardData?.getData('text/plain')
+            // console.log('selection -> ', selection?.toString())
+            // range 表示光标的范围，比如说没有选择任何文字时，光标就是一个杠
+            const range = selection?.getRangeAt(0) 
+            if (!range?.collapsed) return console.log('不支持粘贴到选区中')
+            // console.log('range is box -> ', range)
+            
+            // 创建新的 div
             const div = document.createElement('div')
-            div.innerHTML = text
+            div.innerHTML = data.clipboardData?.getData('text/plain')
             div.style.display = 'inline'
-            lastEl?.insertBefore(div, lastEl?.lastChild)
-            lastEditRange.setStart(lastEl, rangeStartOffset + 1)
-            lastEditRange.collapse(true)
-            // 清除选定对象的所有光标对象
+            // 插入到光标所在的位置
+            range?.insertNode(div)
+            // 插入文本后，清除选定对象的所有光标对象
             selection?.removeAllRanges()
             // 插入新的光标对象
-            selection?.addRange(lastEditRange)
+            selection?.addRange(range)
+            // 光标移动到最后（下一个元素开始的地方）
+            range?.setStart(div, 1)
+            // 让光标折叠成一条杠（不要有选区）
+            range.collapse(true)
+            // console.log('插入文本后，清除选定对象的所有光标对象')
         }
     })
 
