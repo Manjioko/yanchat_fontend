@@ -49,6 +49,7 @@ export function handleTips(tips: { data: Tips[] }) {
                     // dbAdd('tips_message', item)
                     // saveTips(item, '上传消息保存到数据库成功', '上传消息保存到数据库失败')
                     // handleUploadTipsSuccess(item)
+                    console.log('上传成功 **** -> ', item)
                     handleUploadTipsSuccess(item)
                 }
                 break
@@ -69,7 +70,9 @@ export function handleTips(tips: { data: Tips[] }) {
         // 清空消息
         const params: Tips = {
             messages_type: 'clear',
-            to_id: user_id
+            to_id: user_id,
+            user_id: user_id,
+            to_table: 'tips_messages'
         }
         // store?.state.global.ws?.send(JSON.stringify(params))
         mainStore.ws?.send(JSON.stringify(params))

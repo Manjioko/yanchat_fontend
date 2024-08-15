@@ -116,7 +116,9 @@ declare global {
         messages_id?: string,
         messages_box?: any,
         messages_type: tipType,
-        to_id?: string
+        to_id?: string,
+        user_id?: string,
+        to_table?: string
     }
 
 

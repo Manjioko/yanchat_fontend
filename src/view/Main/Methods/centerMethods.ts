@@ -39,6 +39,8 @@ export function centerSend(chatData: Box) {
                     // 发文件上传成功的消息到服务器
                     const uploadSuccessTips: Tips = {
                         to_id: chatData.to_id,
+                        user_id: chatData.user_id,
+                        to_table: chatData.to_table,
                         // messages_type: 'uploadSuccess',
                         messages_type: 'uploadSuccess',
                         messages_box: {
@@ -50,6 +52,7 @@ export function centerSend(chatData: Box) {
                             to_table: chatData.to_table
                         }
                     }
+                    console.log('mainUI 发送成功提示 -> ', uploadSuccessTips)
                     ws?.send(JSON.stringify(uploadSuccessTips))
 
                     // 为什么要更新数据库？因为上传的进度和其他一些数据是在上传成功后

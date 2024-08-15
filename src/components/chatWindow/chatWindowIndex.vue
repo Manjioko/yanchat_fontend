@@ -13,12 +13,22 @@
                   <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)" class="chat-text"
                     data-menu-text data-target-other :data-index="idx">
                   </div>
-                  <sendMedia v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                    :progress="textObject.progress" :type="textObject.type" :src="handleSendMediaSrc(textObject)"
-                    :response="textObject.response" :fileName="textObject.fileName" :thumbnail="textObject.thumbnail"
-                    :data-index="Number(idx)" :destroy="textObject.destroy" :user="textObject.user"
-                    :chat-id="textObject.chat_id" @withdraw="emitWithdraw" @deleted="emitDeleted" @quote="handleQuote"
-                    @loaded="handleLoaded" />
+                  <sendMedia
+                  v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                    :progress="textObject.progress"
+                    :type="textObject.type"
+                    :src="handleSendMediaSrc(textObject)"
+                    :response="textObject.response"
+                    :fileName="textObject.fileName"
+                    :thumbnail="textObject.thumbnail"
+                    :data-index="Number(idx)"
+                    :destroy="textObject.destroy"
+                    :user="textObject.user"
+                    :chat-id="textObject.chat_id"
+                    @withdraw="emitWithdraw"
+                    @deleted="emitDeleted"
+                    @quote="handleQuote"
+                    @loaded="handleLoaded"/>
                   <sendFile v-else :progress="textObject.progress" :type="textObject.type"
                     :fileName="textObject.fileName" :size="textObject.size?.toString()" :response="textObject.response"
                     :destroy="textObject.destroy" :user="textObject.user" :data-index="Number(idx)"
@@ -41,11 +51,20 @@
                 <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)" class="chat-text"
                   data-menu-text data-target-self :data-index="idx">
                 </div>
-                <sendMedia v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
-                  :progress="textObject.progress" :type="textObject.type" :src="handleSendMediaSrc(textObject)"
-                  :response="textObject.response" :fileName="textObject.fileName" :thumbnail="textObject.thumbnail"
-                  :data-index="Number(idx)" :destroy="textObject.destroy" :user="textObject.user"
-                  :chat-id="textObject.chat_id" @withdraw="emitWithdraw" @deleted="emitDeleted" @quote="handleQuote"
+                <sendMedia
+                  v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                  :progress="textObject.progress" :type="textObject.type"
+                  :src="handleSendMediaSrc(textObject)"
+                  :response="textObject.response"
+                  :fileName="textObject.fileName"
+                  :thumbnail="textObject.thumbnail"
+                  :data-index="Number(idx)"
+                  :destroy="textObject.destroy"
+                  :user="textObject.user"
+                  :chat-id="textObject.chat_id"
+                  @withdraw="emitWithdraw"
+                  @deleted="emitDeleted"
+                  @quote="handleQuote"
                   @loaded="handleLoaded" />
                 <sendFile v-else :progress="textObject.progress" :type="textObject.type" :fileName="textObject.fileName"
                   :size="textObject.size?.toString()" :response="textObject.response" :data-index="Number(idx)"

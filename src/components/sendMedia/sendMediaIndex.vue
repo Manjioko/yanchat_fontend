@@ -122,10 +122,11 @@ watch(() => downloadProgress.value, (val) => {
     }
 })
 
-watch(() => props.src, (val) => {
-    if (val) {
-        getSource()
-    }
+watch(() => props.src, () => {
+    getSource()
+    // if (val) {
+    //     getSource()
+    // }
 }, {
     immediate: true
 })
@@ -251,10 +252,12 @@ const imgMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
+            console.log('xxxxx', mediaSrc.value)
             if (!mediaSrc.value) return
             // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
             const url = `/source/${props.response}`
+            console.log('url -> ', url)
             mediaDownload(url, props.fileName,function(progress) {
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
@@ -350,7 +353,7 @@ async function getSource() {
     // }
 
     const src =`${sessionStorage.getItem('baseUrl')}/source/${props.response}`
-    // console.log('src -> ', src)
+    console.log('src -> ', src, props.response)
     options.value = [{
         type: props.type.includes('video') ? 'video/mp4' : props.type,
         src

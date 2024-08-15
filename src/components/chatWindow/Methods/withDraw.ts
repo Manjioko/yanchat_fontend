@@ -30,7 +30,9 @@ export async function handleWithdraw(idx: number) {
             const tipsParams: Tips = {
                 messages_type: 'withdraw',
                 messages_box: chatBox.value[idx],
-                to_id: activeFriend.value.user_id
+                to_id: activeFriend.value.user_id,
+                user_id: sessionStorage.getItem('user_id') || '',
+                to_table: activeFriend.value?.chat_table
             }
             ws.send(JSON.stringify(tipsParams))
 
