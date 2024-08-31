@@ -11,6 +11,7 @@ export function handleProgress(chatData:EventParams) {
     // 如果不是自己的消息则不处理
     if (activeFriend.value.chat_table !== chatData.to_table) return
 
+    console.log('进到到达预定位置 -> ', chatData)
     chatBox.value.forEach(chat => {
         if (chat.chat_id === chatData.data?.chat_id) {
             chat.progress = chatData.data?.progress

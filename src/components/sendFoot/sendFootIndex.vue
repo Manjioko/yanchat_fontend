@@ -229,7 +229,7 @@ async function uploadFile(fileData:File) {
 
         if (progress) {
             box.progress = progress
-            // console.log('progress -> ', progress)
+            console.log('progress -> ', box.chat_id)
             const eventParam: EventParams = {
                 event: 'progress',
                 data: {

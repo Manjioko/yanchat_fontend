@@ -140,7 +140,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                 break
             case 'progress':
                 // videoFn(chatData, 'progress')
-                // console.log('进度 -> ', chatData)
+                console.log('进度 -> ', chatData)
                 handleProgress(chatData)
                 break
             case 'tips':
@@ -165,7 +165,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                     dbAdd(chatData.to_table, chatData)
                     .then((res) => {
                         chatData.id = res
-                        console.log('ws.ts 保存数据到数据库成功 -> ', chatData.id)
+                        console.log('ws.ts 保存数据到数据库成功 -> ', chatData)
                     })
                     .catch((err: string) => {
                         console.log('ws.ts 保存数据到数据库失败 -> ', err)
