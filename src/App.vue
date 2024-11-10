@@ -17,8 +17,13 @@ export default {
 </script>
 
 <style>
+html {
+  height: 100%;
+}
 body {
   margin: 0;
+  /* overscroll-behavior-y: contain; */
+  height: 100%;
 }
 img {
   -webkit-user-drag: none;

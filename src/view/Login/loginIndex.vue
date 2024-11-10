@@ -18,9 +18,27 @@ let pw = ref('')
 let pwErr = ref(false)
 // 重复登录锁
 let repeatErr = ref(false)
+
+// 兼容不同平台
+const switchPage = ref('PC'); 
 onMounted(() => {
     router.value = useRouter()
+
+    if (window.outerWidth < 600) {
+        switchPage.value = 'MOBILE';
+    }
+    
+    window.addEventListener('resize', () => {
+        if (window.outerWidth > 600) {
+            console.log('pc');
+            switchPage.value = 'PC';
+        } else {
+            console.log('mobile');
+            switchPage.value = 'MOBILE';
+        }
+    })
 })
+
 const delayToShowErr = debounce(() => {
     pwErr.value = true
 }, 300)
@@ -167,8 +185,8 @@ async function login() {
 
 </script>
 <template>
-    <main class="container">
-        <section class="login-box">
+    <main :class="{'container' : switchPage === 'PC', 'mobile-container': switchPage === 'MOBILE'}">
+        <section class="login-box" :class="{'mobile-login-box': switchPage === 'MOBILE'}">
             <div class="welcome">
                 欢迎登录
             </div>
@@ -283,6 +301,19 @@ async function login() {
     align-items: center;
     justify-content: center;
     margin-right: 11rem;
+}
+.mobile-container {
+    display: flex;
+    flex-direction: column;
+    // align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.mobile-login-box {
+    width: 100%;
+    height: 100%;
+    border: unset;
+    box-shadow: unset;
 }
 
 .welcome {

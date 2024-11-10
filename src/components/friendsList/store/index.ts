@@ -63,5 +63,15 @@ export const FriendsListStore = defineStore('components/friendsList', {
         setActiveFriend(payload: Friend) {
             this.activeFriend = payload
         },
+        clearActiveFriend() {
+            this.activeFriend = {
+                name: '',
+                user_id: '',
+                phone_number: '',
+                chat_table: '',
+                active: false,
+                searchActive: false
+            }
+        }
     }
 })

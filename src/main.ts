@@ -8,6 +8,8 @@ import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import VueDragResize from 'vue-drag-resize'
 import { createPinia } from 'pinia'
 import { getHost, getWsHost } from './utils/getHost'
+import vhCheck from 'vh-check'
+vhCheck()
 
 const Pinia = createPinia()
 
@@ -41,4 +43,32 @@ if ('Notification' in window) {
     }
 } else {
     console.log('浏览器不支持 Web Notifications API');
+}
+
+// ios 浏览器禁止双指放大
+window.onload = function() {
+    // 阻止双击放大
+    let lastTouchEnd = 0;
+    document.addEventListener('touchstart', function(event) {
+        if (event.touches.length > 1) {
+            event.preventDefault();
+        }
+    });
+    document.addEventListener('touchend', function(event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+
+    // 阻止双指放大
+    document.addEventListener('gesturestart', function(event) {
+        event.preventDefault();
+    });
+
+    // document.body.addEventListener('touchmove', function(e) {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    // }, { passive: false });
 }

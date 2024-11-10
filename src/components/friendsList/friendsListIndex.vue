@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-    <header class="f-header">
+  <div class="container" :class="mobileMode ? 'mobile-mode' : ''">
+    <header class="f-header" v-if="!mobileMode">
       <div :class="{ isOnlink: signal === 1, isUnlink: signal !== 1 }"></div>
       <img
         :src="avatarSrc"
@@ -85,7 +85,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, watch, Ref, nextTick } from 'vue'
+import { ref, watch, Ref, nextTick, defineProps, defineExpose } from 'vue'
 import { FriendsListStore } from './store'
 import { Search } from '@element-plus/icons-vue'
 import debounce from '@/utils/debounce'
@@ -103,6 +103,22 @@ import { Ollama } from "ollama/dist/browser.mjs"
 import { scrollToBottom } from '@/view/Main/Methods/mainMethods'
 import { v4 as uuidv4 } from 'uuid'
 // import { FriendsListStore } from './store'
+
+defineExpose({
+  clearFriend,
+  showAddFriendDialog
+})
+
+
+
+defineProps({
+    mobileMode: {
+        type: Boolean,
+        default: false
+    },
+})
+
+
 const friendStore = FriendsListStore()
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
@@ -154,6 +170,20 @@ async function handleActiveFriend(f: Friend) {
         return
     }
     getChatFromServer('Yes' as IsSwitchFriend, 'prev' as DESC)
+}
+
+function clearFriend() {
+  friendStore.clearActiveFriend()
+  friendsList.value.forEach((item) => {
+    if (item.active) {
+      item.active = false
+      oldIdx.value = null
+    }
+  })
+}
+
+function showAddFriendDialog() {
+  dShow.value = !dShow.value
 }
 
 // 重连刷新内容
@@ -641,5 +671,15 @@ async function initAI() {
   border: none;
   height: 16px;
   padding: 0 5px;
+}
+.mobile-mode {
+  width: unset;
+  // height: unset;
+  border: unset;
+  height: 100%
+}
+.f-container {
+  height: 100%;
+  overflow-y: auto;
 }
 </style>

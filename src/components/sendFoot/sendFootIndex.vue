@@ -8,7 +8,7 @@
     </header>
     <main>
         <!--  -->
-        <section class="select-tab" @mousedown="handleMouseDown">
+        <section v-if="!mobileMode" class="select-tab" @mousedown="handleMouseDown">
             <!-- <div class="video-call">
                 <img src="../../assets/videoCall.png" alt="video-call" @click="videoCall">
             </div>
@@ -20,7 +20,7 @@
                 <input type="file" @change="clickFileUpload" v-if="!!activeFriend">
             </div>
         </section>
-        <div ref="text_send" class="text-send">
+        <div ref="text_send" class="text-send" :class="{ 'mobile-mode-text-box': mobileMode }">
             <!-- @keyup.shift.enter.exact="hdkeydown" -->
             <!-- <el-input
                 v-model="chatText"
@@ -31,7 +31,22 @@
             /> -->
 
 
-            <RichText ref="richText" @rich-text-data="richTextData" @keydown="hdkeydown" />
+
+            <RichText ref="richText" :class="mobileMode ? 'mobile-mode-text' : ''" @rich-text-data="richTextData" @keydown="hdkeydown" />
+
+            <!-- <div v-if="mobileMode" class="send-btn" @click="clickSendBtn()">
+                <el-icon :size="30">
+                    <Promotion color="#2F88FF" />
+                </el-icon>
+            </div> -->
+
+            <div v-if="mobileMode" class="upload-mobile">
+                <el-icon  :size="25">
+                    <FolderOpened />
+                </el-icon>
+                <input type="file" @change="clickFileUpload" v-if="!!activeFriend">
+            </div>
+
             
             <!-- <button @click="clickSendBtn()" class="send-btn">
                 <span>发送</span>
@@ -41,7 +56,7 @@
     </main>
 </template>
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, defineProps } from 'vue'
 import { timeFormat } from '@/utils/timeFormat'
 import byteCovert from '@/utils/byteCovert'
 import {  mediaUpload } from '@/utils/download'
@@ -57,6 +72,7 @@ import { CommentQuoteStore } from '../comentQuote/store'
 import { FriendsListStore } from '../friendsList/store'
 import RichText from './component/richText/richTextIndex.vue'
 import { MainStore } from '@/view/Main/store'
+import { FolderOpened } from '@element-plus/icons-vue'
 
 
 const sfStore = FootSendStore()
@@ -64,6 +80,14 @@ const { isShowGoToNewBtn: showGotoBottom, chatBoxCacheList } = storeToRefs(sfSto
 const { comment } = storeToRefs(CommentQuoteStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
 const { ws } = storeToRefs(MainStore())
+
+
+defineProps({
+    mobileMode: {
+        type: Boolean,
+        default: false
+    },
+})
 
 const chatText = ref('')
 
@@ -229,7 +253,7 @@ async function uploadFile(fileData:File) {
 
         if (progress) {
             box.progress = progress
-            console.log('progress -> ', box.chat_id)
+            // console.log('progress -> ', progress)
             const eventParam: EventParams = {
                 event: 'progress',
                 data: {
@@ -414,5 +438,33 @@ function handleMouseUp(e: MouseEvent) {
 }
 .goto-bottom:hover {
     background-color: #f5f5f5;
+}
+
+.mobile-mode-text-box {
+    min-height: unset;
+    height:70px;
+    background: #f4f4f4;
+
+    .mobile-mode-text {
+        background: #fff;
+        border-radius: 8px;
+
+        margin: 0 8px;
+        height: 45px;
+        padding: 0 8px;
+        align-content: center;
+    }
+}
+.upload-mobile {
+    position: relative;
+    margin-left: 10px;
+    input {
+        position: absolute;
+        width: 20px;
+        height: 17px;
+        top: 0;
+        left: 0;
+        opacity: 0;
+    }
 }
 </style>

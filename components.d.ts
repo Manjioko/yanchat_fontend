@@ -25,6 +25,7 @@ declare module 'vue' {
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     FriendsListIndex: typeof import('./src/components/friendsList/friendsListIndex.vue')['default']
+    MoreIndex: typeof import('./src/components/mobileMore/moreIndex.vue')['default']
     RichTextIndex: typeof import('./src/components/sendFoot/component/richText/richTextIndex.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

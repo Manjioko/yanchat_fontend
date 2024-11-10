@@ -4,7 +4,7 @@ import { clearUserInfo } from "@/view/Main/Methods/userInfoOperator"
 
 const service = axios.create({
     baseURL: sessionStorage.getItem('baseUrl') || '',
-    timeout: 50000
+    timeout: 5000
 })
 
 service.interceptors.request.use(config => {
@@ -49,7 +49,7 @@ service.interceptors.response.use(res => {
 
 export function request (ob:AxiosRequestConfig) {
     const { timeout:customTimeout, ...rest } = ob
-    // console.log('ob是 -> ', ob)
+    // console.log('ob是 -> ', ob,service.defaults.timeout)
     return service({
         timeout: customTimeout || service.defaults.timeout, // 超时时间
         ...rest

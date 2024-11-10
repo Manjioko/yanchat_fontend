@@ -1,6 +1,6 @@
 <template>
     <!-- @keydown.delete="handleDelete" -->
-    <div contenteditable="true" id="rich-editor" class="w-e-text"></div>
+    <div contenteditable="true" enterkeyhint="send" id="rich-editor" class="w-e-text"></div>
 </template>
 
 <script setup lang="ts">

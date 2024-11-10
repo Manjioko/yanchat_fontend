@@ -3,7 +3,7 @@
     <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
       <div @contextmenu.prevent="handleMenu" data-menu-stop data-chat-list>
         <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id" :data-check-index="idx">
-          <div class="show-time">{{ handleTime(Number(idx)) }}</div>
+          <div v-if="handleTime(Number(idx))" class="show-time">{{ handleTime(Number(idx)) }}</div>
           <div class="chat-box-remote" v-if="textObject.user !== 1">
             <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
             <div class="quote-and-box-style-remote">
@@ -345,7 +345,8 @@ function handleLoaded(chat_id: string) {
 .chat-box-remote {
   display: flex;
   align-items: center;
-  margin: 8px 0;
+  // margin: 8px 0;
+  padding: 12px 0;
 
   img {
     width: 40px;
