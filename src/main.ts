@@ -50,10 +50,23 @@ window.onload = function() {
     // 阻止双击放大
     let lastTouchEnd = 0;
     document.addEventListener('touchstart', function(event) {
+        // 禁止右滑返回
+        if (event.touches[0].clientX < 30) {
+            
+            event.preventDefault();
+            event.stopPropagation();
+            // alert('右划返回');
+        }
+        // 禁止左滑返回
+        if (event.touches[0].clientX > window.innerWidth - 30) {
+            event.preventDefault();
+            event.stopPropagation();
+            // alert('左划返回');
+        }
         if (event.touches.length > 1) {
             event.preventDefault();
         }
-    });
+    }, { passive: false });
     document.addEventListener('touchend', function(event) {
         const now = (new Date()).getTime();
         if (now - lastTouchEnd <= 300) {
