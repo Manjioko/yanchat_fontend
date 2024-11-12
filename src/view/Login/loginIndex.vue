@@ -27,16 +27,15 @@ onMounted(() => {
     if (window.outerWidth < 600) {
         switchPage.value = 'MOBILE';
     }
-    
-    window.addEventListener('resize', () => {
-        if (window.outerWidth > 600) {
-            console.log('pc');
-            switchPage.value = 'PC';
-        } else {
-            console.log('mobile');
-            switchPage.value = 'MOBILE';
-        }
-    })
+
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+        // 当前设备是移动设备
+        switchPage.value = 'MOBILE';
+        console.log('mobile');
+    } else {
+        switchPage.value = 'PC';
+        console.log('pc');
+    }
 })
 
 const delayToShowErr = debounce(() => {
