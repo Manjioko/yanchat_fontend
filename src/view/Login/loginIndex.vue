@@ -96,7 +96,7 @@ async function login() {
             // 重置消息
             // store.commit('global/clearTips')
             // mainStore.clearTips()
-            router.value.push({ name: 'Chat' })
+            router.value.replace({ name: 'Chat' })
             console.log('登录成功')
             // showloginErr.value = false
 

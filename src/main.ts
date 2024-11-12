@@ -5,14 +5,16 @@ import router from './router/router.js'
 import 'element-plus/theme-chalk/index.css'
 import 'highlight.js/styles/github-dark.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+import VConsole from 'vconsole'
 import VueDragResize from 'vue-drag-resize'
 import { createPinia } from 'pinia'
 import { getHost, getWsHost } from './utils/getHost'
-import vhCheck from 'vh-check'
-vhCheck()
 
 const Pinia = createPinia()
 
+if (process.env.NODE_ENV === 'development') {
+    const vConsole = new VConsole();
+}
 
 // sessionStorage.setItem('wsBaseUrl', 'wss://192.168.9.99')
 // sessionStorage.setItem('baseUrl', 'https://192.168.9.99')
@@ -47,41 +49,8 @@ if ('Notification' in window) {
 
 // ios 浏览器禁止双指放大
 window.onload = function() {
-    // 阻止双击放大
-    let lastTouchEnd = 0;
-    document.addEventListener('touchstart', function(event) {
-        // 禁止右滑返回
-        if (event.touches[0].clientX < 30) {
-            
-            event.preventDefault();
-            event.stopPropagation();
-            // alert('右划返回');
-        }
-        // 禁止左滑返回
-        if (event.touches[0].clientX > window.innerWidth - 30) {
-            event.preventDefault();
-            event.stopPropagation();
-            // alert('左划返回');
-        }
-        if (event.touches.length > 1) {
-            event.preventDefault();
-        }
-    }, { passive: false });
-    document.addEventListener('touchend', function(event) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
-
     // 阻止双指放大
     document.addEventListener('gesturestart', function(event) {
         event.preventDefault();
     });
-
-    // document.body.addEventListener('touchmove', function(e) {
-    //     e.preventDefault();
-    //     e.stopPropagation();
-    // }, { passive: false });
 }

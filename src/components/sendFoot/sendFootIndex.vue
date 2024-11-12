@@ -189,8 +189,10 @@ function uploadSliceFile(file:File, cb: UploadCallback) {
 
 function clickFileUpload(e: Event) {
     const target = e.target as HTMLInputElement
+    console.log('target.files -> ', target.files, target.files?.length)
     if (!target.files?.length) return
     let fileData = target.files[0]
+    console.log('fileData -> ', fileData)
     uploadFile(fileData)
     // 清空 targt,不然上传同一个文件会没有反应
     target.value = ''
@@ -201,8 +203,11 @@ async function uploadFile(fileData:File) {
     formData.append("file", fileData)
     const size = byteCovert(fileData?.size)
     // console.log('filename -> ', fileData)
+    console.log('size -> ', size)
     if (!size) return 
     const uuid = uuidv4()
+
+    console.log('1111111111')
     
     const box:Box = reactive({
         progress: 0,
@@ -226,10 +231,15 @@ async function uploadFile(fileData:File) {
 
     // 获取缩略图
     if (box.type.includes('video')) {
-        // console.log('video -> ', 'video')
-        const getURL = window.URL.createObjectURL(fileData)
-        const thumbnail = await getVideoBase64(getURL)
-        box.thumbnail = thumbnail
+        try {
+            const getURL = window.URL.createObjectURL(fileData)
+            const thumbnail = await getVideoBase64(getURL)
+            box.thumbnail = thumbnail
+        } catch (error) {
+            console.log('error -> ', error)
+        }
+        
+        
     }
 
     if (box.type.includes('image')) {
@@ -458,12 +468,13 @@ function handleMouseUp(e: MouseEvent) {
 .upload-mobile {
     position: relative;
     margin-left: 10px;
+    margin-right: 10px;
     input {
         position: absolute;
-        width: 20px;
-        height: 17px;
-        top: 0;
-        left: 0;
+        width: 45px;
+        height: 35px;
+        top: -5px;
+        left: -15px;
         opacity: 0;
     }
 }

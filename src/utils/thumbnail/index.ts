@@ -10,8 +10,16 @@ function getVideoBase64(url: string, compressRatio = 0.19): Promise<string> {
         // video.setAttribute("width",400)
         // video.setAttribute("height",240)
         video.setAttribute("preload","auto")
+
         //loadeddata事件 加载当前帧会执行loadeddata事件
-        video.addEventListener("loadeddata",function () {
+        video.addEventListener("error",function (err) {
+            console.log('视频加载失败', err)
+        })
+        video.addEventListener("canplaythrough", function () {
+            console.log('Video is ready to play');
+            // 获取视频的原始宽度和高度，并继续后续的逻辑
+        });
+        video.addEventListener("loadedmetadata",function () {
             // 获取视频的原始宽度和高度
             const originalWidth = video?.videoWidth;
             const originalHeight = video?.videoHeight;
