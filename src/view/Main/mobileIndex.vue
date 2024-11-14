@@ -1,6 +1,6 @@
 <template>
      <div class="container">
-        <header class="header-title">
+        <header v-show="tabActive === 'friend'" class="header-title">
             <div v-show="activeFriend.chat_table" @click="handleBack">
                 <el-icon>
                     <ArrowLeftBold />
@@ -26,7 +26,8 @@
             <SendFoot v-if="activeFriend.chat_table" :mobile-mode="true" />
         </main>
         <section class="chat-window" v-show="tabActive === 'me'">
-            TODO...
+            <!-- TODO... -->
+             <MobileSetting />
         </section>
         <footer v-show="!activeFriend.chat_table">
             <div class="footer">
@@ -59,6 +60,7 @@ const { activeFriend } = storeToRefs(friendsListStore)
 import { ChatRound, User, ArrowLeftBold } from '@element-plus/icons-vue'
 import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
 import More from '@/components/mobileMore/moreIndex.vue'
+import MobileSetting from '@/components/mobileSetting/moIndex.vue'
 // import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
 
 
@@ -87,6 +89,7 @@ function localClickAddFriend() {
     height: 100%;
 }
 .header-title {
+    -webkit-tap-highlight-color: transparent;
     background: #f4f4f4;
     text-align: center;
     padding: 16px;
@@ -123,8 +126,11 @@ function localClickAddFriend() {
     display: flex;
     justify-content: space-around;
     padding: 8px;
+    height: 50px;
+    border-top: .5px solid #ddd;
 }
 .tab-item {
+    -webkit-tap-highlight-color: transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
