@@ -90,13 +90,14 @@ function localClickAddFriend() {
 }
 .header-title {
     -webkit-tap-highlight-color: transparent;
-    background: #f4f4f4;
+    background: #fcfcfc;
     text-align: center;
     padding: 16px;
     // color: #2F88FF;
     font-weight: 500;
     font-size: 18px;
     display: flex;
+    border-bottom: 1px solid #f4f4f4;
     .header-title-text {
         flex: 1;
     }
@@ -112,22 +113,41 @@ function localClickAddFriend() {
 }
 .chat-window {
     flex: 1;
-    background-color: #fff;
+    background-color: #f4f4f4;
     display: flex;
     flex-direction: column;
     border-radius: 0 5px 5px 0;
     overflow: hidden;
     // border-radius: 5px;
     // box-shadow: 0px 1px 6px 6px rgba(221, 223, 230, 0.31);
+
+    :deep .f-container {
+        background-color: #f4f4f4;
+        .f-friends {
+            background-color: #fff;
+        }
+        .i-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+        }
+
+        .i-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+    }
 }
 
 .footer {
-    background: #f4f4f4;
+    background: #fcfcfc;
     display: flex;
     justify-content: space-around;
     padding: 8px;
     height: 50px;
     border-top: .5px solid #ddd;
+    font-size: 16px;
+    font-weight: 500;
 }
 .tab-item {
     -webkit-tap-highlight-color: transparent;
@@ -136,7 +156,9 @@ function localClickAddFriend() {
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    color: #999999;
+    color: #000;
+    // background-color: red;
+    width: 120px;
 }
 .friends-list {
     height: 100%;

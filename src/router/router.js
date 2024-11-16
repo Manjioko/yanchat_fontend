@@ -3,7 +3,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
     { path: '/', name: 'Login', component: () => import('../view/Login/loginIndex.vue') },
-    { path: '/chat', name: 'Chat', component: () => import('../view/Main/entryRouter.vue') }
+    { path: '/chat', name: 'Chat', component: () => import('../view/Main/entryRouter.vue') },
+    { path: '/nick', name: 'Nick', component: () => import('../components/mobileSetting/components/editNick.vue') },
+    { path: '/md', name: 'Md', component: () => import('../components/mobileSetting/components/editMd.vue') }
 ]
 
 const router = createRouter({
