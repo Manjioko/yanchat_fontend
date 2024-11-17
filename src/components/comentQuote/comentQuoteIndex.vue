@@ -1,5 +1,5 @@
 <template>
-    <section v-if="showInputQuote" class="input-style">
+    <section v-if="showInputQuote" class="input-style" :class="{ 'input-style-mobile': mobile}">
         <div class="quote-style">
             <span class="quote-span">{{ comment }}</span>
             <span>
@@ -37,6 +37,10 @@ defineProps({
     quote: {
         type: String,
         default: ''
+    },
+    mobile: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -49,7 +53,7 @@ function handleClick() {
 <style lang="scss" scoped>
 .input-style {
     position: absolute;
-    top: -28px;
+    top: -30px;
     width: 100%;
 }
 .quote-style {
@@ -87,5 +91,21 @@ function handleClick() {
     max-width: 200px;
     margin-top: 4px;
     border-radius: 3px;
+}
+
+.input-style-mobile {
+    position: unset !important;
+    margin-left: 16px;
+    margin-bottom: 16px;
+    .quote-style {
+        border-radius: 8px !important;
+        // padding: 8px;
+    }
+    .quote-span {
+        padding: 6px;
+    }
+    .quote-icon {
+        font-size: 16px;
+    }
 }
 </style>

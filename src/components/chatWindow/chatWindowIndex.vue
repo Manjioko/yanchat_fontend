@@ -1,14 +1,29 @@
 <template>
-  <div class="text-show">
+  <div class="text-show" @click="handleClick">
     <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
-      <div @contextmenu.prevent="handleMenu" data-menu-stop data-chat-list>
+      <div
+        @contextmenu.prevent="handleMenu"
+        data-menu-stop
+        data-chat-list
+      >
         <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id" :data-check-index="idx">
           <div v-if="handleTime(Number(idx))" class="show-time">{{ handleTime(Number(idx)) }}</div>
+          <!-- 远程 -->
           <div class="chat-box-remote" v-if="textObject.user !== 1">
             <img :src="handleAvatar(textObject)" alt="其他" @error="handleError">
             <div class="quote-and-box-style-remote">
-              <div class="chat-box-remote-message"
-                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }">
+              <IconMenuIndex
+                v-if="textObject.show_menu"
+                :data-index="Number(idx)"
+                :user="textObject.user"
+                @withdraw="emitWithdraw"
+                @deleted="emitDeleted"
+                @quote="handleQuote"
+              />
+              <div
+                class="chat-box-remote-message"
+                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }"
+              >
                 <span class="chat-box-remote-message-text">
                   <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)" class="chat-text"
                     data-menu-text data-target-other :data-index="idx">
@@ -38,6 +53,9 @@
               <comentQuote v-if="textObject.quote" :quote="textObject.quote" />
             </div>
           </div>
+
+
+          <!-- 本人 -->
           <div class="chat-box-local" v-else>
             <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
             <img v-if="textObject.loading" src="../../assets/spinner1.svg" class="spinner-style" v-spinner="textObject">
@@ -46,6 +64,14 @@
             </el-icon>
 
             <div class="quote-and-box-style-local">
+              <IconMenuIndex
+                v-if="textObject.show_menu"
+                :data-index="Number(idx)"
+                :user="textObject.user"
+                @withdraw="emitWithdraw"
+                @deleted="emitDeleted"
+                @quote="handleQuote"
+              />
               <span class="chat-box-local-message"
                 :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }">
                 <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)" class="chat-text"
@@ -101,6 +127,7 @@ import { handleQuoteEvent } from '@/components/comentQuote/Methods/quote'
 import { handleLoadedEvent } from './Methods/mediaLoad'
 import { AppSettingStore } from '../appSetting/store'
 import { FriendsListStore } from '../friendsList/store'
+import IconMenuIndex from '../iconMenu/iconMenuIndex.vue'
 // import { dbSetId } from '@/view/Main/Methods/indexDB'
 
 const { isUseMd } = storeToRefs(MainStore())
@@ -176,6 +203,12 @@ function updatedScrollData() {
 }
 
 function handleScroll(e: any) {
+
+  if (typeof show_index === 'number' && chatBox.value[show_index]) {
+    chatBox.value[show_index].show_menu = false
+    show_index = null
+  }
+
   updatedScrollData()
   
   // 如果是ai聊天，不做滚动处理
@@ -247,6 +280,7 @@ function handleDataSet(node: any, targetNode?: any) {
   return handleDataSet(node.parentNode, targetNode)
 }
 function handleMenu(e: any) {
+  console.log('handleMenu', e)
   const node = handleDataSet(e.target)
   const menuText = [
     {
@@ -337,8 +371,52 @@ function handleLoaded(chat_id: string) {
   // emit('loaded', chat_id)
   handleLoadedEvent(chat_id)
 }
+
+let show_index:number | null = null
+
+function handleClick(e: any) {
+  // console.log('点击了', e.target)
+  if (e?.target?.tagName !== 'P') {
+    if (typeof show_index === 'number' && chatBox.value[show_index]) {
+      chatBox.value[show_index].show_menu = false
+      show_index = null
+    }
+    return
+  } 
+  let index: number | null = null
+  const curs = (node: any) => {
+    if (node && node !== e.currentTarget) {
+      // console.log('e.target dataset -> ', node.dataset)
+      if (node.dataset.checkIndex) {
+        index = Number(node.dataset.checkIndex)
+        const data = chatBox.value[index]
+        if (data && data.show_menu) {
+          // clickMap.delete(index)
+          chatBox.value[index].show_menu = false
+        } else {
+          if (!data) return
+          if (typeof show_index === 'number' && chatBox.value[show_index]) {
+            chatBox.value[show_index].show_menu = false
+          }
+          show_index = index
+          chatBox.value[index].show_menu = true
+        }
+        // console.log('weakMap111 -> ', clickWeakMap)
+        return
+      }
+
+      curs(node.parentNode)
+    }
+  }
+  curs(e.target)
+}
 </script>
 <style lang="scss" scoped>
+
+::selection {
+  background: #ffcc00; /* 自定义选中背景颜色 */
+  color: #000;
+}
 :deep(.el-scrollbar__view) {
   height: 100%;
 }
@@ -361,6 +439,7 @@ function handleLoaded(chat_id: string) {
     padding: 10px;
     font-size: 14px;
     background: #F8F8F8;
+    max-width: calc(100vw - 120px);
     // opacity: 0.5;
     border-radius: 10px 10px 10px 0px;
     max-width: 500px;
@@ -465,6 +544,7 @@ function handleLoaded(chat_id: string) {
     padding: 10px;
     font-size: 14px;
     background: #EBF3FE;
+    max-width: calc(100vw - 120px);
     border-radius: 10px 10px 0px 10px;
     user-select: text;
   }
@@ -476,6 +556,7 @@ function handleLoaded(chat_id: string) {
 }
 
 .text-show {
+  touch-action: none;
   flex: 1;
   overflow: hidden;
   position: relative;
@@ -492,12 +573,15 @@ function handleLoaded(chat_id: string) {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  position: relative;
 }
 
 .quote-and-box-style-remote {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  position: relative;
+
 }
 
 .message-warning {
@@ -508,5 +592,6 @@ function handleLoaded(chat_id: string) {
 
 .not-padding {
   padding: 0 !important;
+  background-color: unset !important;
 }
 </style>

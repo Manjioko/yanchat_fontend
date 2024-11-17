@@ -10,15 +10,35 @@
                 :width="15"
             ></el-progress>
         </div>
+        <div class="media-icon" :class="{ 'media-icon-self': user === 1, 'media-icon-other': user === 0 }">
+            <span class="m-icon">
+                <el-icon @click="handleDownload"><Download /></el-icon>
+            </span>
+            <span class="m-icon">
+                <el-icon color="#f00" @click="handleDelete"><Delete /></el-icon>
+            </span>
+            <span class="m-icon" v-if="user === 1">
+                <el-icon @click="handleBack"><Back /></el-icon>
+            </span>
+            <span class="m-icon">
+                <el-icon @click="handleQuote"><Connection /></el-icon>
+            </span>
+        </div>
         <div
             v-if="type.includes('video')"
             class="video"
+            :class="{ 'video-self': user === 1, 'video-other': user === 0 }"
             @dblclick="doubleclick"
             @contextmenu.prevent="onContextMenu"
             data-menu-video
         >
             <div :class="{'gray-background' : stopIconShow, 'not-allow': destroy }">
-                <div v-if="progress >= 100 && stopIconShow && options.length" class="stop-to-play"></div>
+                <div
+                    v-if="progress >= 100 && stopIconShow && options.length"
+                    class="stop-to-play"
+                    :class="{ 'stop-to-play-self': user === 1, 'stop-to-play-other': user === 0 }"
+                >
+                </div>
             </div>
             <div class="progress" v-if="progress && progress < 100">
                 <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
@@ -81,7 +101,7 @@ import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import mediaDownload from '@/utils/download'
 import menu from '@/utils/contextMenu'
-
+import { Back, Download, Delete, Connection } from '@element-plus/icons-vue'
 const props = defineProps({
     progress: Number,
     type: String,
@@ -205,6 +225,28 @@ function doubleclick() {
     // console.log('url -> ', mediaSrc.value)
 }
 
+function handleDownload() {
+    if (!options.value.length) return
+    const url = `/source/${props.response}`
+    mediaDownload(url, props.fileName, function(err, progress) {
+        if (err) return downloadProgress.value = null
+        downloadProgress.value = progress
+        // console.log('downloadProgress -> ', downloadProgress.value)
+    })
+}
+
+function handleBack() {
+    emit('withdraw', props.dataIndex)
+}
+
+function handleDelete() {
+    emit('deleted', props.dataIndex)
+}
+
+function handleQuote() {
+    emit('quote', props.dataIndex)
+}
+
 // 右键菜单
 const videoMenu = [
     { 
@@ -286,6 +328,7 @@ const imgMenu = [
 
 // 菜单事件
 function onContextMenu(e) {
+    console.log('onContextMenu -> ', e)
     const menuList = [...videoMenu]
     if (!props.user) {
         const shouldRemoveMenus = ['撤回']
@@ -381,13 +424,20 @@ function handleElImageErr() {
 <style lang="scss" scoped>
     .video {
         position: relative;
+        display: flex;
+    }
+    .video-self {
+        justify-content: flex-end;
+    }
+    .video-other {
+        justify-content: flex-start;
     }
     .default-video-style {
         height: 1px;
         width: 1px;
     }
     .video-style {
-        max-width: 400px;
+        max-width: calc(100% - 50px);
         min-width: 150px;
         max-height: 300px;
         // border-radius: 3px;
@@ -399,11 +449,13 @@ function handleElImageErr() {
         width: 50px;
         height: 50px;
         position: absolute;
-        top: 40%;
-        left: calc(50% - 25px);
+        top: calc(50% - 25px);
+        left: calc(50% - 50px);
         cursor: pointer;
         z-index: 999;
-        // background-color: red;
+    }
+    .stop-to-play-self {
+        left: 50%;
     }
     .img-style {
         max-width: 250px;
@@ -428,18 +480,6 @@ function handleElImageErr() {
         //    /deep/ .el-progress__text { // 修改进度条文字提示颜色
         //        color: #00C7FD; 
         //    }
-    }
-    .gray-background {
-        width: 100%;
-        height: calc(100% - 3px);
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        // border-radius: 10px;
-        background: black;
-        opacity: 0.5;
-        z-index: 1;
     }
     .media-sec {
         position: relative;
@@ -473,6 +513,18 @@ function handleElImageErr() {
         background-repeat: no-repeat;
         background-position: 50%;
         background-size: 100px;
+    }
+    .m-icon {
+        margin: 0 8px;
+    }
+    .media-icon {
+        display: flex;
+    }
+    .media-icon-self {
+        justify-content: flex-end;
+    }
+    .media-icon-other {
+        justify-content: flex-start;
     }
 </style>
 

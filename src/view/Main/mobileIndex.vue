@@ -23,7 +23,11 @@
                 <friendsList ref="friendsListRef"  :mobile-mode="true" />
             </div>
 
-            <SendFoot v-if="activeFriend.chat_table" :mobile-mode="true" />
+
+            <div style="position: relative;">
+                <!-- <comentQuote v-if="showQuote" :show-input-quote="true" /> -->
+                <SendFoot v-if="activeFriend.chat_table" :mobile-mode="true" />
+            </div>
         </main>
         <section class="chat-window" v-show="tabActive === 'me'">
             <!-- TODO... -->
@@ -61,6 +65,10 @@ import { ChatRound, User, ArrowLeftBold } from '@element-plus/icons-vue'
 import SendFoot from '@/components/sendFoot/sendFootIndex.vue'
 import More from '@/components/mobileMore/moreIndex.vue'
 import MobileSetting from '@/components/mobileSetting/moIndex.vue'
+// import { CommentQuoteStore } from '@/components/comentQuote/store'
+// import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
+
+// const { showQuote } = storeToRefs(CommentQuoteStore())
 // import tipsMessages from '@/components/tipsMessages/tipsMessagesIndex.vue'
 
 
@@ -137,6 +145,9 @@ function localClickAddFriend() {
             font-weight: 500;
         }
     }
+    :deep .text-show {
+        background-color: #fff;
+    }
 }
 
 .footer {
@@ -148,6 +159,7 @@ function localClickAddFriend() {
     border-top: .5px solid #ddd;
     font-size: 16px;
     font-weight: 500;
+    user-select: none;
 }
 .tab-item {
     -webkit-tap-highlight-color: transparent;
@@ -162,5 +174,6 @@ function localClickAddFriend() {
 }
 .friends-list {
     height: 100%;
+    user-select: none;
 }
 </style>

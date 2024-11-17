@@ -53,6 +53,13 @@
                 <img src="../../assets/send.png" alt="send">
             </button> -->
         </div>
+        <div>
+            <comentQuote
+                v-if="showQuote && mobileMode"
+                :show-input-quote="true"
+                :mobile="mobileMode"
+            />
+        </div>
     </main>
 </template>
 <script setup lang="ts">
@@ -73,9 +80,11 @@ import { FriendsListStore } from '../friendsList/store'
 import RichText from './component/richText/richTextIndex.vue'
 import { MainStore } from '@/view/Main/store'
 import { FolderOpened } from '@element-plus/icons-vue'
+import comentQuote from '@/components/comentQuote/comentQuoteIndex.vue'
 
 
 const sfStore = FootSendStore()
+const { showQuote } = storeToRefs(CommentQuoteStore())
 const { isShowGoToNewBtn: showGotoBottom, chatBoxCacheList } = storeToRefs(sfStore)
 const { comment } = storeToRefs(CommentQuoteStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
@@ -454,6 +463,7 @@ function handleMouseUp(e: MouseEvent) {
     min-height: unset;
     height:70px;
     background: #f4f4f4;
+    border-top: .5px solid #ddd;
 
     .mobile-mode-text {
         background: #fff;
