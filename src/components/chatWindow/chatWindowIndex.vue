@@ -442,7 +442,7 @@ function handleClick(e: any) {
     max-width: calc(100vw - 120px);
     // opacity: 0.5;
     border-radius: 10px 10px 10px 0px;
-    max-width: 500px;
+    // max-width: 500px;
     user-select: text;
   }
 }
