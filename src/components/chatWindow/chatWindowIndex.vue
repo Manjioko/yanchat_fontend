@@ -25,8 +25,14 @@
                 :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }"
               >
                 <span class="chat-box-remote-message-text">
-                  <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)" class="chat-text"
-                    data-menu-text data-target-other :data-index="idx">
+                  <div
+                    v-if="textObject.type === 'text'"
+                    v-html="textToMarkdown(textObject.text)"
+                    class="chat-text"
+                    data-menu-text
+                    data-target-other
+                    :data-index="idx"
+                  >
                   </div>
                   <sendMedia
                   v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
@@ -375,20 +381,12 @@ function handleLoaded(chat_id: string) {
 let show_index:number | null = null
 
 function handleClick(e: any) {
-  // console.log('点击了', e.target)
-  if (e?.target?.tagName !== 'P') {
-    if (typeof show_index === 'number' && chatBox.value[show_index]) {
-      chatBox.value[show_index].show_menu = false
-      show_index = null
-    }
-    return
-  } 
   let index: number | null = null
   const curs = (node: any) => {
     if (node && node !== e.currentTarget) {
       // console.log('e.target dataset -> ', node.dataset)
-      if (node.dataset.checkIndex) {
-        index = Number(node.dataset.checkIndex)
+      if (node.dataset.index) {
+        index = Number(node.dataset.index)
         const data = chatBox.value[index]
         if (data && data.show_menu) {
           // clickMap.delete(index)
@@ -409,6 +407,13 @@ function handleClick(e: any) {
     }
   }
   curs(e.target)
+
+  if (index === null) {
+    if (typeof show_index === 'number' && chatBox.value[show_index]) {
+      chatBox.value[show_index].show_menu = false
+      show_index = null
+    }
+  }
 }
 </script>
 <style lang="scss" scoped>

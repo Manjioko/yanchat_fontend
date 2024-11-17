@@ -32,7 +32,9 @@
 
 
 
-            <RichText ref="richText" :class="mobileMode ? 'mobile-mode-text' : ''" @rich-text-data="richTextData" @keydown="hdkeydown" />
+
+            <el-input v-if="mobileMode" class="m-input" enterkeyhint="send" v-model="chatText" @keydown="handleMobileSend" />
+            <RichText v-else ref="richText" @rich-text-data="richTextData" @keydown="hdkeydown" />
 
             <!-- <div v-if="mobileMode" class="send-btn" @click="clickSendBtn()">
                 <el-icon :size="30">
@@ -105,6 +107,13 @@ function hdkeydown(e: any) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         clickSendBtn()
+    }
+}
+
+function handleMobileSend(e: any) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        sendMessage()
     }
 }
 
@@ -187,7 +196,7 @@ async function sendMessage(chatData?:Box) {
 
     // 清空聊天框
     chatText.value = ''
-    richText.value.clearRichText()
+    richText.value?.clearRichText()
 }
 
 // 文件分段上传测试
@@ -211,12 +220,8 @@ async function uploadFile(fileData:File) {
     const formData = new FormData()
     formData.append("file", fileData)
     const size = byteCovert(fileData?.size)
-    // console.log('filename -> ', fileData)
-    console.log('size -> ', size)
     if (!size) return 
     const uuid = uuidv4()
-
-    console.log('1111111111')
     
     const box:Box = reactive({
         progress: 0,
@@ -487,5 +492,12 @@ function handleMouseUp(e: MouseEvent) {
         left: -15px;
         opacity: 0;
     }
+}
+
+.m-input {
+    height: 45px;
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+    border: none;
 }
 </style>
