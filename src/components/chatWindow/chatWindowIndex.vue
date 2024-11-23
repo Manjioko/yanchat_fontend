@@ -16,6 +16,9 @@
                 v-if="textObject.show_menu"
                 :data-index="Number(idx)"
                 :user="textObject.user"
+                :item-type="textObject.type"
+                :response="textObject.response"
+                :fileName="textObject.fileName"
                 @withdraw="emitWithdraw"
                 @deleted="emitDeleted"
                 @quote="handleQuote"
@@ -35,7 +38,7 @@
                   >
                   </div>
                   <sendMedia
-                  v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
+                    v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
                     :progress="textObject.progress"
                     :type="textObject.type"
                     :src="handleSendMediaSrc(textObject)"
@@ -49,11 +52,23 @@
                     @withdraw="emitWithdraw"
                     @deleted="emitDeleted"
                     @quote="handleQuote"
-                    @loaded="handleLoaded"/>
-                  <sendFile v-else :progress="textObject.progress" :type="textObject.type"
-                    :fileName="textObject.fileName" :size="textObject.size?.toString()" :response="textObject.response"
-                    :destroy="textObject.destroy" :user="textObject.user" :data-index="Number(idx)"
-                    @withdraw="emitWithdraw" @deleted="emitDeleted" @quote="handleQuote" />
+                    @loaded="handleLoaded"
+
+                  />
+                  <sendFile
+                    v-else
+                    :progress="textObject.progress"
+                    :type="textObject.type"
+                    :fileName="textObject.fileName"
+                    :size="textObject.size?.toString()"
+                    :response="textObject.response"
+                    :destroy="textObject.destroy"
+                    :user="textObject.user"
+                    :data-index="Number(idx)"
+                    @withdraw="emitWithdraw"
+                    @deleted="emitDeleted"
+                    @quote="handleQuote"
+                  />
                 </span>
               </div>
               <comentQuote v-if="textObject.quote" :quote="textObject.quote" />
@@ -74,6 +89,9 @@
                 v-if="textObject.show_menu"
                 :data-index="Number(idx)"
                 :user="textObject.user"
+                :item-type="textObject.type"
+                :response="textObject.response"
+                :fileName="textObject.fileName"
                 @withdraw="emitWithdraw"
                 @deleted="emitDeleted"
                 @quote="handleQuote"
@@ -384,7 +402,6 @@ function handleClick(e: any) {
   let index: number | null = null
   const curs = (node: any) => {
     if (node && node !== e.currentTarget) {
-      // console.log('e.target dataset -> ', node.dataset)
       if (node.dataset.index) {
         index = Number(node.dataset.index)
         const data = chatBox.value[index]
@@ -399,7 +416,6 @@ function handleClick(e: any) {
           show_index = index
           chatBox.value[index].show_menu = true
         }
-        // console.log('weakMap111 -> ', clickWeakMap)
         return
       }
 

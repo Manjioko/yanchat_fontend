@@ -3,7 +3,7 @@ import { handleWithdrawUtils } from '@/components/chatWindow/Methods/withDraw'
 import { MainStore } from '@/view/Main/store'
 import { ChatWindowStore } from '@/components/chatWindow/store'
 import { handleUploadTipsSuccess, handleUploadTipsFailed } from '@/components/sendFoot/Methods'
-// import { dbAdd } from '@/view/Main/Methods/indexDB'
+import { dbAdd } from '@/view/Main/Methods/indexDB'
 const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
 // 处理消息通知
@@ -31,6 +31,7 @@ export function handleTips(tips: { data: Tips[] }) {
                     if (!to_user_id) continue
                     // store.commit('global/addTips', item)
                     chatWindowStore.addTips(item)
+                    saveTips(item)
                 }
                 break
             case 'withdraw':
@@ -80,12 +81,12 @@ export function handleTips(tips: { data: Tips[] }) {
     
 }
 
-// function saveTips(data: any, tips_success?: string, text_error?: string) {
-//     dbAdd('tips_messages', data)
-//     .then((res) => {
-//         console.log(tips_success || '保存数据到数据库成功 -> ', res)
-//     })
-//     .catch((err: string) => {
-//         console.log(text_error || '保存数据到数据库失败 -> ', err)
-//     })
-// }
+function saveTips(data: any, tips_success?: string, text_error?: string) {
+    dbAdd('tips_messages', data)
+    .then((res) => {
+        console.log(tips_success || '保存数据到数据库成功 -> ', res)
+    })
+    .catch((err: string) => {
+        console.log(text_error || '保存数据到数据库失败 -> ', err)
+    })
+}

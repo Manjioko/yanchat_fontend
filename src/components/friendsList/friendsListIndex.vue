@@ -294,12 +294,13 @@ async function addFriend() {
     const tips: Tips = {
       to_id,
       messages_type: 'addFriend',
+      user_id: user_info.value.user_id, // 用于让服务器识别客户端
       messages_box: {
         msg: `${user_info.value.user} 想添加你为好友`,
         friend_phone_number: user_info.value.phone_number,
         friendName: user_info.value.user,
         friend_user_id: user_info.value.user_id,
-        to_user_id: udata.data[0].user_id
+        to_user_id: udata.data[0].user_id,
       }
     }
     mainStore.ws?.send(JSON.stringify(tips))

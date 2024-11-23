@@ -19,11 +19,13 @@ export default {
 <style>
 html {
   height: 100%;
+  overflow: hidden; /* 禁止滚动 */
 }
 body {
   margin: 0;
   /* overscroll-behavior-y: contain; */
   height: 100%;
+  overflow: hidden; /* 禁止滚动 */
 }
 img {
   -webkit-user-drag: none;

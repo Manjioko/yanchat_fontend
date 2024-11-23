@@ -51,7 +51,18 @@
             </el-icon>
         </div>
 
-
+        <div class="line" @click="handleEditMsg">
+            <span class="line-text" style="flex: unset;">消息</span>
+            <div style="flex: 1;" class="tip-box">
+                <div v-if="tipNumber" class="tip-number">
+                    {{ tipNumber > 99 ? '99+' : tipNumber }}
+                </div>
+            </div>
+            
+            <el-icon size="16">
+                <ArrowRight />
+            </el-icon>
+        </div>
 
         <div class="exit-login" @click="handleExit">
             <div>退出登录</div>
@@ -63,7 +74,7 @@
 import { MainStore } from '@/view/Main/store'
 const mainStore = MainStore()
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { clearUserInfo } from '@/view/Main/Methods/userInfoOperator'
 import { ResetPinia } from '@/utils/resetAllPiniaStore'
@@ -74,8 +85,12 @@ import to from 'await-to-js'
 import { getAvatarImage } from '@/utils/thumbnail'
 import { ElMessage } from 'element-plus'
 import { AppSettingStore } from '../appSetting/store'
+import { dbReadAll } from '@/view/Main/Methods/indexDB'
+import { ChatWindowStore } from '../chatWindow/store'
+const chatWindowStore = ChatWindowStore()
+const { tips } = storeToRefs(chatWindowStore)
 
-const { signal, ws: websocket,   } = storeToRefs(mainStore)
+const { signal, ws: websocket,dbname:dbName   } = storeToRefs(mainStore)
 // const { ws: websocket,  isUseMd } = storeToRefs(MainStore())
 const friendsListStore = FriendsListStore()
 const { userInfo } = storeToRefs(friendsListStore)
@@ -146,6 +161,40 @@ function handleEditNick() {
 function handleEditMd() {
     router.replace('/md')
 }
+
+function handleEditMsg() {
+    router.replace('/msg')
+}
+
+
+// 查看消息数量
+const tipNumber = ref(0)
+function showTips() {
+    console.log('查看消息数量')
+    dbReadAll('tips_messages')
+        .then((res: any) => {
+            let ary = []
+            res?.forEach((item: Tips) => {
+                if (item.messages_type === 'addFriend') {
+                    ary.push(item)
+                }
+            })
+            tipNumber.value = ary.length
+        })
+        .catch((err: string) => {
+            console.log('读取 tips_messages 数据库失败 -> ', err)
+        })
+}
+watch(() => dbName.value, (val) => {
+    if (val) {
+        showTips()
+    }
+})
+
+
+watch(() => tips.value, () => {
+    showTips()
+})
 </script>
 
 <style scoped lang="scss">
@@ -225,9 +274,9 @@ function handleEditMd() {
     margin: 16px 16px;
     border-radius: 8px;
     box-shadow: 1px 1px 3px #ddd;
-    .line-text {
-        flex: 1;
-    }
+}
+.line-text {
+    flex: 1;
 }
 
 .avatar-edit {
@@ -246,6 +295,22 @@ function handleEditMd() {
         right: 0;
         opacity: 0;
     }
+}
+
+.tip-number {
+    width: 24px;
+    height: 24px;
+    background: red;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+}
+
+.tip-box {
+    margin-left: 8px;
 }
 
 </style>

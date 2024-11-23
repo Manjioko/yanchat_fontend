@@ -5,7 +5,8 @@ const routes = [
     { path: '/', name: 'Login', component: () => import('../view/Login/loginIndex.vue') },
     { path: '/chat', name: 'Chat', component: () => import('../view/Main/entryRouter.vue') },
     { path: '/nick', name: 'Nick', component: () => import('../components/mobileSetting/components/editNick.vue') },
-    { path: '/md', name: 'Md', component: () => import('../components/mobileSetting/components/editMd.vue') }
+    { path: '/md', name: 'Md', component: () => import('../components/mobileSetting/components/editMd.vue') },
+    { path: '/msg', name: 'Msg', component: () => import('../components/mobileSetting/components/editMsg.vue') }
 ]
 
 const router = createRouter({

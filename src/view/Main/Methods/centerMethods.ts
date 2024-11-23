@@ -70,6 +70,8 @@ export function centerSend(chatData: Box) {
                     const uploadSuccessTips: Tips = {
                         to_id: chatData.to_id,
                         messages_type: 'uploadFailed',
+                        user_id: chatData.user_id,
+                        to_table: chatData.to_table,
                         messages_box: {
                             uploadState: 'failed',
                             progress: chatData.progress,

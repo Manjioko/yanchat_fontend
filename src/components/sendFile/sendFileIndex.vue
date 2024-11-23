@@ -1,6 +1,6 @@
 <!-- 结构部分 -->
 <template>
-    <div class="pr" @contextmenu.prevent="onContextMenu" data-menu-file>
+    <div class="pr" @contextmenu.prevent="onContextMenu" data-menu-file :data-index="dataIndex">
         <!-- 下载视频 loading -->
         <div class="download-progress" :class="{ 'other-progress': user === 0}" v-if="downloadProgress && downloadProgress < 100">
             <el-progress

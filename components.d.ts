@@ -11,6 +11,7 @@ declare module 'vue' {
     ChatWindowIndex: typeof import('./src/components/chatWindow/chatWindowIndex.vue')['default']
     ComentQuoteIndex: typeof import('./src/components/comentQuote/comentQuoteIndex.vue')['default']
     EditMd: typeof import('./src/components/mobileSetting/components/editMd.vue')['default']
+    EditMsg: typeof import('./src/components/mobileSetting/components/editMsg.vue')['default']
     EditNick: typeof import('./src/components/mobileSetting/components/editNick.vue')['default']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElButton: typeof import('element-plus/es')['ElButton']

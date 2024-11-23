@@ -14,6 +14,12 @@
             :class="{ 'show-self': user === 1 }"
         >
         </div>
+        <span class="m-icon" v-if="showDownload()">
+            <div class="m-icon-box" @click="handleDownload">
+                <div class="m-icon-text">下载</div>
+                <el-icon><Download /></el-icon>
+            </div>
+        </span>
         <span class="m-icon" v-if="user === 1">
             <div class="m-icon-box" @click="handleBack">
                 <div class="m-icon-text">撤回</div>
@@ -39,8 +45,9 @@
 
 
 <script lang="ts" setup>
-import { Back, Delete, Connection } from '@element-plus/icons-vue'
+import { Back, Delete, Connection, Download } from '@element-plus/icons-vue'
 import { defineEmits, onMounted, ref } from 'vue'
+import mediaDownload from '@/utils/download'
 
 const emit = defineEmits(['withdraw', 'deleted', 'quote'])
 
@@ -49,6 +56,9 @@ const mediaIcon = ref()
 const props = defineProps({
     dataIndex: Number,
     user: Number,
+    itemType: String,
+    response: String,
+    fileName: String
 })
 
 let showBottom = ref(false)
@@ -72,6 +82,24 @@ function handleDelete() {
 
 function handleQuote() {
     emit('quote', props.dataIndex)
+}
+
+// function handleDownload() {
+//     mediaDownload(props.dataIndex)
+// }
+
+function handleDownload() {
+    // if (!options.value.length) return
+    console.log('props -> ', props.response, props.fileName, props.itemType)
+    const url = `/source/${props.response}`
+    if (props.fileName) {
+        mediaDownload(url, props.fileName, function() {
+        })
+    }
+}
+
+function showDownload() {
+    return !props.itemType?.includes('text') || props.itemType?.includes('text/')
 }
 </script>
 
@@ -97,6 +125,8 @@ function handleQuote() {
 
 .m-icon {
     margin: 0 8px;
+    flex: 1;
+    min-width: 50px;
 }
 .show-bottom {
     top: unset !important;

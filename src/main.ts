@@ -53,4 +53,9 @@ window.onload = function() {
     document.addEventListener('gesturestart', function(event) {
         event.preventDefault();
     });
+
+    // 阻止双指缩小
+    // document.addEventListener('touchmove', function(event) {
+    //     event.preventDefault();
+    // }, { passive: false });
 }
