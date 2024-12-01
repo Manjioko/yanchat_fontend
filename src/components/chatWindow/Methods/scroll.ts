@@ -25,7 +25,7 @@ export async function scrollEvent(val: { scrollTop: number }) {
     scrollOffsetAntiShakeFn()
     // if (!scrollData.value?.el) return
     if (Math.floor(val.scrollTop) === 0 && scrollUpLock.value === 'UnLock') {
-        // console.log('滚到了顶部，需要获取数据了')
+        console.log('滚到了顶部，需要获取数据了')
         scrollAntiShakeFn('No', 'prev')
     }
     if (
@@ -33,7 +33,7 @@ export async function scrollEvent(val: { scrollTop: number }) {
         scrollData.value.el.scrollHeight &&
         scrollDownLock.value === 'UnLock'
     ) {
-        // console.log('滚到了底部，需要获取数据了')
+        console.log('滚到了底部，需要获取数据了')
         scrollAntiShakeFn('No', 'next')
     }
 }

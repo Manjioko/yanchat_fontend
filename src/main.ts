@@ -55,7 +55,53 @@ window.onload = function() {
     });
 
     // 阻止双指缩小
-    // document.addEventListener('touchmove', function(event) {
+    // document.addEventListener('touchmove', function(event:any) {
+    //     console.log('阻止双指缩小 ====', event.target.className)
+    //     if (event.target.className && ['chat-box-local', 'chat-box-remote', 'video-style', 'video video-self', 'el-image__inner el-image__preview', 'pr-message'].includes(event.target.className)) {
+    //         return
+    //     }
     //     event.preventDefault();
     // }, { passive: false });
+
+
+    if (window.visualViewport) {
+        const initialHeight = window.visualViewport.height;
+    
+        window.visualViewport.addEventListener('resize', (e: any) => {
+            const currentHeight = window?.visualViewport?.height;
+            const keyboardHeight = initialHeight - (currentHeight || 0);
+            if (keyboardHeight > 0) {
+                console.log('键盘已打开');
+                // document.body.style.height = `${window.innerHeight - keyboardHeight}px`;
+                // window.scrollTo(0, 0);
+                document.addEventListener('touchmove', touchMove, { passive: false })
+            } else {
+                console.log('键盘已关闭');
+                // document.body.style.height = '100%';
+                // document.removeEventListener('touchmove', touchMove)
+                document.removeEventListener('touchmove', touchMove)
+            }
+        });
+    }
+
+
+    // document.addEventListener('focusin', () => {
+    //     if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    //     }
+    // })
+
+    // document.addEventListener('focusout', () => {
+    //     if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    //     }
+    // })
+
+}
+
+
+function touchMove (event: any) {
+    console.log('手指移动到的位置 ====', event.target.className)
+    if (event.target.className && ['chat-box-local', 'chat-box-remote', 'video-style', 'video video-self', 'el-image__inner el-image__preview', 'pr-message'].includes(event.target.className)) {
+        return
+    }
+    event.preventDefault();
 }

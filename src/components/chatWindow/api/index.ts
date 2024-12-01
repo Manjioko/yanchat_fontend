@@ -25,3 +25,19 @@ export function revokeChat(data: revokeChat_Inter) {
         data
     })
 }
+
+// 从服务器获取聊天记录
+interface getChat_Inter {
+    user_id: string,
+    chat_table: string,
+    limit: number,
+    position: string,
+    offset?: number
+}
+export function getChatData(data: getChat_Inter) {
+    return request({
+        method: 'post',
+        url: '/chatData',
+        data
+    })
+}

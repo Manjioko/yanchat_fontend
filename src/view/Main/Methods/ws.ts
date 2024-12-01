@@ -149,6 +149,7 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                 break
             default:
                 // centerFn(chatData, 'received')
+                console.log('发送过来的消息 -> ', JSON.parse(JSON.stringify(chatData)))
                 centerReceived(chatData)
                 {
                     const pong: PingPong = {
@@ -157,14 +158,13 @@ function connectWebSocket(params: WsConnectParams, isReconnect:boolean = false) 
                         to_table: chatData.to_table,
                         chat_id: chatData.chat_id,
                         pingpong: 'pong',
-                        id: chatData?.id ?? '' // 这里应该是服务器数据库响应的 id
+                        server_id: chatData.server_id,
                     }
                     // console.log('客户端响应 -> ', pong)
                     websocket?.send(JSON.stringify(pong))
 
                     dbAdd(chatData.to_table, chatData)
-                    .then((res) => {
-                        chatData.id = res
+                    .then(() => {
                         console.log('ws.ts 保存数据到数据库成功 -> ', chatData)
                     })
                     .catch((err: string) => {

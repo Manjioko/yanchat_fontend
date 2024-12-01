@@ -6,6 +6,8 @@ import typeIs from '@/utils/type'
 import { MainStore } from '@/view/Main/store'
 import { FriendsListStore } from '@/components/friendsList/store'
 import { storeToRefs } from 'pinia'
+// import { getActionFriendPositionData } from './mainMethods'
+import { getActionFriendPositionData } from '@/components/chatWindow/Methods/positionOperator'
 // import { v4 as uuidv4 } from 'uuid'
 
 const mainstore = MainStore()
@@ -69,19 +71,24 @@ export function dbAdd(tableName: String, data: Box):Promise<number> {
 
         const tran = mainstore.db.transaction([tableName], 'readwrite')
         const store = tran.objectStore(tableName)
+        if (data.id) {
+            delete data.id
+        }
+        console.log('data -> ', data)
         const req = store.add(data)
 
-        const saveId = (id: number) => {
+        const saveId = (primaryKey: number) => {
             try {
-                const request = store.put({ ...data, id }, id)
+                // console.log('primaryKey -> ', primaryKey, data)
+                const request = store.put({ ...data, time_id: primaryKey }, primaryKey)
                 request.onsuccess = (res: Event) => {
-                    resolve(id)
+                    resolve(primaryKey)
                 }
                 request.onerror = (err: Event) => {
                     reject(err)
                 }
             } catch {
-                resolve(id)
+                resolve(primaryKey)
             }
         }
 
@@ -90,8 +97,9 @@ export function dbAdd(tableName: String, data: Box):Promise<number> {
             saveId(target.result)
         }
 
-        req.onerror = (err: Event) => {
-            reject(err)
+        req.onerror = (err: any) => {
+            // console.log('err -> ',data, )
+            reject(err?.target?.error)
         }
     })
 }
@@ -126,8 +134,8 @@ export function dbRead<T>(tableName: String, field: string, searchStr: string | 
                 resolve(data)
             }
         }
-        cursorEvent.onerror = (err: Event) => {
-            reject(err.type)
+        cursorEvent.onerror = (err: any) => {
+            reject(err.target.error)
         }
     })
 }
@@ -231,10 +239,10 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC = 'pre
                     time++
                     cur.continue()
                 } else {
-                    resolve(box)
+                    resolve(box.reverse())
                 }
             } else {
-                resolve(box)
+                resolve(box.reverse())
             }
         },
         curReq.onerror = (err: Event) => {
@@ -245,29 +253,84 @@ export function dbReadRange(tableName: string, offset: number, desc: DESC = 'pre
 }
 
 // 范围数据(通过 offset 区间读取数据)
-export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperOffset: number): Promise<Box[]> {
+export function dbReadRangeByArea(tableName: string, first: number, last: number, flex: number = 5): Promise<Box[]> {
     return new Promise((resolve, reject) => {
         if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
         const store = (mainstore.db as IDBDatabase)
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
         const box:Box[] = []
-        // console.log('offset -> ', lowerOffset, upperOffset)
-        const lower = lowerOffset >= 0 ? lowerOffset : 0
-        const upper = upperOffset >= 0 ? upperOffset : 0
-        const curReq = store.openCursor(IDBKeyRange.bound(lower, upper, false, false))
-        curReq.onsuccess = (e: Event) => {
+        console.log('offset -> ', first, last)
+        // 分三步走才能正常取出数据 【least5Data, last) + [last, first] + (first, least5Data]
+        // 第一步
+        const lfReq = store.openCursor(IDBKeyRange.bound(last, first, false, false), 'next')
+        // let firstIdx = 0
+        lfReq.onsuccess = (e: Event) => {
             const cur = (e.target as IDBRequest).result
             if (cur) {
-                box.push(cur.value)
+                box.unshift(cur.value)
+                // firstIdx++
                 cur.continue()
             } else {
-                resolve(box)
+                
+                Promise.allSettled([getLastData(), getFirstData()]).then(res => {
+                    console.log('res -> ', res)
+                    resolve(box)
+                }).catch(err => {
+                    reject(err)
+                })
             }
         },
-        curReq.onerror = (err: Event) => {
+        lfReq.onerror = (err: Event) => {
             const target = err.target as IDBRequest
             reject(target.error?.message)
+        }
+
+        // 第二步
+        const getLastData = () => {
+            return new Promise((lresolve, lreject) => {
+                const lastReq = store.openCursor(IDBKeyRange.upperBound(last, true), 'prev')
+                let lastIdx = 0
+                lastReq.onsuccess = (e: Event) => {
+                    const cur = (e.target as IDBRequest).result
+                    if (cur && lastIdx < flex) {
+                        box.push(cur.value)
+                        lastIdx++
+                        cur.continue()
+                    } else {
+                        // resolve(box)
+                        // getFirstData()
+                        // lresolve(box)
+                        lresolve(box)
+                    }
+                },
+                lastReq.onerror = (err: Event) => {
+                    const target = err.target as IDBRequest
+                    lreject(target.error?.message)
+                }
+            })
+        }
+
+        // 第三步
+        const getFirstData = () => {
+            return new Promise((fresolve, freject) => {
+                const firstReq = store.openCursor(IDBKeyRange.lowerBound(first, true), 'next')
+                let firstIdx = 0
+                firstReq.onsuccess = (e: Event) => {
+                    const cur = (e.target as IDBRequest).result
+                    if (cur && firstIdx < flex) {
+                        box.unshift(cur.value)
+                        firstIdx++
+                        cur.continue()
+                    } else {
+                        fresolve(box)
+                    }
+                },
+                firstReq.onerror = (err: Event) => {
+                    const target = err.target as IDBRequest
+                    freject(target.error?.message)
+                }
+            })
         }
     })
 }
@@ -276,28 +339,32 @@ export function dbReadRangeByArea(tableName: string, lowerOffset: number, upperO
 export function dbReadRangeNotOffset(tableName: string, desc: DESC = 'prev' as DESC, size: number = 10): Promise<Box[]> {
     return new Promise((resolve,reject) => {
         if (typeIs(mainstore.db) !== 'IDBDatabase') return reject('数据库不存在,请检查数据库是否打开')
-        console.log('获取数据 参数 -> ', tableName, desc, size)
+        // console.log('获取数据 参数 -> ', tableName, desc, size)
         const store = (mainstore.db as IDBDatabase)
             .transaction([tableName], 'readonly')
             .objectStore(tableName)
 
         const handler = (offset: number) => {
-            const cursorEvent = store.openCursor(IDBKeyRange.upperBound(offset), desc)
+            // console.log('offset -> ', offset)
+            const cursorEvent = store.openCursor(IDBKeyRange.lowerBound(offset), 'next')
             const data: Box[] = []
             let time: number = 0
+            const position:Position = getActionFriendPositionData()
+            const length = position?.flex_length ? position.flex_length * 2 : size
             cursorEvent.onsuccess = (res: Event) => {
                 const cursor = (res.target as IDBRequest).result
                 if (cursor) {
-                    if (time < size) {
-                        desc === 'prev' ? data.unshift(cursor.value) : data.push(cursor.value)
+                    if (time < length) {
+                        data.push(cursor.value) 
                         time++
                         cursor.continue()
                     } else {
-                        resolve(data)
+                        // console.log('获取数据* ->', data)
+                        resolve(data.reverse())
                     }
                 } else {
-                    // console.log('没数据了 ->', data)
-                    resolve(data)
+                    // console.log('没数据了* ->', data)
+                    resolve(data.reverse())
                 }
             }
             cursorEvent.onerror = (err: Event) => {
@@ -306,7 +373,7 @@ export function dbReadRangeNotOffset(tableName: string, desc: DESC = 'prev' as D
             }
         }
 
-        const keyCursorRequest = store.openKeyCursor(null, 'prev')
+        const keyCursorRequest = store.openKeyCursor(null, 'next')
         keyCursorRequest.onsuccess = (res: Event) => {
             const result = (res.target as IDBRequest).result
             if (result) {
@@ -427,8 +494,8 @@ export function dbUpdate(tableName: string, data: Box): Promise<string> {
         const objectStore = transaction.objectStore(tableName)
 
         // 使用 key 参数来指定键
-        console.log('更新的id -> ', data.id)
-        const request = objectStore.put(data, data.id)
+        console.log('更新的id -> ', data.time_id)
+        const request = objectStore.put(data)
 
         request.onsuccess = function (event: Event) {
             console.log('更新成功 -> ', event)
@@ -455,14 +522,14 @@ export function dbUpdateByChatId(tableName: string, chatId: string, data: Record
         request.onsuccess = function (event: Event) {
             const chatData = (event.target as IDBRequest).result
             if (chatData) {
-                const request = objectStore.put({ ...chatData, ...data}, chatData.id)
+                const request = objectStore.put({ ...chatData, ...data}, chatData.time_id)
                 request.onsuccess = function (event: Event) {
-                    console.log('更新成功 -> ', event)
+                    // console.log('更新成功 -> ', event)
                     resolve(event.type);
                 }
 
                 request.onerror = function (error: Event) {
-                    console.log('更新失败 -> ', error)
+                    // console.log('更新失败 -> ', error)
                     reject(error.type)
                 }
             }
@@ -479,7 +546,7 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
     // 好友系统表结构
     const indexList = [
         { name: 'user_id', unique: false },
-        { name: 'id', unique: true },
+        // { name: 'id', unique: true },
         { name: 'table_id', unique: false },
         { name: 'user', unique: false },
         { name: 'phone_number', unique: false },
@@ -500,6 +567,7 @@ export async function updateDatabase(oldDB?: IDBDatabase): Promise<IDBDatabase> 
         // ai聊天室本身不存在 table_id, 因为是本质上不是个双人聊天室，而是个内容生成窗口
         name: item.ai ? item.user_id : item.chat_table,
         // key: 'chat_id',
+        key: 'time_id',
         indexList
     })) || []
     initConfig.push(tipsTable)

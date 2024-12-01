@@ -48,27 +48,27 @@
 
 <script lang="ts" setup>
 import { Search } from '@element-plus/icons-vue'
-import { ref, watch, nextTick, defineExpose, Ref } from 'vue'
+import { ref, watch, defineExpose, Ref } from 'vue'
 import { dbRead } from '@/view/Main/Methods/indexDB'
 import debounce from '@/utils/debounce'
 import { FriendsListStore } from '../friendsList/store'
-import { ChatWindowStore } from '../chatWindow/store'
+// import { ChatWindowStore } from '../chatWindow/store'
 import { storeToRefs } from 'pinia'
-import { setActionFriendPositionData } from '../chatWindow/Methods/positionOperator'
-import { getChatFromServer } from '../chatWindow/Methods/getData'
-import { SearchTextStore } from './store'
-import { FootSendStore } from '../sendFoot/store'
+// import { setActionFriendPositionData } from '../chatWindow/Methods/positionOperator'
+// import { getChatFromServer } from '../chatWindow/Methods/getData'
+// import { SearchTextStore } from './store'
+// import { FootSendStore } from '../sendFoot/store'
 import { MainStore } from '@/view/Main/store'
 
-const searchTextStore = SearchTextStore()
-const { searchTextLock } = storeToRefs(searchTextStore)
+// const searchTextStore = SearchTextStore()
+// const { searchTextLock } = storeToRefs(searchTextStore)
 const { fullScreen } = storeToRefs(MainStore())
 
 const friendStore = FriendsListStore()
-const chatWindowStore = ChatWindowStore()
+// const chatWindowStore = ChatWindowStore()
 const { activeFriend } = storeToRefs(friendStore)
-const { isLastChatList, scrollUpLock, scrollDownLock, scrollSafeLength } = storeToRefs(chatWindowStore)
-const { isShowGoToNewBtn, chatBoxCacheList } = storeToRefs(FootSendStore())
+// const { isLastChatList, scrollUpLock, scrollDownLock, scrollSafeLength } = storeToRefs(chatWindowStore)
+// const { isShowGoToNewBtn, chatBoxCacheList } = storeToRefs(FootSendStore())
 
 
 const activeName = ref('text')
@@ -147,31 +147,31 @@ const deb = debounce(handleSearch, 1000)
 
 // 跳转到指定位置
 function gotoPosition (row: Box) {
-    if (row.id) {
-        setActionFriendPositionData({
-            use: row.id,
-            first: row.id - Math.ceil(scrollSafeLength.value / 2) > 0 ? row.id - Math.ceil(scrollSafeLength.value / 2) : 0,
-            last: row.id + Math.ceil(scrollSafeLength.value / 2 || 10)
-        })
+    if (row.time_id) {
+        // setActionFriendPositionData({
+        //     use: row.id,
+        //     first: row.id - Math.ceil(scrollSafeLength.value / 2) > 0 ? row.id - Math.ceil(scrollSafeLength.value / 2) : 0,
+        //     last: row.id + Math.ceil(scrollSafeLength.value / 2 || 10)
+        // })
         // chatBox.value = []
-        nextTick(() => {
-            // 加个搜索文字锁，防止重复请求
-            searchTextLock.value = 'Yes'
+        // nextTick(() => {
+        //     // 加个搜索文字锁，防止重复请求
+        //     searchTextLock.value = 'Yes'
 
 
-            // 重置锁
-            scrollUpLock.value = 'UnLock'
-            scrollDownLock.value = 'UnLock'
-            // 记录的结尾标识也需要重置
-            isLastChatList.value = 'No'
-            // 存在回到最新提示的也需要重置
-            isShowGoToNewBtn.value = 'No'
-            // 未显示内容需要重置
-            chatBoxCacheList.value = []
+        //     // 重置锁
+        //     scrollUpLock.value = 'UnLock'
+        //     scrollDownLock.value = 'UnLock'
+        //     // 记录的结尾标识也需要重置
+        //     isLastChatList.value = 'No'
+        //     // 存在回到最新提示的也需要重置
+        //     isShowGoToNewBtn.value = 'No'
+        //     // 未显示内容需要重置
+        //     chatBoxCacheList.value = []
             
 
-            getChatFromServer('Yes', 'prev')
-        })
+        //     getChatFromServer('Yes', 'prev')
+        // })
     }
 }
 

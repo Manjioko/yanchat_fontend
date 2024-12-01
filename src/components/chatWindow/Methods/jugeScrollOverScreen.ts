@@ -1,5 +1,5 @@
 import { FootSendStore } from "@/components/sendFoot/store"
-import { deleteActionFriendPositionData } from '../Methods/positionOperator'
+// import { deleteActionFriendPositionData } from '../Methods/positionOperator'
 import { storeToRefs } from "pinia"
 import { ChatWindowStore } from "@/components/chatWindow/store"
 
@@ -44,7 +44,7 @@ export function jugeScrollOverScreen(elList: HTMLElement[]) {
                         isShowGoToNewBtn.value = 'No'
                         isGetGoToNewSingle.value = 'No'
                         // 一旦到底了, 就不需要定位，不然可能会出现问题
-                        deleteActionFriendPositionData()
+                        // deleteActionFriendPositionData()
                     }
                 }
             }

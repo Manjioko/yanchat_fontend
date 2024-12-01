@@ -170,7 +170,6 @@ function handleEditMsg() {
 // 查看消息数量
 const tipNumber = ref(0)
 function showTips() {
-    console.log('查看消息数量')
     dbReadAll('tips_messages')
         .then((res: any) => {
             let ary = []

@@ -1,6 +1,7 @@
 // import { MainStore } from "../store"
 // import { Locked } from "@/interface/global"
 import { ChatWindowStore } from "@/components/chatWindow/store"
+import { nextTick } from "vue"
 
 // const mainStore = MainStore()
 const chatWindowStore = ChatWindowStore()
@@ -19,9 +20,11 @@ export function cutChatBox(elList: HTMLElement[]) {
     const isOver4 = Number(screenFirstIndex) > screenLength * 4
 
     if (isOver4) {
-        console.log('顶部数据超过窗口距离的 4 倍了')
+        console.log('顶部数据超过窗口距离的 4 倍了', Math.ceil(2 / 3 * Number(screenFirstIndex)), screenFirstIndex)
         chatWindowStore.chatBox = chatWindowStore.chatBox.slice(Math.ceil(2 / 3 * Number(screenFirstIndex)))
         // 一旦裁剪完毕，一定记得将锁设置为解锁
-        chatWindowStore.scrollUpLock = 'UnLock'
+        nextTick(() => {
+            chatWindowStore.scrollUpLock = 'UnLock'
+        })
     }
 }

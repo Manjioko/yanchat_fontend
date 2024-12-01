@@ -164,7 +164,6 @@ async function _centerSendBefore(chatData: Box) {
 
     // 保存到本地
     const id = await dbAdd(chatData.to_table, {...chatData})
-    chatData.id = id
     return id
 }
 
@@ -249,7 +248,7 @@ export async function centerSentPondEcho(data: PingPong) {
         }
 
         nextTick(() => {
-            dbUpdate(chatData.to_table, { ...chatData })
+            dbUpdate(chatData.to_table, { ...chatData, server_id: data.server_id })
             .then(res => {
                 console.log('更新数据库成功了 update * -> ', res)
             })
@@ -267,7 +266,6 @@ export async function centerSentPondEcho(data: PingPong) {
         }
         if (chatBoxCacheList.value[index].loading) {
             chatBoxCacheList.value[index].loading = false
-            // chatBoxCacheList.value[index].id = data.id
         }
         chatBox.value.push(chatBoxCacheList.value[index])
         nextTick(() => {
@@ -292,9 +290,7 @@ export async function centerAISend(chatData: Box) {
     chatBox.value.push(chatData)
     const user_id = activeFriend.value.user_id
     // 保存到本地, ai 只有user_id, 不存在 table_id
-    const id = await dbAdd(user_id, {...chatData})
-    chatData.id = id
-    // console.log('id 是 -> ', user_id)
+    await dbAdd(user_id, {...chatData})
     nextTick(() => {
         scrollToBottom()
     })
@@ -329,7 +325,7 @@ export async function centerAISend(chatData: Box) {
 
     const model = localStorage.getItem('AI_MODEL') || 'qwen2:latest'
     // 获取数据库第一个数据
-    const firstKey = await dbGetLastPrimaryKey(user_id, 'next')
+    const firstKey = await dbGetLastPrimaryKey(user_id, 'prev')
     // 从数据库中获取上下文
     const context = await dbReadByIndex(user_id, 'id', firstKey || 1)
 
@@ -351,8 +347,7 @@ export async function centerAISend(chatData: Box) {
         }
         if (part.done) {
             // 保存到本地
-            const id = await dbAdd(user_id, {...dataOb})
-            dataOb.id = id
+            await dbAdd(user_id, {...dataOb})
 
             if (part.context) {
                 // 保存到本地

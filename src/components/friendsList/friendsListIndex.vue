@@ -396,8 +396,7 @@ async function handleUnread(isWsReconnect: Judge = 'No') {
     if (unRead.data[key].unread !== 0) {
       const chatList  = unRead.data[key].chat as Box[]
       for (const chat of chatList) {
-        const id = await dbAdd(key, chat)
-        chat.id = id
+        await dbAdd(key, chat)
         // await dbSetId(key, 'chat_id', chat.chat_id)
       }
 
@@ -506,6 +505,7 @@ async function initAI() {
                 to_id: '',  
                 ai_context: [],
                 user: 1,
+                time_id: Date.now() * -1,
             })
         } else {
             chatBox.value = res.slice(1)

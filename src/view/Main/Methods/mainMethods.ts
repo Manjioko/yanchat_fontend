@@ -6,9 +6,11 @@ import { ChatWindowStore } from "@/components/chatWindow/store"
 // import { Judge, Box, Friend } from "@/interface/global"
 import { dbReadRangeNotOffset } from "@/view/Main/Methods/indexDB"
 import { nextTick, watchEffect } from "vue"
+// import { scrollUpclock } from "@/components/sendFoot/Methods/index"
+// const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, imgLoadList } = storeToRefs(ChatWindowStore())
 // import { FriendsListStore } from "@/components/friendsList/store"
 
-const { scrollData, isLastChatList, chatBox, imgLoadList } = storeToRefs(ChatWindowStore())
+const { scrollData, isLastChatList, chatBox, imgLoadList,scrollUpLock, scrollDownLock } = storeToRefs(ChatWindowStore())
 const { freshTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
 const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
 // const {  } = storeToRefs(MainStore())
@@ -74,6 +76,10 @@ export async function handleGotoBottom() {
         scrollChatBoxToBottom()
         // console.log('直接到底部了')
     } else {
+        // 清除数据并且返回到底部时，应该把锁锁上
+        scrollUpLock.value = 'Locked'
+        scrollDownLock.value = 'Locked'
+
         chatBox.value = []
         const chatData: Box[] = []
         const chat_table = activeFriend.value.chat_table
@@ -84,6 +90,10 @@ export async function handleGotoBottom() {
         nextTick(() => {
             mediaDelayPosition(chatData, () => {
                 scrollChatBoxToBottom()
+
+                // 在这里把锁打开
+                scrollUpLock.value = 'UnLock'
+                scrollDownLock.value = 'UnLock'
             })
         })
     }

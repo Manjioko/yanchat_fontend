@@ -43,6 +43,8 @@ declare global {
         inaccessible?: boolean
         ai_context?: Array<any> // 用于存放ai的上下文
         show_menu?: boolean
+        server_id?: string
+        time_id?: number
     }
     // 好友信息
     interface Friend {
@@ -91,7 +93,8 @@ declare global {
         to_table: string
         chat_id: string
         pingpong: string
-        id: number // 这里应该是服务器数据库响应的 id
+        id?: number // 这里应该是服务器数据库响应的 id
+        server_id: string
     }
 
     // websocket 参数
@@ -106,9 +109,9 @@ declare global {
 
     // 位置
     interface Position {
-        first?: number
-        last?: number
-        use?: number
+        first: number
+        last: number
+        flex_length: number
     }
 
 

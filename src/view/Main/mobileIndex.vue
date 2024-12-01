@@ -1,5 +1,5 @@
 <template>
-     <div class="container">
+     <div class="mobile-container">
         <header v-show="tabActive === 'friend'" class="header-title">
             <div v-show="activeFriend.chat_table" @click="handleBack">
                 <el-icon>
@@ -91,7 +91,7 @@ function localClickAddFriend() {
 </script>
 
 <style scoped lang="scss">
-.container {
+.mobile-container {
     display: flex;
     flex-direction: column;
     height: 100%;

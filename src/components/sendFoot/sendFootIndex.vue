@@ -33,7 +33,15 @@
 
 
 
-            <el-input v-if="mobileMode" class="m-input" enterkeyhint="send" v-model="chatText" @keydown="handleMobileSend" />
+            <el-input
+                v-if="mobileMode"
+                class="m-input"
+                enterkeyhint="send"
+                v-model="chatText"
+                @keydown="handleMobileSend"
+                @focus="handleFocus"
+                @blur="handleBlur"
+            />
             <RichText v-else ref="richText" @rich-text-data="richTextData" @keydown="hdkeydown" />
 
             <!-- <div v-if="mobileMode" class="send-btn" @click="clickSendBtn()">
@@ -91,6 +99,7 @@ const { isShowGoToNewBtn: showGotoBottom, chatBoxCacheList } = storeToRefs(sfSto
 const { comment } = storeToRefs(CommentQuoteStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
 const { ws } = storeToRefs(MainStore())
+// import { handleGotoBottom } from '@/view/Main/Methods/mainMethods'
 
 
 defineProps({
@@ -115,6 +124,15 @@ function handleMobileSend(e: any) {
         e.preventDefault()
         sendMessage()
     }
+}
+
+function handleFocus() {
+    handleGotoBottom()
+    console.log('handleFocus')
+}
+
+function handleBlur() {
+    console.log('handleBlur')
 }
 
 
@@ -180,7 +198,8 @@ async function sendMessage(chatData?:Box) {
         to_table: '',
         to_id: '', 
         user_id: '',
-        loading: false
+        loading: false,
+        time_id: Date.now() * -1
     })
     if (comment.value) {
         dataOb.quote = comment.value
@@ -240,6 +259,7 @@ async function uploadFile(fileData:File) {
         to_table: '',
         to_id: '',
         user_id: '',
+        time_id: Date.now() * -1
         // loading: true
     })
 

@@ -12,31 +12,47 @@ export function saveChatWindowPosition() {
     const children = chatWindowStore.scrollData.chatListDiv?.children
     if (!children || !chatWindowRect || !chatWindowEl) return
     const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-    const canSaw: string | number [] = []
+    const canSaw: Box [] = []
     const ary = elementFilter(chatDivList, chatWindowEl)
     ary.forEach((el) => {
         const idx = el.dataset.checkIndex
         if (idx) {
-            const id = chatWindowStore.chatBox[Number(idx)]?.id
-            id && canSaw.push(id)
+            const time_id = chatWindowStore.chatBox[Number(idx)]?.time_id
+            time_id && canSaw.push(chatWindowStore.chatBox[Number(idx)])
         }
     })
 
+    // console.log('chatDivList -> ', ary, canSaw)
+
     if (!canSaw.length) return
 
-    const firstId = canSaw.shift()
-    const lastId = canSaw.pop()
+    let firstId = canSaw.shift()
+    let lastId = canSaw.pop()
 
-    if (!firstId ||  !lastId) {
+    if (firstId && !lastId) {
+        lastId = firstId
+    }
+    if (!firstId && lastId) {
+        firstId = lastId
+    }
+
+    if (!firstId && !lastId) {
         console.log('extendFirst 或 extendLast 不存在')
         // deleteActionFriendPositionData()
         clearActionFriendPositionData()
         return
     }
+
+    // flex_length 在不同长度的设备中和不同聊天记录的长度中，会表现出不同的长度
+    // 所以需要做一个基准处理，即使用px像素为准，并且测量出占长度最小的聊天记录
+    // 动态计算 flex_length 的长度,其中，最小的聊天记录为 64px
+    const windowHeight = chatWindowRect.height
+    const flex_length = Math.ceil(windowHeight / 64)
+
     const saveData: Position = {
-        first: Number(firstId) - Math.ceil(chatWindowStore.scrollSafeLength / 2),
-        last: Number(lastId) + Math.ceil(chatWindowStore.scrollSafeLength / 2),
-        use: Number(firstId)
+        first: firstId?.time_id || 0,
+        last: lastId?.time_id || 0,
+        flex_length
     }
 
     // 更新定位数据
