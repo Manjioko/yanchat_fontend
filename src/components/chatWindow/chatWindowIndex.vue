@@ -1,6 +1,6 @@
 <template>
   <div class="text-show" @click="handleClick">
-    <el-scrollbar ref="scrollBar" :size="10" @scroll="handleScroll">
+    <el-scrollbar class="scrollbar" ref="scrollBar" :size="10" @scroll="handleScroll">
       <div
         @contextmenu.prevent="handleMenu"
         data-menu-stop
@@ -616,5 +616,8 @@ function handleClick(e: any) {
 .not-padding {
   padding: 0 !important;
   background-color: unset !important;
+}
+:deep .el-scrollbar__wrap--hidden-default{
+  overscroll-behavior: none;
 }
 </style>

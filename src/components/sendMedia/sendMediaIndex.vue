@@ -305,7 +305,6 @@ const imgMenu = [
     { 
         label: "下载到本地", 
         onClick: () => {
-            console.log('xxxxx', mediaSrc.value)
             if (!mediaSrc.value) return
             // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
