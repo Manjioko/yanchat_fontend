@@ -168,6 +168,7 @@ const user_id = sessionStorage.getItem('user_id')
 const baseUrl = sessionStorage.getItem('baseUrl')
 
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
+// console.log('avatarSrc -> ', avatarSrc.value)
 watch(() => avatarRefresh.value, (val) => {
   if (val) {
     avatarSrc.value = val
@@ -263,6 +264,7 @@ function handleAvatar(ob: Box) {
   const baseUrl: string = sessionStorage.getItem('baseUrl') || ''
   if (baseUrl) {
     const imgUrl = `${baseUrl}/avatar/avatar_${ob.user_id}.jpg`
+    // console.log('imgUrl -> ', imgUrl)
     return imgUrl
   } else {
     console.log('baseUrl 不存在')

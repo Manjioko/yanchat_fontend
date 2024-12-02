@@ -10,7 +10,9 @@ import { nextTick, watchEffect } from "vue"
 // const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, imgLoadList } = storeToRefs(ChatWindowStore())
 // import { FriendsListStore } from "@/components/friendsList/store"
 
-const { scrollData, isLastChatList, chatBox, imgLoadList,scrollUpLock, scrollDownLock } = storeToRefs(ChatWindowStore())
+const { scrollData, isLastChatList, chatBox,
+    // imgLoadList,
+    scrollUpLock, scrollDownLock } = storeToRefs(ChatWindowStore())
 const { freshTextTip, activeFriend, userInfo } = storeToRefs(FriendsListStore())
 const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
 // const {  } = storeToRefs(MainStore())
@@ -88,38 +90,38 @@ export async function handleGotoBottom() {
         chatBox.value.unshift(...resChatData)
         // console.log('先加上，再到底部')
         nextTick(() => {
-            mediaDelayPosition(chatData, () => {
-                scrollChatBoxToBottom()
-
-                // 在这里把锁打开
-                scrollUpLock.value = 'UnLock'
-                scrollDownLock.value = 'UnLock'
-            })
+            // mediaDelayPosition(chatData, () => {
+            // })
+            // 在这里把锁打开
+            scrollChatBoxToBottom()
+            scrollUpLock.value = 'UnLock'
+            scrollDownLock.value = 'UnLock'
         })
+
     }
 }
 
 // 媒体文件延迟定位处理
-function mediaDelayPosition(chatData: Box[], cb: Function) {
-    chatData.forEach((d: Box) => {
-        if (d.type.includes('video') || d.type.includes('image')) {
-            if (!imgLoadList.value.includes(d.chat_id)) {
-                imgLoadList.value.push(d.chat_id)
-            }
-        }
-    })
+// function mediaDelayPosition(chatData: Box[], cb: Function) {
+//     chatData.forEach((d: Box) => {
+//         if (d.type.includes('video') || d.type.includes('image')) {
+//             if (!imgLoadList.value.includes(d.chat_id)) {
+//                 imgLoadList.value.push(d.chat_id)
+//             }
+//         }
+//     })
 
-    if (imgLoadList.value.length) {
-        const isAllLoadedStop = watchEffect(() => {
-            if (imgLoadList.value.length === 0) {
-                cb()
-                isAllLoadedStop()
-            }
-        })
-    } else {
-        cb()
-    }
-}
+//     if (imgLoadList.value.length) {
+//         const isAllLoadedStop = watchEffect(() => {
+//             if (imgLoadList.value.length === 0) {
+//                 cb()
+//                 isAllLoadedStop()
+//             }
+//         })
+//     } else {
+//         cb()
+//     }
+// }
 
 function handleChatData(data: Box[]): Box[] {
     return (

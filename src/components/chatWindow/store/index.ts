@@ -14,7 +14,7 @@ export interface ChatWindowState {
     scrollSafeLength: number
     chatBox: Box[] // 用户的聊天信息放在这里
     tips: Tips[],
-    imgLoadList: string[],
+    // imgLoadList: string[],
     showMenu?: boolean,
 }
 
@@ -31,7 +31,7 @@ export const ChatWindowStore = defineStore('components/chatWindow', {
         tips: [],
         reloadChatData: false,
         scrollSafeLength: 15,
-        imgLoadList: [],
+        // imgLoadList: [],
     }),
     actions: {
         setScrollBar(payload: any) {

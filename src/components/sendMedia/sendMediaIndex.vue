@@ -50,8 +50,17 @@
                 </el-progress>
             </div>
             <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
-            <img v-if="thumbnail" ref="video" :src="thumbnail" class="video-style" @load="loadEmit" @error="handleElImageErr">
-            <div v-else>视频加载出现了一些问题</div>
+            <section class="video-style">
+                <img
+                    v-if="thumbnail"
+                    ref="video"
+                    :src="thumbnail" 
+                    :style="{ width: '100%', height: '100%' }"
+                    @load="loadEmit"
+                    @error="handleElImageErr"
+                >
+                <div v-else>视频加载出现了一些问题</div>
+            </section>
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
             <div class="progress" v-if="progress && progress < 100">
@@ -63,20 +72,22 @@
                     </template>
                 </el-progress>
             </div>
-            <el-image
-                class="img-style"
-                ref="image"
-                :src="thumbnail"
-                :zoom-rate="1.2"
-                :preview-src-list="[mediaSrc]"
-                fit="cover"
-                @load="loadEmit"
-                @error="handleElImageErr"
-            >
-            <template #error>
-                <div v-if="destroy" class="image-slot"></div>
-            </template>
+            <section class="img-style">
+                <el-image
+                    ref="image"
+                    :src="thumbnail"
+                    :zoom-rate="1.2"
+                    :preview-src-list="[mediaSrc]"
+                    :style="{ width: '100%', height: '100%' }"
+                    fit="cover"
+                    @load="loadEmit"
+                    @error="handleElImageErr"
+                >
+                <template #error>
+                    <div v-if="destroy" class="image-slot"></div>
+                </template>
             </el-image>
+            </section>
         </div>
     </section>
 
@@ -163,28 +174,28 @@ watch(() => showVideo.value, (val) => {
 
 // emit 事件
 function loadEmit() {
-    // console.log('src -> ', props.response)
-    const chatWindowRect = scrollBar.value.wrapRef?.getBoundingClientRect()
-    if (!chatWindowRect) return
+    // // console.log('src -> ', props.response)
+    // const chatWindowRect = scrollBar.value.wrapRef?.getBoundingClientRect()
+    // if (!chatWindowRect) return
 
-    // 为了解决视频和图片在加载之初与加载完成后高度不同，导致聊天记录位置定位错乱的问题
-    // 使用 getBoundingClientRect 方法来获取元素的位置,然后与父元素的高度进行比较
-    // 就可以确定元素是否在聊天框的可视范围之内,如果在可视范围指南,则需要将元素加载后的高度
-    // 附加到父元素的 scrollTop 上，这样就可以解决定位错乱的问题
-    if (props.type.includes('video')) {
-        const videoRect = video?.value?.getBoundingClientRect()
-        if (!videoRect) return
-        if (videoRect.top > chatWindowRect.top) {
-            scrollBar.value.wrapRef.scrollTop += video.value.clientHeight
-        }
-    }
-    if (props.type.includes('image')) {
-        const imageRect = image.value.$el.getBoundingClientRect()
-        if (imageRect.top > chatWindowRect.top) {
-            scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight
-        }
-    }
-    emit('loaded', props.chatId)
+    // // 为了解决视频和图片在加载之初与加载完成后高度不同，导致聊天记录位置定位错乱的问题
+    // // 使用 getBoundingClientRect 方法来获取元素的位置,然后与父元素的高度进行比较
+    // // 就可以确定元素是否在聊天框的可视范围之内,如果在可视范围指南,则需要将元素加载后的高度
+    // // 附加到父元素的 scrollTop 上，这样就可以解决定位错乱的问题
+    // if (props.type.includes('video')) {
+    //     const videoRect = video?.value?.getBoundingClientRect()
+    //     if (!videoRect) return
+    //     if (videoRect.top > chatWindowRect.top) {
+    //         scrollBar.value.wrapRef.scrollTop += video.value.clientHeight
+    //     }
+    // }
+    // if (props.type.includes('image')) {
+    //     const imageRect = image.value.$el.getBoundingClientRect()
+    //     if (imageRect.top > chatWindowRect.top) {
+    //         scrollBar.value.wrapRef.scrollTop += image.value.$el.clientHeight
+    //     }
+    // }
+    // emit('loaded', props.chatId)
 }
 
 // const isVideoLoad = ref(false)
@@ -437,10 +448,12 @@ function handleElImageErr() {
         width: 1px;
     }
     .video-style {
-        max-width: calc(100% - 50px);
-        min-width: 150px;
-        max-height: 300px;
+        // max-width: calc(100% - 50px);
+        // min-width: 150px;
+        // max-height: 300px;
         // border-radius: 3px;
+        width: 200px;
+        height: 200px;
     }
     .stop-to-play {
         background-image: url('../../assets/play.png');
@@ -458,9 +471,11 @@ function handleElImageErr() {
         left: 50%;
     }
     .img-style {
-        max-width: 250px;
-        min-width: 150px;
+        // max-width: 250px;
+        // min-width: 150px;
         // border-radius: 3px;
+        width: 200px;
+        height: 200px;
     }
     .progress {
         position: absolute;

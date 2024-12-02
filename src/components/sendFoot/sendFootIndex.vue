@@ -229,7 +229,7 @@ function clickFileUpload(e: Event) {
     console.log('target.files -> ', target.files, target.files?.length)
     if (!target.files?.length) return
     let fileData = target.files[0]
-    console.log('fileData -> ', fileData)
+    // console.log('fileData -> ', fileData)
     uploadFile(fileData)
     // 清空 targt,不然上传同一个文件会没有反应
     target.value = ''

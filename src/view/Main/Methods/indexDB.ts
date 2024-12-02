@@ -74,7 +74,7 @@ export function dbAdd(tableName: String, data: Box):Promise<number> {
         if (data.id) {
             delete data.id
         }
-        console.log('data -> ', data)
+        // console.log('data -> ', data)
         const req = store.add(data)
 
         const saveId = (primaryKey: number) => {

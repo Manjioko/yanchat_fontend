@@ -22,7 +22,9 @@ import {
 } from '@/components/chatWindow/Methods/positionOperator'
 import * as API from '../api'
 
-const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, imgLoadList } = storeToRefs(ChatWindowStore())
+const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, 
+    // imgLoadList
+} = storeToRefs(ChatWindowStore())
 const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
 const { activeFriend, userInfo } = storeToRefs(FriendsListStore())
 // const { activeFriend } = storeToRefs(FriendsListStore())
@@ -68,36 +70,37 @@ async function handlePositionAfterFirstTimeGetChatData() {
         const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
         const div: HTMLElement = chatDivList[dataIndex]
         if (div) {
-            mediaDelayPosition(chatData, () => {
-                div.scrollIntoView()
-                // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
-                if (lastId && chatData.length && lastId === chatData[chatData.length - 1].time_id) {
-                    console.log('到底了 -> ', lastId)
-                    // 向下锁 锁死
-                    scrollDownLock.value = 'Locked'
-                    isLastChatList.value = 'Yes'
+            // mediaDelayPosition(chatData, () => {
+            // })
+            div.scrollIntoView()
+            // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
+            if (lastId && chatData.length && lastId === chatData[chatData.length - 1].time_id) {
+                console.log('到底了 -> ', lastId)
+                // 向下锁 锁死
+                scrollDownLock.value = 'Locked'
+                isLastChatList.value = 'Yes'
 
-                    if (!scrollData?.value?.el) return
+                if (!scrollData?.value?.el) return
 
-                    const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
-                    if (scrollTop + clientHeight < scrollHeight - 10) {
-                        // 用于显示 "回到最新" Tip 按钮
-                        isShowGoToNewBtn.value = 'Yes'
-                    }
-                } else {
-                    console.log('没有到底')
+                const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
+                if (scrollTop + clientHeight < scrollHeight - 10) {
+                    // 用于显示 "回到最新" Tip 按钮
                     isShowGoToNewBtn.value = 'Yes'
-                    scrollDownLock.value = 'UnLock'
                 }
-            })
+            } else {
+                console.log('没有到底')
+                isShowGoToNewBtn.value = 'Yes'
+                scrollDownLock.value = 'UnLock'
+            }
         }
     } else {
         console.log('没有定位信息')
         // 随便设置值，后期需要优化
-        mediaDelayPosition(chatData, () => {
-            scrollChatBoxToBottom()
-            isLastChatList.value = 'Yes'
-        })
+        // mediaDelayPosition(chatData, () => {
+            
+        // })
+        scrollChatBoxToBottom()
+        isLastChatList.value = 'Yes'
     }
 
     // 释放锁
@@ -187,26 +190,26 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
 }
 
 // 媒体文件延迟定位处理
-function mediaDelayPosition(chatData: Box[], cb: Function) {
-    chatData.forEach((d: Box) => {
-        if (d.type.includes('video') || d.type.includes('image')) {
-            if (!imgLoadList.value.includes(d.chat_id)) {
-                imgLoadList.value.push(d.chat_id)
-            }
-        }
-    })
+// function mediaDelayPosition(chatData: Box[], cb: Function) {
+//     chatData.forEach((d: Box) => {
+//         if (d.type.includes('video') || d.type.includes('image')) {
+//             if (!imgLoadList.value.includes(d.chat_id)) {
+//                 imgLoadList.value.push(d.chat_id)
+//             }
+//         }
+//     })
 
-    if (imgLoadList.value.length) {
-        const isAllLoadedStop = watchEffect(() => {
-            if (imgLoadList.value.length === 0) {
-                cb()
-                isAllLoadedStop()
-            }
-        })
-    } else {
-        cb()
-    }
-}
+//     if (imgLoadList.value.length) {
+//         const isAllLoadedStop = watchEffect(() => {
+//             if (imgLoadList.value.length === 0) {
+//                 cb()
+//                 isAllLoadedStop()
+//             }
+//         })
+//     } else {
+//         cb()
+//     }
+// }
 
 async function handlePositionAfterGetChatDataFromDown() {
     // if (!scrollDownLock) return
@@ -227,20 +230,20 @@ async function handlePositionAfterGetChatDataFromDown() {
     const resChatData = handleChatData(chatData || [])
     chatBox.value.push(...resChatData)
     nextTick(() => {
-        mediaDelayPosition(chatData, () => {
-            scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
-            if (!chatData.length || lastId === chatData[chatData.length - 1]?.time_id) {
-                console.log('donwn 到底了 ->', lastId)
-                isLastChatList.value = 'Yes'
-                scrollDownLock.value = 'Locked'
-                // deleteActionFriendPositionData()
+        // mediaDelayPosition(chatData, () => {
+        // })
+        scrollData.value.scrollBar.setScrollTop(tmpScrollTopValue)
+        if (!chatData.length || lastId === chatData[chatData.length - 1]?.time_id) {
+            console.log('donwn 到底了 ->', lastId)
+            isLastChatList.value = 'Yes'
+            scrollDownLock.value = 'Locked'
+            // deleteActionFriendPositionData()
 
-                // 滚动到底部时，应该负责关掉回到最新按钮
-                isShowGoToNewBtn.value = 'No'
-                isGetGoToNewSingle.value = 'No'
-                
-            }
-        })
+            // 滚动到底部时，应该负责关掉回到最新按钮
+            isShowGoToNewBtn.value = 'No'
+            isGetGoToNewSingle.value = 'No'
+            
+        }
     })
 
     // 释放锁
@@ -283,11 +286,11 @@ async function handlePositionAfterGetChatDataFromUp() {
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
         // console.log('scrollData 3 -> ', scrollData)
-        mediaDelayPosition(chatData, () => {
-            if (start_sp) {
-                scrollChatBoxToSomePosition(start_sp)
-            }
-        })
+        // mediaDelayPosition(chatData, () => {
+        // })
+        if (start_sp) {
+            scrollChatBoxToSomePosition(start_sp)
+        }
     })
 
     // 释放锁
