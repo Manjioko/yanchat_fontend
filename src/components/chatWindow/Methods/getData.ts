@@ -21,7 +21,7 @@ import {
     clearActionFriendPositionData
 } from '@/components/chatWindow/Methods/positionOperator'
 import * as API from '../api'
-import { elementFilter } from '@/components/chatWindow/Methods/savePosition'
+// import { elementFilter } from '@/components/chatWindow/Methods/savePosition'
 
 const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength,
     // imgLoadList
@@ -84,19 +84,19 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
                 if (!scrollData?.value?.el) return
 
-            const chatWindowEl = scrollData.value.scrollBar.wrapRef
-            // const children = scrollData.value.chatListDiv?.children
-            // const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-            // const canSaw: Box [] = []
-            const ary = elementFilter(chatDivList, chatWindowEl)
-            console.log('ary -> ', ary)
+                // const chatWindowEl = scrollData.value.scrollBar.wrapRef
+                // // const children = scrollData.value.chatListDiv?.children
+                // // const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+                // // const canSaw: Box [] = []
+                // const ary = elementFilter(chatDivList, chatWindowEl)
+                // console.log('ary -> ', ary)
 
-                if (lastId === chatData[chatData.length - 1].time_id) {
-                    // 滚动到底部时，应该负责关掉回到最新按钮
-                    isShowGoToNewBtn.value = 'No'
-                    scrollChatBoxToBottom()
-                    return
-                }
+                // if (lastId === chatData[chatData.length - 1].time_id) {
+                //     // 滚动到底部时，应该负责关掉回到最新按钮
+                //     isShowGoToNewBtn.value = 'No'
+                //     scrollChatBoxToBottom()
+                //     return
+                // }
 
                 const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
                 if (scrollTop + clientHeight < scrollHeight - 10) {
