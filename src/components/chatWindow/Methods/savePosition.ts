@@ -18,7 +18,13 @@ export function saveChatWindowPosition() {
         const idx = el.dataset.checkIndex
         if (idx) {
             const time_id = chatWindowStore.chatBox[Number(idx)]?.time_id
-            time_id && canSaw.push(chatWindowStore.chatBox[Number(idx)])
+            if (time_id) {
+                canSaw.push(chatWindowStore.chatBox[Number(idx)])
+                if (!chatWindowStore.elMap.has(el)) {
+                    chatWindowStore.elMap.set(el, JSON.parse(JSON.stringify(chatWindowStore.chatBox[Number(idx)])))
+                }
+            } 
+            
         }
     })
 
@@ -67,7 +73,7 @@ export function saveChatWindowPosition() {
 }
 
 
-function elementFilter(elList: HTMLElement[], container: HTMLElement): HTMLElement[] {
+export function elementFilter(elList: HTMLElement[], container: HTMLElement): HTMLElement[] {
     if (!elList.length) return []
     const { top, bottom } = container.getBoundingClientRect()
     const mid = elList.length === 1 ? 0 : Math.ceil(elList.length / 2)

@@ -16,6 +16,7 @@ export interface ChatWindowState {
     tips: Tips[],
     // imgLoadList: string[],
     showMenu?: boolean,
+    elMap: WeakMap<Element, Box>,
 }
 
 export const ChatWindowStore = defineStore('components/chatWindow', {
@@ -31,6 +32,7 @@ export const ChatWindowStore = defineStore('components/chatWindow', {
         tips: [],
         reloadChatData: false,
         scrollSafeLength: 15,
+        elMap: new WeakMap(),
         // imgLoadList: [],
     }),
     actions: {

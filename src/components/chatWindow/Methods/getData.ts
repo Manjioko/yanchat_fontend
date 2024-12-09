@@ -8,7 +8,7 @@ import { FriendsListStore } from "@/components/friendsList/store"
 import { ChatWindowStore } from "../store"
 // import { FriendsListStore } from "@/components/friendsList/store"
 import { storeToRefs } from "pinia"
-import { nextTick, watchEffect } from "vue"
+import { nextTick } from "vue"
 import {
     dbReadRange,
     dbReadRangeNotOffset,
@@ -21,8 +21,9 @@ import {
     clearActionFriendPositionData
 } from '@/components/chatWindow/Methods/positionOperator'
 import * as API from '../api'
+import { elementFilter } from '@/components/chatWindow/Methods/savePosition'
 
-const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, 
+const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength,
     // imgLoadList
 } = storeToRefs(ChatWindowStore())
 const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
@@ -74,6 +75,7 @@ async function handlePositionAfterFirstTimeGetChatData() {
             // })
             div.scrollIntoView()
             // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
+            console.log('lastId -> ', lastId,  chatData[chatData.length - 1],div)
             if (lastId && chatData.length && lastId === chatData[chatData.length - 1].time_id) {
                 console.log('到底了 -> ', lastId)
                 // 向下锁 锁死
@@ -82,10 +84,26 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
                 if (!scrollData?.value?.el) return
 
+            const chatWindowEl = scrollData.value.scrollBar.wrapRef
+            // const children = scrollData.value.chatListDiv?.children
+            // const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+            // const canSaw: Box [] = []
+            const ary = elementFilter(chatDivList, chatWindowEl)
+            console.log('ary -> ', ary)
+
+                if (lastId === chatData[chatData.length - 1].time_id) {
+                    // 滚动到底部时，应该负责关掉回到最新按钮
+                    isShowGoToNewBtn.value = 'No'
+                    scrollChatBoxToBottom()
+                    return
+                }
+
                 const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
                 if (scrollTop + clientHeight < scrollHeight - 10) {
+                    // console.log('hahahaahhaah')
                     // 用于显示 "回到最新" Tip 按钮
                     isShowGoToNewBtn.value = 'Yes'
+                    // scrollChatBoxToBottom()
                 }
             } else {
                 console.log('没有到底')
@@ -125,6 +143,7 @@ async function normalGetChatData(rollingDeriction: DESC) {
 }
 
 async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<FirstTimeGetChatDataFromDataBase> {
+    console.log('firstTimeGetChatDataFromDataBase -> ', time)
     // 将递归改成 for 方式，尽可能避免多次获取数据，导致内存溢出
     const chat_table = activeFriend.value.chat_table
     // 这个置空的情况不希望触发滚动事件
@@ -153,7 +172,7 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
                 scrollSafeLength.value
             )
         }
-        // console.log('获取聊天记录 首次获取 1 ->', chatData, position[mainStore.positionId].first, position[mainStore.positionId].last)
+        console.log('获取聊天记录 首次获取 1 ->', chatData)
         chatData.push(...data)
     } else {
         const data = await dbReadRangeNotOffset(
@@ -176,15 +195,12 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
     
     const resChatData = handleChatData(chatData || [])
 
-    console.log('resChatData ===', resChatData, firstId, lastId)
+    // console.log('resChatData ===', resChatData, firstId, lastId)
 
     chatBox.value.unshift(...resChatData)
     await nextTick()
-    // const lastId = await dbGetLastPrimaryKey(chat_table)
-
-    // console.log('获取聊天记录 首次获取 空 ->')
     return {
-        chatData: [],
+        chatData: resChatData || [],
         lastId
     }
 }
@@ -320,8 +336,19 @@ function handleChatData(data: Box[]): Box[] {
 
 function scrollChatBoxToSomePosition(start_sp: number) {
     const end_sp = scrollData.value.chatListDiv?.scrollHeight
+    const notTouchMove = (e:any) => {
+        e.preventDefault()
+    }
+    document.addEventListener('touchmove', notTouchMove, { passive: false })
     if (end_sp) {
-        scrollData.value.scrollBar.setScrollTop(end_sp - start_sp)
+        window.requestAnimationFrame(() => {
+            scrollData.value.scrollBar.setScrollTop(end_sp - start_sp)
+            nextTick(() => {
+                setTimeout(() => {
+                    document.removeEventListener('touchmove', notTouchMove)
+                }, 100);
+            })
+        })
     }
 }
 

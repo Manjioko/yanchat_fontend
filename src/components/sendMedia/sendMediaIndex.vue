@@ -406,7 +406,7 @@ async function getSource() {
     // }
 
     const src =`${sessionStorage.getItem('baseUrl')}/source/${props.response}`
-    console.log('src -> ', src, props.response)
+    // console.log('src -> ', src, props.response)
     options.value = [{
         type: props.type.includes('video') ? 'video/mp4' : props.type,
         src
