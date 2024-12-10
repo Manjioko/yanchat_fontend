@@ -21,6 +21,7 @@ import {
     clearActionFriendPositionData
 } from '@/components/chatWindow/Methods/positionOperator'
 import * as API from '../api'
+import { saveChatWindowPosition, VisualEl } from './savePosition'
 // import { elementFilter } from '@/components/chatWindow/Methods/savePosition'
 
 const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength,
@@ -71,11 +72,8 @@ async function handlePositionAfterFirstTimeGetChatData() {
         const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
         const div: HTMLElement = chatDivList[dataIndex]
         if (div) {
-            // mediaDelayPosition(chatData, () => {
-            // })
             div.scrollIntoView()
             // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
-            console.log('lastId -> ', lastId,  chatData[chatData.length - 1],div)
             if (lastId && chatData.length && lastId === chatData[chatData.length - 1].time_id) {
                 console.log('到底了 -> ', lastId)
                 // 向下锁 锁死
@@ -84,26 +82,30 @@ async function handlePositionAfterFirstTimeGetChatData() {
 
                 if (!scrollData?.value?.el) return
 
-                // const chatWindowEl = scrollData.value.scrollBar.wrapRef
-                // // const children = scrollData.value.chatListDiv?.children
-                // // const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-                // // const canSaw: Box [] = []
-                // const ary = elementFilter(chatDivList, chatWindowEl)
-                // console.log('ary -> ', ary)
+                // 数据到底的情况下，判断是否需要滚动到最后一个元素
+                saveChatWindowPosition()
+                const ve = new VisualEl()
+                const lastvisualEl =  ve.getLastEl()
+                let isNeedScrollBottom = false
 
-                // if (lastId === chatData[chatData.length - 1].time_id) {
-                //     // 滚动到底部时，应该负责关掉回到最新按钮
-                //     isShowGoToNewBtn.value = 'No'
-                //     scrollChatBoxToBottom()
-                //     return
-                // }
+                if (lastvisualEl) {
+                    const elMap = ve.getElMap()
+                    if (elMap.has(lastvisualEl)) {
+                        const data = elMap.get(lastvisualEl)
+                        if (data?.time_id && data?.time_id === lastId) {
+                            clearActionFriendPositionData()
+                            isNeedScrollBottom = true
+                            scrollChatBoxToBottom()
+                        }
+                    }
+                }
 
+                
+                // 数据到底的情况下，判断是否需要显示 "回到最新" 按钮
                 const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
-                if (scrollTop + clientHeight < scrollHeight - 10) {
-                    // console.log('hahahaahhaah')
+                if (scrollTop + clientHeight < scrollHeight - 10 && !isNeedScrollBottom) {
                     // 用于显示 "回到最新" Tip 按钮
                     isShowGoToNewBtn.value = 'Yes'
-                    // scrollChatBoxToBottom()
                 }
             } else {
                 console.log('没有到底')
@@ -112,11 +114,6 @@ async function handlePositionAfterFirstTimeGetChatData() {
             }
         }
     } else {
-        console.log('没有定位信息')
-        // 随便设置值，后期需要优化
-        // mediaDelayPosition(chatData, () => {
-            
-        // })
         scrollChatBoxToBottom()
         isLastChatList.value = 'Yes'
     }

@@ -267,8 +267,10 @@ async function uploadFile(fileData:File) {
     if (box.type.includes('video')) {
         try {
             const getURL = window.URL.createObjectURL(fileData)
-            const thumbnail = await getVideoBase64(getURL)
-            box.thumbnail = thumbnail
+            const thumData: Thumb = await getVideoBase64(getURL)
+            box.thumbnail = thumData.dataURL
+            box.thumbnail_width = thumData.width
+            box.thumbnail_height = thumData.height
         } catch (error) {
             console.log('error -> ', error)
         }
@@ -278,8 +280,10 @@ async function uploadFile(fileData:File) {
 
     if (box.type.includes('image')) {
         const getURL = window.URL.createObjectURL(fileData)
-        const thumbnail = await getImageBase64(getURL)
-        box.thumbnail = thumbnail
+        const thumData: Thumb = await getImageBase64(getURL)
+        box.thumbnail = thumData.dataURL
+        box.thumbnail_width = thumData.width
+        box.thumbnail_height = thumData.height
     }
 
     uploadSliceFile(fileData, function(err:any, progress:any, response:any) {

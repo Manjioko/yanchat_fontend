@@ -22,6 +22,8 @@ declare global {
         size?: number | string // 文件大小
         response?: string // 服务器返回值保存，一般来说都是文件名
         thumbnail?: string // 缩略图 base64 数据
+        thumbnail_width?: number // 缩略图宽度
+        thumbnail_height?: number // 缩略图高度
         destroy?: boolean // 时候已经上传失败， 1 是失败，0 是尚未上传完成或者上传成功
         src?: string // 文件远程路径
         type: string // 类型 
@@ -45,6 +47,7 @@ declare global {
         show_menu?: boolean
         server_id?: string
         time_id?: number
+
     }
     // 好友信息
     interface Friend {
@@ -168,5 +171,12 @@ declare global {
         scrollBar?: any,
         el?: HTMLElement,
         chatListDiv?: HTMLElement | null
+    }
+
+    // 媒体缩略图返回值格式
+    interface Thumb {
+        dataURL: string,
+        width: number,
+        height: number
     }
 }

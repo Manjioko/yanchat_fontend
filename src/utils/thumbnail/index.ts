@@ -1,4 +1,4 @@
-function getVideoBase64(url: string, compressRatio = 0.19): Promise<string> {
+function getVideoBase64(url: string, compressRatio = 0.19): Promise<Thumb> {
     return  new Promise ((resolve) => {
         //resolve是一个函数 将异步代码成功的结果传入即可
         //reject也是一个函数 是用来传入异步代码失败的自定义结果
@@ -41,13 +41,17 @@ function getVideoBase64(url: string, compressRatio = 0.19): Promise<string> {
             // 清除video标签
             video = null
             //将拿到的dataURL地址传入这个resolve函数 很重要 通过这个resolve函数，实例出来的对象调用then方法可以拿到这个resolve的结果
-            resolve(dataURL)//这resolve函数是用来传入异步代码成功的结果的
+            resolve({
+                dataURL,
+                width,
+                height
+            })//这resolve函数是用来传入异步代码成功的结果的
         })
     })
 }
 
 
-function getImageBase64(url: string, compressRatio = 0.3): Promise<string> {
+function getImageBase64(url: string, compressRatio = 0.3): Promise<Thumb> {
     return new Promise ((resolve) => {
         let dataURL = ""
         let image: HTMLImageElement | null = new Image()
@@ -75,8 +79,14 @@ function getImageBase64(url: string, compressRatio = 0.3): Promise<string> {
             // 清除image标签
             image = null
             //将拿到的dataURL地址传入这个resolve函数 很重要 通过这个resolve函数，实例出来的对象调用then方法可以拿到这个resolve的结果
-            resolve(dataURL)//这resolve函数是用来传入异步代码成功的结果的
+            // resolve(dataURL)
 
+            const resultData = {
+                dataURL,
+                width,
+                height
+            }
+            resolve(resultData)//这resolve函数是用来传入异步代码成功的结果的
         })
 
     })

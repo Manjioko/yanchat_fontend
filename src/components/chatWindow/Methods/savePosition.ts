@@ -21,6 +21,7 @@ export function saveChatWindowPosition() {
             if (time_id) {
                 canSaw.push(chatWindowStore.chatBox[Number(idx)])
                 if (!chatWindowStore.elMap.has(el)) {
+                    // 将当前窗口的元素信息进行缓存
                     chatWindowStore.elMap.set(el, JSON.parse(JSON.stringify(chatWindowStore.chatBox[Number(idx)])))
                 }
             } 
@@ -119,3 +120,55 @@ export function elementFilter(elList: HTMLElement[], container: HTMLElement): HT
     }
     return [...leftAry, ...rightAry]
 }
+
+
+export class VisualEl {
+    constructor() {
+        //
+    }
+
+    getFirstEl() {
+        const chatWindowRect = chatWindowStore.scrollData.scrollBar?.wrapRef?.getBoundingClientRect()
+        const chatWindowEl = chatWindowStore.scrollData.scrollBar.wrapRef
+        const children = chatWindowStore.scrollData.chatListDiv?.children
+        if (!children || !chatWindowRect || !chatWindowEl) return
+        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+        const ary = elementFilter(chatDivList, chatWindowEl)
+        return ary[0]
+    }
+
+    getLastEl() {
+        const chatWindowRect = chatWindowStore.scrollData.scrollBar?.wrapRef?.getBoundingClientRect()
+        const chatWindowEl = chatWindowStore.scrollData.scrollBar.wrapRef
+        const children = chatWindowStore.scrollData.chatListDiv?.children
+        if (!children || !chatWindowRect || !chatWindowEl) return
+        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+        const ary = elementFilter(chatDivList, chatWindowEl)
+        return ary[ary.length - 1]
+    }
+
+    getAllEl() {
+        const chatWindowRect = chatWindowStore.scrollData.scrollBar?.wrapRef?.getBoundingClientRect()
+        const chatWindowEl = chatWindowStore.scrollData.scrollBar.wrapRef
+        const children = chatWindowStore.scrollData.chatListDiv?.children
+        if (!children || !chatWindowRect || !chatWindowEl) return
+        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+        const ary = elementFilter(chatDivList, chatWindowEl)
+        return ary
+    }
+
+    getElByIndex(idx: number) {
+        const chatWindowRect = chatWindowStore.scrollData.scrollBar?.wrapRef?.getBoundingClientRect()
+        const chatWindowEl = chatWindowStore.scrollData.scrollBar.wrapRef
+        const children = chatWindowStore.scrollData.chatListDiv?.children
+        if (!children || !chatWindowRect || !chatWindowEl) return
+        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+        const ary = elementFilter(chatDivList, chatWindowEl)
+        return ary[idx]
+    }
+
+    getElMap() {
+        return chatWindowStore.elMap
+    }
+}
+
