@@ -10,14 +10,14 @@
                 :width="15"
             ></el-progress>
         </div>
-        <div class="media-icon" :class="{ 'media-icon-self': user === 1, 'media-icon-other': user === 0 }">
+        <div class="media-icon" :class="{ 'media-icon-self': chatData.user === 1, 'media-icon-other': chatData.user === 0 }">
             <span class="m-icon">
                 <el-icon @click="handleDownload"><Download /></el-icon>
             </span>
             <span class="m-icon">
                 <el-icon color="#f00" @click="handleDelete"><Delete /></el-icon>
             </span>
-            <span class="m-icon" v-if="user === 1">
+            <span class="m-icon" v-if="chatData.user === 1">
                 <el-icon @click="handleBack"><Back /></el-icon>
             </span>
             <span class="m-icon">
@@ -25,23 +25,23 @@
             </span>
         </div>
         <div
-            v-if="type.includes('video')"
+            v-if="chatData.type.includes('video')"
             class="video"
-            :class="{ 'video-self': user === 1, 'video-other': user === 0 }"
+            :class="{ 'video-self': chatData.user === 1, 'video-other': chatData.user === 0 }"
             @dblclick="doubleclick"
             @contextmenu.prevent="onContextMenu"
             data-menu-video
         >
-            <div :class="{'gray-background' : stopIconShow, 'not-allow': destroy }">
+            <div :class="{'gray-background' : stopIconShow, 'not-allow': chatData.destroy }">
                 <div
-                    v-if="progress >= 100 && stopIconShow && options.length"
+                    v-if="chatData.progress >= 100 && stopIconShow && options.length"
                     class="stop-to-play"
-                    :class="{ 'stop-to-play-self': user === 1, 'stop-to-play-other': user === 0 }"
+                    :class="{ 'stop-to-play-self': chatData.user === 1, 'stop-to-play-other': chatData.user === 0 }"
                 >
                 </div>
             </div>
-            <div class="progress" v-if="progress && progress < 100">
-                <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
+            <div class="progress" v-if="chatData.progress && chatData.progress < 100">
+                <el-progress type="circle" :percentage="chatData.progress || 0" color="#fff" :stroke-width="4" :width="50">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
                             <img src="../../assets/startUpload.png" alt="uploadingZipFile" width="6">
@@ -52,9 +52,9 @@
             <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
             <section class="video-style">
                 <img
-                    v-if="thumbnail"
+                    v-if="chatData.thumbnail"
                     ref="video"
-                    :src="thumbnail" 
+                    :src="chatData.thumbnail" 
                     :style="{ width: '100%', height: '100%' }"
                     @load="loadEmit"
                     @error="handleElImageErr"
@@ -63,8 +63,8 @@
             </section>
         </div>
         <div v-else class="img" @contextmenu.prevent="onContextMenuImg" data-menu-image>
-            <div class="progress" v-if="progress && progress < 100">
-                <el-progress type="circle" :percentage="progress || 0" color="#fff" :stroke-width="4" :width="50">
+            <div class="progress" v-if="chatData.progress && chatData.progress < 100">
+                <el-progress type="circle" :percentage="chatData.progress || 0" color="#fff" :stroke-width="4" :width="50">
                     <template #default="{ percentage }">
                         <div v-if="percentage" class="pr-text">
                             <img src="../../assets/startUpload.png" alt="uploadingZipFile" width="6">
@@ -75,7 +75,7 @@
             <section class="img-style">
                 <el-image
                     ref="image"
-                    :src="thumbnail"
+                    :src="chatData.thumbnail"
                     :zoom-rate="1.2"
                     :preview-src-list="[mediaSrc]"
                     :style="{ width: '100%', height: '100%' }"
@@ -84,7 +84,7 @@
                     @error="handleElImageErr"
                 >
                 <template #error>
-                    <div v-if="destroy" class="image-slot"></div>
+                    <div v-if="chatData.destroy" class="image-slot"></div>
                 </template>
             </el-image>
             </section>
@@ -106,28 +106,23 @@
     </section>
 
 </template>
-<script setup>
-import { defineProps, ref, defineEmits, inject, watch, nextTick } from 'vue'
+<script setup lang="ts">
+import { defineProps, ref, defineEmits, inject, watch, nextTick, PropType, Ref } from 'vue'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 import mediaDownload from '@/utils/download'
 import menu from '@/utils/contextMenu'
 import { Back, Download, Delete, Connection } from '@element-plus/icons-vue'
 const props = defineProps({
-    progress: Number,
-    type: String,
-    src: String,
-    response: String,
-    fileName: String,
-    dataIndex: Number,
-    user: Number,
-    thumbnail: String,
-    destroy: Boolean,
-    chatId: String
+    chatData: {
+        type: Object as PropType<Box>,
+        required: true
+    },
+    dataIndex: Number
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
-const scrollBar = inject('scrollBar')
+const scrollBar: any = inject('scrollBar')
 
 // 视频播放示意 icon
 // function handleIcon() {
@@ -143,17 +138,17 @@ const image = ref()
 // 用于点击时弹出视频
 const showVideo = ref(false)
 const mediaSrc = ref('')
-const downloadProgress = ref(null)
+const downloadProgress: Ref<number | null> = ref(null)
 
-const options = ref([])
+const options: Ref<any[]> = ref([])
 
-watch(() => downloadProgress.value, (val) => {
+watch(() => downloadProgress.value, (val: any) => {
     if (val >= 100) {
         downloadProgress.value = null
     }
 })
 
-watch(() => props.src, () => {
+watch(() => props.chatData.src, () => {
     getSource()
     // if (val) {
     //     getSource()
@@ -238,8 +233,8 @@ function doubleclick() {
 
 function handleDownload() {
     if (!options.value.length) return
-    const url = `/source/${props.response}`
-    mediaDownload(url, props.fileName, function(err, progress) {
+    const url = `/source/${props.chatData.response}`
+    mediaDownload(url, props.chatData.fileName || '', function(err: string, progress: number) {
         if (err) return downloadProgress.value = null
         downloadProgress.value = progress
         // console.log('downloadProgress -> ', downloadProgress.value)
@@ -264,8 +259,8 @@ const videoMenu = [
         label: "下载到本地", 
         onClick: () => {
             if (!options.value.length) return
-            const url = `/source/${props.response}`
-            mediaDownload(url, props.fileName, function(err, progress) {
+            const url = `/source/${props.chatData.response}`
+            mediaDownload(url, props.chatData.fileName || '', function(err:string, progress: number) {
                 if (err) return downloadProgress.value = null
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
@@ -308,9 +303,9 @@ const imgMenu = [
             if (!mediaSrc.value) return
             // const fileUrl = sessionStorage.getItem('baseUrl') + api.file 
             // const url = fileUrl.replace(/(.+\/).+/, (m, v) => v) + 'source/' + props.response
-            const url = `/source/${props.response}`
+            const url = `/source/${props.chatData.response}`
             console.log('url -> ', url)
-            mediaDownload(url, props.fileName,function(progress) {
+            mediaDownload(url, props.chatData.fileName || '',function(progress:number) {
                 downloadProgress.value = progress
                 // console.log('downloadProgress -> ', downloadProgress.value)
             })
@@ -337,10 +332,10 @@ const imgMenu = [
 ]
 
 // 菜单事件
-function onContextMenu(e) {
+function onContextMenu(e: any) {
     console.log('onContextMenu -> ', e)
     const menuList = [...videoMenu]
-    if (!props.user) {
+    if (!props.chatData.user) {
         const shouldRemoveMenus = ['撤回']
         // const shouldAddMenus = []
         for (const m of shouldRemoveMenus) {
@@ -350,7 +345,7 @@ function onContextMenu(e) {
             }
         }
     }
-    if (props.destroy) {
+    if (props.chatData.destroy) {
         const shouldRemoveMenus = ['下载到本地', '静音播放']
         for(const m of shouldRemoveMenus) {
             const idx = menuList.findIndex((item) => item.label === m)
@@ -361,9 +356,9 @@ function onContextMenu(e) {
     }
     menu(e, menuList)
 }
-function onContextMenuImg(e) {
+function onContextMenuImg(e: any) {
     const menuList = [...imgMenu]
-    if (!props.user) {
+    if (!props.chatData.user) {
         const shouldRemoveMenus = ['撤回']
         // const shouldAddMenus = []
         for (const m of shouldRemoveMenus) {
@@ -373,7 +368,7 @@ function onContextMenuImg(e) {
             }
         }
     }
-    if (props.destroy) {
+    if (props.chatData.destroy) {
         const shouldRemoveMenus = ['下载到本地']
         for(const m of shouldRemoveMenus) {
             const idx = menuList.findIndex((item) => item.label === m)
@@ -405,10 +400,10 @@ async function getSource() {
     //     mediaSrc.value = newUrl
     // }
 
-    const src =`${sessionStorage.getItem('baseUrl')}/source/${props.response}`
+    const src =`${sessionStorage.getItem('baseUrl')}/source/${props.chatData.response}`
     // console.log('src -> ', src, props.response)
     options.value = [{
-        type: props.type.includes('video') ? 'video/mp4' : props.type,
+        type: props.chatData.type.includes('video') ? 'video/mp4' : props.chatData.type,
         src
     }]
     mediaSrc.value = src
@@ -419,7 +414,7 @@ function handleElImageErr() {
     // 导致 <template #error> 在页面渲染后再出发,这样就会导致页面
     // 向下挤压一些像素(class image-slot 中的 height)
     // 所以需要将其拉回来,页面看起来才是正常的
-    if (props.type.includes('image'))  {
+    if (props.chatData.type.includes('image'))  {
         const chatWindowRect = scrollBar.value.wrapRef.getBoundingClientRect()
         const imageRect = image.value.$el.getBoundingClientRect()
         if (imageRect.top > chatWindowRect.top) {
