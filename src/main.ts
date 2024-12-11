@@ -99,9 +99,9 @@ window.onload = function() {
 
 
 function touchMove (event: any) {
-    console.log('手指移动到的位置 ====', event.target.className)
-    if (event.target.className && ['chat-box-local', 'chat-box-remote', 'video-style', 'video video-self', 'el-image__inner el-image__preview', 'pr-message'].includes(event.target.className)) {
-        return
-    }
+    // console.log('手指移动到的位置 ====', event.target.className)
+    // if (event.target.className && ['chat-box-local', 'chat-box-remote', 'video-style', 'video video-self', 'el-image__inner el-image__preview', 'pr-message'].includes(event.target.className)) {
+    //     return
+    // }
     event.preventDefault();
 }
