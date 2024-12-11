@@ -50,7 +50,12 @@
                 </el-progress>
             </div>
             <!-- <video :src="mediaSrc" class="video-style" ref="video" @click="stopVideo" /> -->
-            <section class="video-style">
+            <section
+                :style="{
+                    width: getMeidaWidth() + 'px',
+                    height: getMeidaHeight() + 'px',
+                }"
+            >
                 <img
                     v-if="chatData.thumbnail"
                     ref="video"
@@ -72,7 +77,12 @@
                     </template>
                 </el-progress>
             </div>
-            <section class="img-style">
+            <section
+                :style="{
+                    width: getMeidaWidth() + 'px',
+                    height: getMeidaHeight() + 'px',
+                }"
+            >
                 <el-image
                     ref="image"
                     :src="chatData.thumbnail"
@@ -118,7 +128,8 @@ const props = defineProps({
         type: Object as PropType<Box>,
         required: true
     },
-    dataIndex: Number
+    dataIndex: Number,
+    src: String,
 })
 const emit = defineEmits(['loaded', 'withdraw', 'deleted', 'quote'])
 // inject 
@@ -148,7 +159,7 @@ watch(() => downloadProgress.value, (val: any) => {
     }
 })
 
-watch(() => props.chatData.src, () => {
+watch(() => props.src, () => {
     getSource()
     // if (val) {
     //     getSource()
@@ -423,6 +434,41 @@ function handleElImageErr() {
             })
         }
     }
+}
+
+
+function getMeidaHeight(): number {
+    const { thumbnail_height } = props.chatData
+
+    if (thumbnail_height) {
+        let height = thumbnail_height
+        if (thumbnail_height > 300) {
+            height = 300
+        }
+        if (thumbnail_height < 50) {
+            height = 50
+        }
+        return height
+    }
+
+    return 150
+}
+
+function getMeidaWidth(): number {
+    const {  thumbnail_width } = props.chatData
+
+    if (thumbnail_width) {
+        let width = thumbnail_width
+        if (thumbnail_width > 200) {
+            width = 200
+        }
+        if (thumbnail_width < 50) {
+            width = 50
+        }
+        return width
+    }
+
+    return 150
 }
 
 </script>

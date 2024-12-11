@@ -315,8 +315,7 @@ async function handlePositionAfterGetChatDataFromUp() {
 
 function handleChatData(data: Box[]): Box[] {
     return (
-        data.map((i: Box) => {
-            // const chatOb = JSON.parse(i.chat)
+        data.filter(item => item).map((i: Box) => {
             if (userInfo.value.user_id === i.user_id) {
                 i.user = 1
             } else {
