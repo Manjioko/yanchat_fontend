@@ -37,3 +37,17 @@ export async function scrollEvent(val: { scrollTop: number }) {
         scrollAntiShakeFn('No', 'next')
     }
 }
+
+export function scrollEventMobile(position: string) {
+    if (position === 'top' && scrollUpLock.value === 'UnLock') {
+        console.log('滚到了顶部，需要获取数据了')
+        scrollAntiShakeFn('No', 'prev')
+    }
+    if (
+        position === 'bottom' &&
+        scrollDownLock.value === 'UnLock'
+    ) {
+        console.log('滚到了底部，需要获取数据了')
+        scrollAntiShakeFn('No', 'next')
+    }
+}

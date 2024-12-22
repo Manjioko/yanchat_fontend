@@ -1066,6 +1066,18 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
+"@better-scroll/core@^2.5.1":
+  version "2.5.1"
+  resolved "https://registry.npmmirror.com/@better-scroll/core/-/core-2.5.1.tgz#de53f089a2f53f51e58e5042556fe0d3e1655aa9"
+  integrity sha512-koKOuYA55dQ04FJRIVUpMGDr1hbCfWmfX0MGp1hKagkQSWSRpwblqACiwtggVauoj9aaJRJZ9hDsTM4weaavlg==
+  dependencies:
+    "@better-scroll/shared-utils" "^2.5.1"
+
+"@better-scroll/shared-utils@^2.5.1":
+  version "2.5.1"
+  resolved "https://registry.npmmirror.com/@better-scroll/shared-utils/-/shared-utils-2.5.1.tgz#ed6a1b5713462fa50afd8bb7d172ca218a0b7f2e"
+  integrity sha512-AplkfSjXVYP9LZiD6JsKgmgQJ/mG4uuLmBuwLz8W5OsYc7AYTfN8kw6GqZ5OwCGoXkVhBGyd8NeC4xwYItp0aw==
+
 "@ctrl/tinycolor@^3.4.1":
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/@ctrl/tinycolor/-/tinycolor-3.6.0.tgz#53fa5fe9c34faee89469e48f91d51a3766108bc8"

@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppSettingIndex: typeof import('./src/components/appSetting/appSettingIndex.vue')['default']
     ChatWindowIndex: typeof import('./src/components/chatWindow/chatWindowIndex.vue')['default']
+    ChatWindowIndex_bak: typeof import('./src/components/chatWindow/chatWindowIndex_bak.vue')['default']
     ComentQuoteIndex: typeof import('./src/components/comentQuote/comentQuoteIndex.vue')['default']
     EditMd: typeof import('./src/components/mobileSetting/components/editMd.vue')['default']
     EditMsg: typeof import('./src/components/mobileSetting/components/editMsg.vue')['default']
@@ -23,7 +24,6 @@ declare module 'vue' {
     ElOption: typeof import('element-plus/es')['ElOption']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElProgress: typeof import('element-plus/es')['ElProgress']
-    ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']

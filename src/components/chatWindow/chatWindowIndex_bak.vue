@@ -1,8 +1,6 @@
 <template>
   <div class="text-show" @click="handleClick">
-    <!-- <el-scrollbar class="scrollbar" ref="scrollBar" :size="10" @scroll="handleScroll">
-      </el-scrollbar> -->
-    <div class="wrap" ref="sb">
+    <el-scrollbar class="scrollbar" ref="scrollBar" :size="10" @scroll="handleScroll">
       <div
         @contextmenu.prevent="handleMenu"
         data-menu-stop
@@ -27,11 +25,7 @@
               />
               <div
                 class="chat-box-remote-message"
-                :class="{
-                  'not-padding':
-                    textObject.type.includes('video') ||
-                    textObject.type.includes('image')
-                }"
+                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }"
               >
                 <span class="chat-box-remote-message-text">
                   <div
@@ -41,18 +35,17 @@
                     data-menu-text
                     data-target-other
                     :data-index="idx"
-                  ></div>
+                  >
+                  </div>
                   <sendMedia
-                    v-else-if="
-                      textObject.type.includes('video') ||
-                      textObject.type.includes('image')
-                    "
+                    v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
                     :chat-data="textObject"
                     :src="handleSendMediaSrc(textObject)"
                     @withdraw="emitWithdraw"
                     @deleted="emitDeleted"
                     @quote="handleQuote"
                     @loaded="handleLoaded"
+
                   />
                   <sendFile
                     v-else
@@ -74,20 +67,12 @@
             </div>
           </div>
 
+
           <!-- 本人 -->
           <div class="chat-box-local" v-else>
             <!-- <div v-if="textObject.quote">{{ textObject.quote }}</div> -->
-            <img
-              v-if="textObject.loading"
-              src="../../assets/spinner1.svg"
-              class="spinner-style"
-              v-spinner="textObject"
-            />
-            <el-icon
-              v-if="textObject.inaccessible"
-              color="#f00"
-              class="message-warning"
-            >
+            <img v-if="textObject.loading" src="../../assets/spinner1.svg" class="spinner-style" v-spinner="textObject">
+            <el-icon v-if="textObject.inaccessible" color="#f00" class="message-warning">
               <WarningFilled />
             </el-icon>
 
@@ -103,61 +88,36 @@
                 @deleted="emitDeleted"
                 @quote="handleQuote"
               />
-              <span
-                class="chat-box-local-message"
-                :class="{
-                  'not-padding':
-                    textObject.type.includes('video') ||
-                    textObject.type.includes('image')
-                }"
-              >
-                <div
-                  v-if="textObject.type === 'text'"
-                  v-html="textToMarkdown(textObject.text)"
-                  class="chat-text"
-                  data-menu-text
-                  data-target-self
-                  :data-index="idx"
-                ></div>
+              <span class="chat-box-local-message"
+                :class="{ 'not-padding': textObject.type.includes('video') || textObject.type.includes('image') }">
+                <div v-if="textObject.type === 'text'" v-html="textToMarkdown(textObject.text)" class="chat-text"
+                  data-menu-text data-target-self :data-index="idx">
+                </div>
                 <sendMedia
-                  v-else-if="
-                    textObject.type.includes('video') ||
-                    textObject.type.includes('image')
-                  "
+                  v-else-if="textObject.type.includes('video') || textObject.type.includes('image')"
                   :chat-data="textObject"
                   :src="handleSendMediaSrc(textObject)"
                   :data-index="Number(idx)"
                   @withdraw="emitWithdraw"
                   @deleted="emitDeleted"
                   @quote="handleQuote"
-                  @loaded="handleLoaded"
-                />
-                <sendFile
-                  v-else
-                  :progress="textObject.progress"
-                  :type="textObject.type"
-                  :fileName="textObject.fileName"
-                  :size="textObject.size?.toString()"
-                  :response="textObject.response"
-                  :data-index="Number(idx)"
-                  :destroy="textObject.destroy"
-                  :user="textObject.user"
-                  @withdraw="emitWithdraw"
-                  @deleted="emitDeleted"
-                  @quote="handleQuote"
-                />
+                  @loaded="handleLoaded" />
+                <sendFile v-else :progress="textObject.progress" :type="textObject.type" :fileName="textObject.fileName"
+                  :size="textObject.size?.toString()" :response="textObject.response" :data-index="Number(idx)"
+                  :destroy="textObject.destroy" :user="textObject.user" @withdraw="emitWithdraw" @deleted="emitDeleted"
+                  @quote="handleQuote" />
               </span>
               <comentQuote v-if="textObject.quote" :quote="textObject.quote" />
             </div>
-            <img :src="avatarSrc" alt="其他" @error="handleSelfError" />
+            <img :src="avatarSrc" alt="其他" @error="handleSelfError">
           </div>
         </div>
       </div>
-    </div>
+    </el-scrollbar>
   </div>
 </template>
 <script setup lang="ts">
-import { defineExpose, ref, watch, provide, onMounted, nextTick, Ref } from 'vue'
+import { defineExpose, ref, watch, provide, onMounted } from 'vue'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import sendFile from '@/components/sendFile/sendFileIndex.vue'
@@ -169,7 +129,7 @@ import { ChatWindowStore } from './store'
 import { WarningFilled } from '@element-plus/icons-vue'
 // import { Box } from '@/interface/global'
 // import { ScrollData } from '@/interface/chatWindow'
-import { scrollEventMobile } from './Methods/scroll'
+import { scrollEvent } from './Methods/scroll'
 import { MainStore } from '@/view/Main/store'
 import { storeToRefs } from 'pinia'
 import { handleWithdraw, handleDeleted } from './Methods/withDraw'
@@ -178,7 +138,6 @@ import { handleLoadedEvent } from './Methods/mediaLoad'
 import { AppSettingStore } from '../appSetting/store'
 import { FriendsListStore } from '../friendsList/store'
 import IconMenuIndex from '../iconMenu/iconMenuIndex.vue'
-import BScroll from '@better-scroll/core'
 // import { dbSetId } from '@/view/Main/Methods/indexDB'
 
 const { isUseMd } = storeToRefs(MainStore())
@@ -187,8 +146,7 @@ const { avatarRefresh } = storeToRefs(AppSettingStore())
 const { activeFriend } = storeToRefs(FriendsListStore())
 
 const scrollBar = ref()
-const sb = ref()
-// let chatListDiv: HTMLElement | null = null
+let chatListDiv: HTMLElement | null = null
 provide('scrollBar', scrollBar)
 defineExpose({ scrollBar })
 // const emit = defineEmits(['loaded'])
@@ -197,49 +155,29 @@ const baseUrl = sessionStorage.getItem('baseUrl')
 
 const avatarSrc = ref(`${baseUrl}/avatar/avatar_${user_id}.jpg`)
 // console.log('avatarSrc -> ', avatarSrc.value)
-watch(
-  () => avatarRefresh.value,
-  val => {
-    if (val) {
-      avatarSrc.value = val
-    }
+watch(() => avatarRefresh.value, (val) => {
+  if (val) {
+    avatarSrc.value = val
   }
-)
+})
 
 const store = ChatWindowStore()
 const { chatBox } = storeToRefs(store)
-let chatListDiv:HTMLElement | null = null
-const scrollbar: Ref<any> = ref()
+// let chatListDiv:HTMLElement | null = null
 // 数据变动时,更新 scrollData
-const stopFirstWatch = watch(
-  () => chatBox.value?.length,
-  () => {
-    // console.log('这里没变吗', scrollBar.value.wrapRef.clientHeight, scrollBar.value.wrapRef.scrollHeight)
-    // updatedScrollData()
-    nextTick(() => {
-        const bs = new BScroll(sb.value, {
-            scrollY: true,
-            bounce: false,
-            probeType: 3,
-            click: true,
-            useTransition: false,
-        })
-        console.log('bs -> ', bs,sb.value)
-        scrollbar.value = bs
-        store.scrollBar = bs
-        bs.on('scroll', handleScroll)
-        stopFirstWatch()
-    })
-  }
-)
+watch(() => chatBox.value?.length, () => {
+  // console.log('这里没变吗', scrollBar.value.wrapRef.clientHeight, scrollBar.value.wrapRef.scrollHeight)
+  updatedScrollData()
+})
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
   // store.commit('chatWindow/setScrollBar', scrollBar.value)
+  store.scrollBar = scrollBar.value
   chatListDiv = document.querySelector('[data-chat-list]')
   // store.commit('chatWindow/setChatListEle', chatListDiv)
   store.chatListEle = chatListDiv
   // console.log('scrollBar -> ', scrollBar.value)
-//   updatedScrollData()
+  updatedScrollData()
 })
 
 const md = MarkdownIt({
@@ -250,7 +188,7 @@ const md = MarkdownIt({
       try {
         return hljs.highlight(str, { language: lang }).value
       } catch (__) {
-        //
+        // 
       }
     }
 
@@ -262,61 +200,32 @@ function textToMarkdown(text: string) {
 }
 
 // 更新滚动数据
-// function updatedScrollData() {
-//   if (scrollBar.value) {
-//     const s: ScrollData = {
-//       scrollBar: scrollBar.value,
-//       el: scrollBar.value.wrapRef,
-//       chatListDiv: chatListDiv
-//     }
-//     // store.commit('chatWindow/setScrollData', s)
-//     store.scrollData = s
-//   }
-// }
-function updatedScrollDataMobile() {
-    const s:ScrollData = {
-      scrollBar: {
-        setScrollTop: (top: number) => {
-          if (top > 0) {
-            scrollbar.value.scrollTo(0, -top, 0)
-          } else {
-            scrollbar.value.scrollTo(0, top, 0)
-          }
-        }
-      },
-      el: chatListDiv || undefined,
+function updatedScrollData() {
+  if (scrollBar.value) {
+    const s: ScrollData = {
+      scrollBar: scrollBar.value,
+      el: scrollBar.value.wrapRef,
       chatListDiv: chatListDiv
     }
     // store.commit('chatWindow/setScrollData', s)
     store.scrollData = s
+  }
+
 }
 
-function handleScroll(srcolldata: any) {
+function handleScroll(e: any) {
+
   if (typeof show_index === 'number' && chatBox.value[show_index]) {
     chatBox.value[show_index].show_menu = false
     show_index = null
   }
 
-  // updatedScrollData()
-  updatedScrollDataMobile()
-
+  updatedScrollData()
+  
   // 如果是ai聊天，不做滚动处理
   if (activeFriend.value.ai) return
 
-  // scrollEvent(e)
-  // scrollEventMobile('top')
-  const { y } = srcolldata
-  const maxScrollY = scrollbar.value.maxScrollY;
-  const minScrollY = scrollbar.value.minScrollY;
-  if (y === minScrollY) {
-    console.log('滚动到顶部');
-    scrollEventMobile('top')
-  }
-
-  if (y === maxScrollY) {
-    console.log('滚动到底部');
-  }
-  // console.log('scroll -> ', s)
+  scrollEvent(e)
 }
 
 // 自定义加载事件
@@ -332,7 +241,7 @@ const vSpinner = {
         el.remove()
       }
     }, 3000)
-  }
+  },
 }
 
 // let metaData
@@ -387,15 +296,16 @@ function handleMenu(e: any) {
   const node = handleDataSet(e.target)
   const menuText = [
     {
-      label: '复制',
+      label: "复制",
       onClick: () => {
         // console.log(window.getSelection().toString())
         console.log(navigator)
         const copyStr = window.getSelection()?.toString() || ''
         // 使用Clipboard API复制文本到剪贴板(浏览器限制,必须是 https 或者 localhost 才可以使用)
-        navigator?.clipboard?.writeText(copyStr).catch(error => {
-          console.log('复制失败 -> ', error)
-        })
+        navigator?.clipboard?.writeText(copyStr)
+          .catch((error) => {
+            console.log('复制失败 -> ', error);
+          })
       }
     },
     {
@@ -425,15 +335,13 @@ function handleMenu(e: any) {
         // emit('quote', index)
         handleQuoteEvent(index)
       }
-    }
+    },
   ]
-  if (
-    Object.prototype.hasOwnProperty.call(node?.dataset ?? {}, 'targetOther')
-  ) {
+  if (Object.prototype.hasOwnProperty.call(node?.dataset ?? {}, 'targetOther')) {
     const shouldRemoveMenus = ['撤回']
     // const shouldAddMenus = []
     for (const m of shouldRemoveMenus) {
-      const idx = menuText.findIndex(item => item.label === m)
+      const idx = menuText.findIndex((item) => item.label === m)
       if (idx > -1) {
         menuText.splice(idx, 1)
       }
@@ -476,7 +384,7 @@ function handleLoaded(chat_id: string) {
   handleLoadedEvent(chat_id)
 }
 
-let show_index: number | null = null
+let show_index:number | null = null
 
 function handleClick(e: any) {
   let index: number | null = null
@@ -513,23 +421,14 @@ function handleClick(e: any) {
 }
 </script>
 <style lang="scss" scoped>
-.wrap {
+
+::selection {
+  background: #ffcc00; /* 自定义选中背景颜色 */
+  color: #000;
+}
+:deep(.el-scrollbar__view) {
   height: 100%;
-  overflow: hidden;
 }
-.content {
-    height: auto;
-}
-// ::selection {
-//     background: #ffcc00;
-//     /* 自定义选中背景颜色 */
-//     color: #000;
-// }
-
-// :deep(.el-scrollbar__view) {
-//     height: 100%;
-// }
-
 .chat-box-remote {
   display: flex;
   align-items: center;
@@ -548,7 +447,7 @@ function handleClick(e: any) {
     box-sizing: border-box;
     padding: 10px;
     font-size: 14px;
-    background: #f8f8f8;
+    background: #F8F8F8;
     max-width: calc(100vw - 120px);
     // opacity: 0.5;
     border-radius: 10px 10px 10px 0px;
@@ -569,7 +468,7 @@ function handleClick(e: any) {
     margin: 0;
     white-space: pre-line;
 
-    & > code {
+    &>code {
       background: #fff;
       box-sizing: border-box;
       padding: 4px 10px;
@@ -592,7 +491,7 @@ function handleClick(e: any) {
     border-radius: 3px;
 
     &::after {
-      content: '';
+      content: "";
       width: 3px;
       top: 20%;
       height: 60%;
@@ -653,7 +552,7 @@ function handleClick(e: any) {
     box-sizing: border-box;
     padding: 10px;
     font-size: 14px;
-    background: #ebf3fe;
+    background: #EBF3FE;
     max-width: calc(100vw - 120px);
     border-radius: 10px 10px 0px 10px;
     user-select: text;
@@ -666,7 +565,7 @@ function handleClick(e: any) {
 }
 
 .text-show {
-//   touch-action: none;
+  touch-action: none;
   flex: 1;
   overflow: hidden;
   position: relative;
@@ -691,6 +590,7 @@ function handleClick(e: any) {
   flex-direction: column;
   align-items: flex-start;
   position: relative;
+
 }
 
 .message-warning {
@@ -700,11 +600,10 @@ function handleClick(e: any) {
 }
 
 .not-padding {
-    padding: 0 !important;
-    background-color: unset !important;
+  padding: 0 !important;
+  background-color: unset !important;
 }
-
-// :deep .el-scrollbar__wrap--hidden-default {
-//     overscroll-behavior: none;
-// }
+:deep .el-scrollbar__wrap--hidden-default{
+  overscroll-behavior: none;
+}
 </style>

@@ -24,7 +24,7 @@ import * as API from '../api'
 import { saveChatWindowPosition, VisualEl } from './savePosition'
 // import { elementFilter } from '@/components/chatWindow/Methods/savePosition'
 
-const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength,
+const { scrollData, boxScrollTop, isLastChatList, scrollUpLock, scrollDownLock, chatBox, scrollSafeLength, scrollBar
     // imgLoadList
 } = storeToRefs(ChatWindowStore())
 const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
@@ -291,16 +291,17 @@ async function handlePositionAfterGetChatDataFromUp() {
         chatData.push(...localData)
     }
     // chatData.push(...(await dbReadRange(chat_table, offset as number, 'next' as DESC)))
-    console.log('获取聊天记录 向上 -> ', chatData.length)
-
+    console.log('获取聊天记录 向上 -> ', chatData.length, scrollBar.value)
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
     const resChatData = handleChatData(chatData || [])
 
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
+        
         // console.log('scrollData 3 -> ', scrollData)
         // mediaDelayPosition(chatData, () => {
         // })
+        scrollBar.value.refresh()
         if (start_sp) {
             scrollChatBoxToSomePosition(start_sp)
         }
@@ -332,19 +333,9 @@ function handleChatData(data: Box[]): Box[] {
 
 function scrollChatBoxToSomePosition(start_sp: number) {
     const end_sp = scrollData.value.chatListDiv?.scrollHeight
-    const notTouchMove = (e:any) => {
-        e.preventDefault()
-    }
-    document.addEventListener('touchmove', notTouchMove, { passive: false })
     if (end_sp) {
-        window.requestAnimationFrame(() => {
-            scrollData.value.scrollBar.setScrollTop(end_sp - start_sp)
-            nextTick(() => {
-                setTimeout(() => {
-                    document.removeEventListener('touchmove', notTouchMove)
-                }, 100);
-            })
-        })
+        console.log('scrollChatBoxToSomePosition -> ', end_sp - start_sp, scrollBar.value.scrollerHeight + scrollBar.value.maxScrollY)
+        scrollData.value.scrollBar.setScrollTop(end_sp - start_sp)
     }
 }
 
