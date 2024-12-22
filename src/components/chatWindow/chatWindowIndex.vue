@@ -209,6 +209,7 @@ function updatedScrollData() {
     }
     // store.commit('chatWindow/setScrollData', s)
     store.scrollData = s
+    scrollBar.value.wrapRef.style.transform = 'translateZ(0)'
   }
 
 }
@@ -604,6 +605,8 @@ function handleClick(e: any) {
   background-color: unset !important;
 }
 :deep .el-scrollbar__wrap--hidden-default{
-  overscroll-behavior: none;
+  overscroll-behavior: contain;
+  will-change: transform,opacity, scroll-position;
+  // -webkit-overflow-scrolling: touch;
 }
 </style>

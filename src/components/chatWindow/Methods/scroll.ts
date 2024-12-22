@@ -1,4 +1,4 @@
-import debounce from '@/utils/debounce'
+import { throttle } from '@/utils/debounce'
 import { saveChatWindowPosition } from '@/components/chatWindow/Methods/savePosition'
 import { getChatFromServer } from '@/components/chatWindow/Methods/getData'
 import { ChatWindowStore } from '@/components/chatWindow/store'
@@ -9,11 +9,13 @@ const { scrollData, boxScrollTop, scrollUpLock, scrollDownLock } = storeToRefs(C
 
 const { searchTextLock } = storeToRefs(SearchTextStore())
 
-const scrollOffsetAntiShakeFn = debounce(saveChatWindowPosition, 500)
+const scrollOffsetAntiShakeFn = throttle(saveChatWindowPosition, 500)
 // 滚动条事件处理
 // 创建一个防抖实例函数
-const scrollAntiShakeFn = debounce(getChatFromServer)
+const scrollAntiShakeFn = throttle(getChatFromServer, 500)
+// const refreshPage = throttle(refreshFn, 50)
 export async function scrollEvent(val: { scrollTop: number }) {
+    boxScrollTop.value = val.scrollTop
     if (!scrollData.value?.el) {
         // console.log('scrollData 没值 -> ', scrollData.value)
         return
@@ -21,10 +23,9 @@ export async function scrollEvent(val: { scrollTop: number }) {
     // 搜索文字锁定状态下不允许滚动
     if (searchTextLock.value === 'Yes') return searchTextLock.value = 'No'
 
-    boxScrollTop.value = val.scrollTop
+    
     scrollOffsetAntiShakeFn()
-    // if (!scrollData.value?.el) return
-    if (Math.floor(val.scrollTop) === 0 && scrollUpLock.value === 'UnLock') {
+    if (Math.floor(val.scrollTop) < 300 && scrollUpLock.value === 'UnLock') {
         console.log('滚到了顶部，需要获取数据了')
         scrollAntiShakeFn('No', 'prev')
     }

@@ -268,8 +268,8 @@ async function handlePositionAfterGetChatDataFromDown() {
 
 // 获取数据后处理文件定位
 async function handlePositionAfterGetChatDataFromUp() {
-    // if (!scrollUpLock.value) return
 
+    if (scrollUpLock.value === 'Locked') return
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
     scrollUpLock.value = 'Locked'
@@ -291,20 +291,19 @@ async function handlePositionAfterGetChatDataFromUp() {
         chatData.push(...localData)
     }
     // chatData.push(...(await dbReadRange(chat_table, offset as number, 'next' as DESC)))
-    console.log('获取聊天记录 向上 -> ', chatData.length)
+    console.log('获取聊天记录 向上 -> ', chatData.length, scrollData.value.el?.scrollTop)
 
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
     const resChatData = handleChatData(chatData || [])
 
     chatBox.value.unshift(...resChatData)
-    nextTick(() => {
-        // console.log('scrollData 3 -> ', scrollData)
-        // mediaDelayPosition(chatData, () => {
-        // })
+
+    window.requestAnimationFrame(() => {
         if (start_sp) {
             scrollChatBoxToSomePosition(start_sp)
         }
     })
+    
 
     // 释放锁
     scrollUpLock.value = 'UnLock'
@@ -332,19 +331,23 @@ function handleChatData(data: Box[]): Box[] {
 
 function scrollChatBoxToSomePosition(start_sp: number) {
     const end_sp = scrollData.value.chatListDiv?.scrollHeight
-    const notTouchMove = (e:any) => {
-        e.preventDefault()
-    }
-    document.addEventListener('touchmove', notTouchMove, { passive: false })
     if (end_sp) {
+        
+        scrollData.value.scrollBar.setScrollTop(end_sp - start_sp +  boxScrollTop.value)
+        if (scrollData.value.el) {
+            scrollData.value.el.style.opacity = '0.99' 
+        }
         window.requestAnimationFrame(() => {
-            scrollData.value.scrollBar.setScrollTop(end_sp - start_sp)
-            nextTick(() => {
-                setTimeout(() => {
-                    document.removeEventListener('touchmove', notTouchMove)
-                }, 100);
-            })
+            scrollData.value.el && (scrollData.value.el.style.opacity = '1')
         })
+        if (scrollData.value.el && boxScrollTop.value < 0) {
+            scrollData.value.el.style.width = '100%'
+            if (scrollData.value.el.style.display ==='inline-block') {
+                scrollData.value.el.style.display = 'block'
+            } else {
+                scrollData.value.el.style.display = 'inline-block'
+            }
+        }
     }
 }
 
