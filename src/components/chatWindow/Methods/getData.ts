@@ -294,6 +294,9 @@ async function handlePositionAfterGetChatDataFromUp() {
     console.log('获取聊天记录 向上 -> ', chatData.length, scrollBar.value)
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
     const resChatData = handleChatData(chatData || [])
+    // 获取第一个元素
+    const ve = new VisualEl()
+    const firstvisualEl = ve.getFirstEl()
 
     chatBox.value.unshift(...resChatData)
     nextTick(() => {
@@ -302,8 +305,15 @@ async function handlePositionAfterGetChatDataFromUp() {
         // mediaDelayPosition(chatData, () => {
         // })
         scrollBar.value.refresh()
+
         if (start_sp) {
-            scrollChatBoxToSomePosition(start_sp)
+            // scrollChatBoxToSomePosition(start_sp)
+            if (firstvisualEl) {
+                scrollChatBoxToSomePositionByElement(firstvisualEl)
+                console.log('scrollChatBoxToSomePositionByElement -> ', firstvisualEl)
+            } else {
+                console.log('没有找到元素')
+            }
         }
     })
 
@@ -337,6 +347,17 @@ function scrollChatBoxToSomePosition(start_sp: number) {
         console.log('scrollChatBoxToSomePosition -> ', end_sp - start_sp, scrollBar.value.scrollerHeight + scrollBar.value.maxScrollY)
         scrollData.value.scrollBar.setScrollTop(end_sp - start_sp)
     }
+}
+
+function scrollChatBoxToSomePositionByElement(el: HTMLElement) {
+    console.log('触发了滚动事件', el.textContent, el)
+    // window.requestAnimationFrame(() => {
+    //     scrollData.value.scrollBar.setScrollTop(9999999)
+    // })
+    // scrollData.value.scrollBar.setScrollElement(el)
+    window.requestAnimationFrame(() => {
+        scrollData.value.scrollBar.setScrollElement(el)
+    })
 }
 
 

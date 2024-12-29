@@ -223,11 +223,16 @@ const stopFirstWatch = watch(
             probeType: 3,
             click: true,
             useTransition: false,
+            // mouseWheel: true,
+            // momentum: true,
+            // deceleration: 0.01,
         })
         console.log('bs -> ', bs,sb.value)
         scrollbar.value = bs
         store.scrollBar = bs
         bs.on('scroll', handleScroll)
+        bs.hooks.on('refresh', () => {
+        })
         stopFirstWatch()
     })
   }
@@ -282,7 +287,10 @@ function updatedScrollDataMobile() {
           } else {
             scrollbar.value.scrollTo(0, top, 0)
           }
-        }
+        },
+        setScrollElement: (el: HTMLElement) => {
+          scrollbar.value.scrollToElement(el)
+        },
       },
       el: chatListDiv || undefined,
       chatListDiv: chatListDiv

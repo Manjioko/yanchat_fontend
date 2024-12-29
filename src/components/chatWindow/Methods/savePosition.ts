@@ -128,12 +128,13 @@ export class VisualEl {
     }
 
     getFirstEl() {
-        const chatWindowRect = chatWindowStore.scrollData.scrollBar?.wrapRef?.getBoundingClientRect()
-        const chatWindowEl = chatWindowStore.scrollData.scrollBar.wrapRef
-        const children = chatWindowStore.scrollData.chatListDiv?.children
-        if (!children || !chatWindowRect || !chatWindowEl) return
-        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-        const ary = elementFilter(chatDivList, chatWindowEl)
+        console.log('chatWindowStore -> ', chatWindowStore.scrollBar)
+        const parentRect = chatWindowStore.scrollBar.content.getBoundingClientRect()
+        const parentEl = chatWindowStore.scrollBar.content
+        const children = chatWindowStore.scrollBar.content.children
+        if (!children || !parentRect || !parentEl) return
+        const childElList: HTMLElement[] = [...children] as HTMLElement[]
+        const ary = elementFilter(childElList, parentEl)
         return ary[0]
     }
 
