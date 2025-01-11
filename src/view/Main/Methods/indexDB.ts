@@ -79,7 +79,7 @@ export function dbAdd(tableName: String, data: Box):Promise<number> {
 
         const saveId = (primaryKey: number) => {
             try {
-                // console.log('primaryKey -> ', primaryKey, data)
+                console.log('primaryKey -> ', primaryKey, data)
                 const request = store.put({ ...data, time_id: primaryKey }, primaryKey)
                 request.onsuccess = (res: Event) => {
                     resolve(primaryKey)

@@ -60,66 +60,66 @@ interface FirstTimeGetChatDataFromDataBase {
     lastId: number | undefined
 }
 async function handlePositionAfterFirstTimeGetChatData() {
-    const { chatData, lastId }: FirstTimeGetChatDataFromDataBase =
-        await firstTimeGetChatDataFromDataBase()
-    const position:Position = getActionFriendPositionData()
-    if (position) {
-        const dataIndex = chatBox.value.findIndex(
-            item => item.time_id === position.first
-        )
-        const children = scrollData.value.chatListDiv?.children
-        if (dataIndex === -1 || !children) return
-        const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
-        const div: HTMLElement = chatDivList[dataIndex]
-        if (div) {
-            div.scrollIntoView()
-            // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
-            if (lastId && chatData.length && lastId === chatData[chatData.length - 1].time_id) {
-                console.log('到底了 -> ', lastId)
-                // 向下锁 锁死
-                scrollDownLock.value = 'Locked'
-                isLastChatList.value = 'Yes'
+    // const { chatData, lastId }: FirstTimeGetChatDataFromDataBase =
+    await firstTimeGetChatDataFromDataBase()
+    // const position:Position = getActionFriendPositionData()
+    // if (position) {
+    //     const dataIndex = chatBox.value.findIndex(
+    //         item => item.time_id === position.first
+    //     )
+    //     const children = scrollData.value.chatListDiv?.children
+    //     if (dataIndex === -1 || !children) return
+    //     const chatDivList: HTMLElement[] = [...children] as HTMLElement[]
+    //     const div: HTMLElement = chatDivList[dataIndex]
+    //     if (div) {
+    //         div.scrollIntoView()
+    //         // 这里虽然有定位信息,但如果获取的聊天记录时最后一个记录的话,需要锁住滚动获取数据,并把位置信息删除
+    //         if (lastId && chatData.length && lastId === chatData[chatData.length - 1].time_id) {
+    //             console.log('到底了 -> ', lastId)
+    //             // 向下锁 锁死
+    //             scrollDownLock.value = 'Locked'
+    //             isLastChatList.value = 'Yes'
 
-                if (!scrollData?.value?.el) return
+    //             if (!scrollData?.value?.el) return
 
-                // 数据到底的情况下，判断是否需要滚动到最后一个元素
-                saveChatWindowPosition()
-                const ve = new VisualEl()
-                const lastvisualEl =  ve.getLastEl()
-                let isNeedScrollBottom = false
+    //             // 数据到底的情况下，判断是否需要滚动到最后一个元素
+    //             saveChatWindowPosition()
+    //             const ve = new VisualEl()
+    //             const lastvisualEl =  ve.getLastEl()
+    //             let isNeedScrollBottom = false
 
-                if (lastvisualEl) {
-                    const elMap = ve.getElMap()
-                    if (elMap.has(lastvisualEl)) {
-                        const data = elMap.get(lastvisualEl)
-                        if (data?.time_id && data?.time_id === lastId) {
-                            clearActionFriendPositionData()
-                            isNeedScrollBottom = true
-                            scrollChatBoxToBottom()
-                        }
-                    }
-                }
+    //             if (lastvisualEl) {
+    //                 const elMap = ve.getElMap()
+    //                 if (elMap.has(lastvisualEl)) {
+    //                     const data = elMap.get(lastvisualEl)
+    //                     if (data?.time_id && data?.time_id === lastId) {
+    //                         clearActionFriendPositionData()
+    //                         isNeedScrollBottom = true
+    //                         scrollChatBoxToBottom()
+    //                     }
+    //                 }
+    //             }
 
                 
-                // 数据到底的情况下，判断是否需要显示 "回到最新" 按钮
-                const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
-                if (scrollTop + clientHeight < scrollHeight - 10 && !isNeedScrollBottom) {
-                    // 用于显示 "回到最新" Tip 按钮
-                    isShowGoToNewBtn.value = 'Yes'
-                }
-            } else {
-                console.log('没有到底')
-                isShowGoToNewBtn.value = 'Yes'
-                scrollDownLock.value = 'UnLock'
-            }
-        }
-    } else {
-        scrollChatBoxToBottom()
-        isLastChatList.value = 'Yes'
-    }
+    //             // 数据到底的情况下，判断是否需要显示 "回到最新" 按钮
+    //             const { scrollTop, clientHeight, scrollHeight } = scrollData.value.el
+    //             if (scrollTop + clientHeight < scrollHeight - 10 && !isNeedScrollBottom) {
+    //                 // 用于显示 "回到最新" Tip 按钮
+    //                 isShowGoToNewBtn.value = 'Yes'
+    //             }
+    //         } else {
+    //             console.log('没有到底')
+    //             isShowGoToNewBtn.value = 'Yes'
+    //             scrollDownLock.value = 'UnLock'
+    //         }
+    //     }
+    // } else {
+    //     scrollChatBoxToBottom()
+    //     isLastChatList.value = 'Yes'
+    // }
 
     // 释放锁
-    scrollUpLock.value = 'UnLock'
+    // scrollUpLock.value = 'UnLock'
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
     // 为什么要注释这里？因为新版可以通过服务器获取到对应更早的聊天记录了
@@ -133,9 +133,11 @@ async function normalGetChatData(rollingDeriction: DESC) {
         `向哪个方向处理 -> ${rollingDeriction === 'next' ? '向下' : '向上'}`
     )
     if (rollingDeriction === 'next') {
-        handlePositionAfterGetChatDataFromDown()
-    } else {
+        // handlePositionAfterGetChatDataFromDown()
         handlePositionAfterGetChatDataFromUp()
+    } else {
+        // handlePositionAfterGetChatDataFromUp()
+        // handlePositionAfterGetChatDataFromDown()
     }
 }
 
@@ -146,59 +148,68 @@ async function firstTimeGetChatDataFromDataBase(time: number = 5): Promise<First
     // 这个置空的情况不希望触发滚动事件
     // 因为这样会导致重复执行 getChatFromServer 函数
     chatBox.value = []
-    const actionFriendPostionData = getActionFriendPositionData()
+    // const actionFriendPostionData = getActionFriendPositionData()
     const chatData: Box[] = []
-    if (actionFriendPostionData) {
-        // 这里获取的数据可能为空，Position 记录的信息可能会被 `删除` `撤回` `数据库操作错误`
-        // 导致记录与实际情况有出入，所以这里获取为空时，需要尝试将 Position 信息删除，并从头获取
-        let data = []
-        data = await dbReadRangeByArea(
-            chat_table,
-            actionFriendPostionData.first,
-            actionFriendPostionData.last
-        )
+    // if (actionFriendPostionData) {
+    //     // 这里获取的数据可能为空，Position 记录的信息可能会被 `删除` `撤回` `数据库操作错误`
+    //     // 导致记录与实际情况有出入，所以这里获取为空时，需要尝试将 Position 信息删除，并从头获取
+    //     let data = []
+    //     data = await dbReadRangeByArea(
+    //         chat_table,
+    //         actionFriendPostionData.first,
+    //         actionFriendPostionData.last
+    //     )
 
-        // console.log('获取聊天记录 首次获取 0000 ->', data)
-        // 如果数据为空，尝试从头获取
-        if (data.length === 0) {
+    //     // console.log('获取聊天记录 首次获取 0000 ->', data)
+    //     // 如果数据为空，尝试从头获取
+    //     if (data.length === 0) {
             
-            clearActionFriendPositionData()
-            data = await dbReadRangeNotOffset(
-                chat_table,
-                'prev' as DESC,
-                scrollSafeLength.value
-            )
-        }
-        console.log('获取聊天记录 首次获取 1 ->', chatData)
-        chatData.push(...data)
-    } else {
-        const data = await dbReadRangeNotOffset(
-            chat_table,
-            'prev' as DESC,
-            scrollSafeLength.value
-        )
-        // console.log('获取聊天记录 首次获取 2 ->', chatData)
-        chatData.push(...data)
-    }
-    const lastId = await dbGetLastPrimaryKey(chat_table, 'next')
-    const firstId = await dbGetLastPrimaryKey(chat_table, 'prev')
+    //         clearActionFriendPositionData()
+    //         data = await dbReadRangeNotOffset(
+    //             chat_table,
+    //             'prev' as DESC,
+    //             scrollSafeLength.value
+    //         )
+    //     }
+    //     console.log('获取聊天记录 首次获取 1 ->', chatData)
+    //     chatData.push(...data)
+    // } else {
+    //     const data = await dbReadRangeNotOffset(
+    //         chat_table,
+    //         'prev' as DESC,
+    //         scrollSafeLength.value
+    //     )
+    //     // console.log('获取聊天记录 首次获取 2 ->', chatData)
+    //     chatData.push(...data)
+    // }
+    // const lastId = await dbGetLastPrimaryKey(chat_table, 'next')
+    // const firstId = await dbGetLastPrimaryKey(chat_table, 'prev')
 
-    if (!chatData.length || chatData[0].time_id === firstId) {
-        const server_id = chatData?.[0]?.server_id
-        const remoteData = await getChatDataFromRemote(chat_table, server_id)
-        chatData.unshift(...remoteData)
-        console.log('尝试从服务器获取聊天记录 -> ',server_id, remoteData)
-    }
+    // if (!chatData.length || chatData[0].time_id === firstId) {
+    //     const server_id = chatData?.[0]?.server_id
+    //     const remoteData = await getChatDataFromRemote(chat_table, server_id)
+    //     chatData.unshift(...remoteData)
+    //     console.log('尝试从服务器获取聊天记录 -> ',server_id, remoteData)
+    // }
+    const server_id = chatBox.value[0]?.server_id
+    console.log('尝试从服务器获取聊天记录 -> ',server_id)
+    const remoteData = await getChatDataFromRemote(chat_table, server_id)
+    chatData.unshift(...remoteData)
     
     const resChatData = handleChatData(chatData || [])
 
     // console.log('resChatData ===', resChatData, firstId, lastId)
 
-    chatBox.value.unshift(...resChatData)
+    chatBox.value.push(...resChatData.reverse())
     await nextTick()
+    window.requestAnimationFrame(() => {
+        console.log('nextTick -> ', scrollData.value.scrollBar.setScrollTop)
+        scrollData.value.scrollBar.setScrollTop(0)
+        scrollDownLock.value = 'UnLock'
+    })
     return {
         chatData: resChatData || [],
-        lastId
+        lastId: 0
     }
 }
 
@@ -269,47 +280,53 @@ async function handlePositionAfterGetChatDataFromDown() {
 // 获取数据后处理文件定位
 async function handlePositionAfterGetChatDataFromUp() {
 
-    if (scrollUpLock.value === 'Locked') return
+    if (scrollDownLock.value === 'Locked') return
     // 从服务器拉取聊天记录
     // 决定拉数据前，上锁，防止重复操作
-    scrollUpLock.value = 'Locked'
+    scrollDownLock.value = 'Locked'
 
     const chat_table = activeFriend.value.chat_table
-    const offset = chatBox.value?.[0]?.time_id
-    // 没有定位信息，就不要拉数据了
-    if (!offset) return console.log('没有定位信息，就不要拉数据了')
+    // const offset = chatBox.value?.[chatBox.value.length - 1]?.time_id
+    // // 没有定位信息，就不要拉数据了
+    // if (!offset) return console.log('没有定位信息，就不要拉数据了')
     const chatData: Box[] = []
-    const localData = await dbReadRange(chat_table, offset as number, 'next' as DESC)
-    if (!localData.length) {
-        const server_id = chatBox.value[0].server_id 
-        if (server_id) {
-            const remoteData = await getChatDataFromRemote(chat_table, server_id)
-            chatData.push(...remoteData)
-        }
+    // const localData = await dbReadRange(chat_table, offset as number, 'next' as DESC)
+    // if (!localData.length) {
+    //     const server_id = chatBox.value[0].server_id 
+    //     if (server_id) {
+    //         const remoteData = await getChatDataFromRemote(chat_table, server_id)
+    //         chatData.push(...remoteData)
+    //     }
         
-    } else {
-        chatData.push(...localData)
-    }
+    // } else {
+    //     chatData.push(...localData)
+    // }
     // chatData.push(...(await dbReadRange(chat_table, offset as number, 'next' as DESC)))
-    console.log('获取聊天记录 向上 -> ', chatData.length, scrollData.value.el?.scrollTop)
+    const server_id = chatBox.value[chatBox.value.length - 1].server_id 
+    if (server_id) {
+        const remoteData = await getChatDataFromRemote(chat_table, server_id)
+        chatData.push(...remoteData)
+    }
+    console.log('获取聊天记录 向上 -> ', chatData.length, JSON.parse(JSON.stringify(chatData)))
 
     const start_sp = scrollData.value.chatListDiv?.scrollHeight
     const resChatData = handleChatData(chatData || [])
 
-    chatBox.value.unshift(...resChatData)
+    chatBox.value.push(...resChatData.reverse())
+    console.log('chatBox.value -> ', chatBox.value.length, resChatData)
 
-    window.requestAnimationFrame(() => {
-        if (start_sp) {
-            scrollChatBoxToSomePosition(start_sp)
-        }
-    })
+    // window.requestAnimationFrame(() => {
+    //     if (start_sp) {
+    //         scrollChatBoxToSomePosition(start_sp)
+    //     }
+    // })
     
 
     // 释放锁
-    scrollUpLock.value = 'UnLock'
+    scrollDownLock.value = 'UnLock'
 
     // 如果聊天记录已经全部获取完毕后，需要上锁，防止再次无效获取
-    if (chatData?.length === 0) scrollUpLock.value = 'Locked'
+    if (chatData?.length === 0) scrollDownLock.value = 'Locked'
 }
 
 function handleChatData(data: Box[]): Box[] {
@@ -378,7 +395,7 @@ async function getChatDataFromRemote(chat_table: string, server_id: string = '0'
             }
             return d
         }).reverse()
-        saveRemoteDataToDataBase(result)
+        // saveRemoteDataToDataBase(result)
         return result
     }
     return []

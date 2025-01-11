@@ -19,15 +19,16 @@ const { isShowGoToNewBtn, isGetGoToNewSingle } = storeToRefs(FootSendStore())
 
 // 滚动聊天框到底部
 export function scrollChatBoxToBottom(start_sp?: number) {
-    const end_sp = scrollData.value.chatListDiv?.scrollHeight
-    end_sp
-    &&
-    scrollData.value.scrollBar.setScrollTop(
-        start_sp ? end_sp - start_sp : end_sp
-    )
-    // 滚动到底部时，应该负责关掉回到最新按钮
-    isShowGoToNewBtn.value = 'No'
-    isGetGoToNewSingle.value = 'No'
+    // const end_sp = scrollData.value.chatListDiv?.scrollHeight
+    // end_sp
+    // &&
+    // scrollData.value.scrollBar.setScrollTop(
+    //     start_sp ? end_sp - start_sp : end_sp
+    // )
+    // // 滚动到底部时，应该负责关掉回到最新按钮
+    // isShowGoToNewBtn.value = 'No'
+    // isGetGoToNewSingle.value = 'No'
+    scrollData.value.scrollBar.setScrollTop(0)
 }
 
 // 滚动聊天框到底部, 不关掉回到最新按钮
@@ -74,31 +75,32 @@ export function notifyToWindow(textOb: { text: any; user_id: any }) {
 }
 
 export async function handleGotoBottom() {
-    if (isLastChatList.value === 'Yes') {
-        scrollChatBoxToBottom()
-        // console.log('直接到底部了')
-    } else {
-        // 清除数据并且返回到底部时，应该把锁锁上
-        scrollUpLock.value = 'Locked'
-        scrollDownLock.value = 'Locked'
+    scrollChatBoxToBottom()
+    // if (isLastChatList.value === 'Yes') {
+    //     scrollChatBoxToBottom()
+    //     // console.log('直接到底部了')
+    // } else {
+    //     // 清除数据并且返回到底部时，应该把锁锁上
+    //     scrollUpLock.value = 'Locked'
+    //     scrollDownLock.value = 'Locked'
 
-        chatBox.value = []
-        const chatData: Box[] = []
-        const chat_table = activeFriend.value.chat_table
-        chatData.push(...(await dbReadRangeNotOffset(chat_table)))
-        const resChatData = handleChatData(chatData || [])
-        chatBox.value.unshift(...resChatData)
-        // console.log('先加上，再到底部')
-        nextTick(() => {
-            // mediaDelayPosition(chatData, () => {
-            // })
-            // 在这里把锁打开
-            scrollChatBoxToBottom()
-            scrollUpLock.value = 'UnLock'
-            scrollDownLock.value = 'UnLock'
-        })
+    //     chatBox.value = []
+    //     const chatData: Box[] = []
+    //     const chat_table = activeFriend.value.chat_table
+    //     chatData.push(...(await dbReadRangeNotOffset(chat_table)))
+    //     const resChatData = handleChatData(chatData || [])
+    //     chatBox.value.unshift(...resChatData)
+    //     // console.log('先加上，再到底部')
+    //     nextTick(() => {
+    //         // mediaDelayPosition(chatData, () => {
+    //         // })
+    //         // 在这里把锁打开
+    //         scrollChatBoxToBottom()
+    //         scrollUpLock.value = 'UnLock'
+    //         scrollDownLock.value = 'UnLock'
+    //     })
 
-    }
+    // }
 }
 
 // 媒体文件延迟定位处理

@@ -1,12 +1,12 @@
 <template>
   <div class="text-show" @click="handleClick">
-    <el-scrollbar class="scrollbar" ref="scrollBar" :size="10" @scroll="handleScroll">
+    <el-scrollbar  ref="scrollBar" :size="10" class="scrollbar" @scroll="handleScroll">
       <div
         @contextmenu.prevent="handleMenu"
         data-menu-stop
         data-chat-list
       >
-        <div v-for="(textObject, idx) in chatBox" :key="textObject.chat_id" :data-check-index="idx">
+        <div v-for="(textObject, idx) in chatBox" class="chat-box" :key="textObject.chat_id" :data-check-index="idx">
           <div v-if="handleTime(Number(idx))" class="show-time">{{ handleTime(Number(idx)) }}</div>
           <!-- 远程 -->
           <div class="chat-box-remote" v-if="textObject.user !== 1">
@@ -168,6 +168,12 @@ const { chatBox } = storeToRefs(store)
 watch(() => chatBox.value?.length, () => {
   // console.log('这里没变吗', scrollBar.value.wrapRef.clientHeight, scrollBar.value.wrapRef.scrollHeight)
   updatedScrollData()
+  console.log('xxxxvvvvvvv', scrollBar.value.wrapRef)
+  // scrollBar.value.wrapRef.addEventListener('wheel', (event:any) =>{
+  //   console.log('xxxxxx')
+  //   event.preventDefault(); // 阻止默认滚动
+  //   scrollContainer.scrollTop -= event.deltaY; // 手动调整方向
+  // }, { passive: true })
 })
 // 将 scrollBar 保存到 vuex
 onMounted(() => {
@@ -209,7 +215,7 @@ function updatedScrollData() {
     }
     // store.commit('chatWindow/setScrollData', s)
     store.scrollData = s
-    scrollBar.value.wrapRef.style.transform = 'translateZ(0)'
+    // scrollBar.value.wrapRef.style.transform = 'translateZ(0)'
   }
 
 }
@@ -608,5 +614,13 @@ function handleClick(e: any) {
   overscroll-behavior: contain;
   will-change: transform,opacity, scroll-position;
   // -webkit-overflow-scrolling: touch;
+  transform: rotate(180deg);
+  // direction: rtl;
+}
+:deep .el-scrollbar__bar {
+  transform: rotate(180deg);
+}
+.chat-box {
+  transform: rotate(180deg);
 }
 </style>

@@ -128,6 +128,7 @@ function handleMobileSend(e: any) {
 
 function handleFocus() {
     handleGotoBottom()
+    
     console.log('handleFocus')
 }
 

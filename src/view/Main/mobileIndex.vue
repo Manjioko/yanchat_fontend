@@ -106,6 +106,7 @@ function localClickAddFriend() {
     font-size: 18px;
     display: flex;
     border-bottom: 1px solid #f4f4f4;
+    top: 0;
     .header-title-text {
         flex: 1;
     }

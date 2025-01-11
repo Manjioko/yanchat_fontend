@@ -24,11 +24,15 @@ export async function scrollEvent(val: { scrollTop: number }) {
     if (searchTextLock.value === 'Yes') return searchTextLock.value = 'No'
 
     
-    scrollOffsetAntiShakeFn()
+    // scrollOffsetAntiShakeFn()
     if (Math.floor(val.scrollTop) < 300 && scrollUpLock.value === 'UnLock') {
         console.log('滚到了顶部，需要获取数据了')
         scrollAntiShakeFn('No', 'prev')
     }
+    if (val.scrollTop + scrollData.value.el.clientHeight + 5 >=
+        scrollData.value.el.scrollHeight) {
+            console.log('滚到了底部，需要获取数据了')
+        }
     if (
         val.scrollTop + scrollData.value.el.clientHeight + 5 >=
         scrollData.value.el.scrollHeight &&
